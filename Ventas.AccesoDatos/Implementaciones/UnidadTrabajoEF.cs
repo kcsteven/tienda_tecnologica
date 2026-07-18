@@ -1,0 +1,214 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Ventas.AccesoDatos.Contexto;
+using Ventas.Dominio.Entidades;
+using Ventas.Dominio.InterfacesAD;
+
+namespace Ventas.AccesoDatos.Implementaciones
+{
+    public class UnidadTrabajoEF : IUnidadTrabajoEF
+    {
+        #region "Atributos y Variables"
+
+        private VentasContext _Contexto { get; set; }
+
+        private IConfiguration _configuration { get; set; }
+
+        public UnidadTrabajoEF(VentasContext Contexto, IConfiguration configuration)
+        {
+            _Contexto = Contexto;
+            _configuration = configuration;
+        }
+
+        private IDbContextTransaction _transaction = null;
+
+        private RepositorioAD<Categorium> _TCategoria;
+        private RepositorioAD<Cliente> _TCliente;
+        private RepositorioAD<DetallesPedido> _TDetallePedido;
+        private RepositorioAD<Pedido> _TPedido;
+        private RepositorioAD<Producto> _TProducto;
+
+        private RepositorioAD<SegPantalla> _TSegPantalla;
+        private RepositorioAD<SegPerfil> _TSegPerfil;
+        private RepositorioAD<SegPerfilXpantalla> _TSegPerfilXpantalla;
+        private RepositorioAD<SegUsuario> _TSegUsuario;
+        private RepositorioAD<TipoCedula> _TTipoCedula;
+
+        #endregion
+        #region "Constructores"
+
+        public IRepositorioAD<Categorium> TCategoria
+        {
+            get
+            {
+                if (this._TCategoria == null)
+                {
+                    this._TCategoria = new RepositorioAD<Categorium>(_Contexto);
+                }
+                return _TCategoria;
+            }
+        }
+
+        public IRepositorioAD<Cliente> TCliente
+        {
+            get
+            {
+                if (this._TCliente == null)
+                {
+                    this._TCliente = new RepositorioAD<Cliente>(_Contexto);
+                }
+                return _TCliente;
+            }
+        }
+
+        public IRepositorioAD<DetallesPedido> TDetallePedido
+        {
+            get
+            {
+                if (this._TDetallePedido == null)
+                {
+                    this._TDetallePedido = new RepositorioAD<DetallesPedido>(_Contexto);
+                }
+                return _TDetallePedido;
+            }
+        }
+
+        public IRepositorioAD<Pedido> TPedido
+        {
+            get
+            {
+                if (this._TPedido == null)
+                {
+                    this._TPedido = new RepositorioAD<Pedido>(_Contexto);
+                }
+                return _TPedido;
+            }
+        }
+
+        public IRepositorioAD<Producto> TProducto
+        {
+            get
+            {
+                if (this._TProducto == null)
+                {
+                    this._TProducto = new RepositorioAD<Producto>(_Contexto);
+                }
+                return _TProducto;
+            }
+        }
+
+        public IRepositorioAD<SegPantalla> TSegPantalla
+        {
+            get
+            {
+                if (this._TSegPantalla == null)
+                {
+                    this._TSegPantalla = new RepositorioAD<SegPantalla>(_Contexto);
+                }
+                return _TSegPantalla;
+            }
+        }
+
+        public IRepositorioAD<SegPerfil> TSegPerfil
+        {
+            get
+            {
+                if (this._TSegPerfil == null)
+                {
+                    this._TSegPerfil = new RepositorioAD<SegPerfil>(_Contexto);
+                }
+                return _TSegPerfil;
+            }
+        }
+
+        public IRepositorioAD<SegPerfilXpantalla> TSegPerfilXpantalla
+        {
+            get
+            {
+                if (this._TSegPerfilXpantalla == null)
+                {
+                    this._TSegPerfilXpantalla = new RepositorioAD<SegPerfilXpantalla>(_Contexto);
+                }
+                return _TSegPerfilXpantalla;
+            }
+        }
+
+        public IRepositorioAD<SegUsuario> TSegUsuario
+        {
+            get
+            {
+                if (this._TSegUsuario == null)
+                {
+                    this._TSegUsuario = new RepositorioAD<SegUsuario>(_Contexto);
+                }
+                return _TSegUsuario;
+            }
+        }
+
+        public IRepositorioAD<TipoCedula> TTipoCedula
+        {
+            get
+            {
+                if (this._TTipoCedula == null)
+                {
+                    this._TTipoCedula = new RepositorioAD<TipoCedula>(_Contexto);
+                }
+                return _TTipoCedula;
+            }
+        }
+
+        public int Completar()
+        {
+            try
+            {
+                return _Contexto.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public void CompletarTran()
+        {
+            try
+            {
+                _Contexto.SaveChanges();
+                _transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                _transaction.Rollback();
+                throw ex;
+            }
+        }
+
+        public void EmpezarTransaccion()
+        {
+            _transaction = _Contexto.Database.BeginTransaction();
+        }
+
+        public void Rollback()
+        {
+            _transaction.Rollback();
+        }
+
+        public void CerrarConexion()
+        {
+            _Contexto.Database.CloseConnection();
+        }
+
+        public void Dispose()
+        {
+            _Contexto.Dispose();
+        }
+
+
+
+        #endregion
+    }
+}

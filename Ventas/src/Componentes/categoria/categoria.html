@@ -1,0 +1,86 @@
+<div class="bg-light dark:bg-transparent min-vh-100  align-items-center">
+  <c-container breakpoint="md">
+    <c-row class="justify-content-center">
+      <div class="row">
+        <div class="col-12 Titulo">
+          <h1>Mantenimiento de categorias</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-1"></div>
+        <div class="col-10">
+          <c-col lg="12" xl="12">
+            <c-card-group>
+              <c-card class="p-1">
+                <c-card-body>
+                  <div class="row">
+                    <div class="col">
+                      <form autocomplete="off" [formGroup]="myFormulario" (ngSubmit)="onGuardar()">
+                        <div class="row">
+
+                          <!-- Id Categoria -->
+                          <div class="col-2">
+                            <label class="col-sm-3 col-form-label">Id Categoria</label>
+                            <div class="col-sm-9">
+                              <input type="text"
+                                     class="form-control"
+                                     placeholder="Id Categoria"
+                                     formControlName="categoriaId" />
+
+                              @if ( formUtils.isValidField( myFormulario, 'categoriaId') ) {
+                              <span class="form-text text-danger">
+                                {{ formUtils.getFieldError(myFormulario, "categoriaId") }}
+                              </span>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Nombre Categoria -->
+                          <div class="col-7">
+                            <label class="col-sm-3 col-form-label">Nombre Categoria</label>
+                            <div class="col-sm-9">
+                              <input type="text"
+                                     class="form-control"
+                                     placeholder="Nombre Categoria"
+                                     formControlName="nombreCategoria" />
+
+                              @if ( formUtils.isValidField( myFormulario, 'nombreCategoria') ) {
+                              <span class="form-text text-danger">
+                                {{ formUtils.getFieldError(myFormulario, "nombreCategoria") }}
+                              </span>
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Activo -->
+                          <div class="col-2">
+                            <label class="col-sm-3 col-form-label">Activo</label>
+                            <div class="col-sm-9">
+                              <input type="checkbox"
+                                     class="form-check-input"
+                                     formControlName="activo" />
+
+                              @if ( formUtils.isValidField( myFormulario, 'activo') ) {
+                              <span class="form-text text-danger">
+                                {{ formUtils.getFieldError(myFormulario, "activo") }}
+                              </span>
+                              }
+                            </div>
+                          </div>
+
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </c-card-body>
+              </c-card>
+            </c-card-group>
+          </c-col>
+
+        </div>
+        <div class="col-1"></div>
+      </div>
+    </c-row>
+  </c-container>
+
+</div>

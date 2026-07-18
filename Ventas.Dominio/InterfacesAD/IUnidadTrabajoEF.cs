@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Ventas.Dominio.Entidades;
+
+namespace Ventas.Dominio.InterfacesAD
+{
+    public interface IUnidadTrabajoEF : IDisposable
+    {
+        IRepositorioAD<Categorium> TCategoria { get; }
+        IRepositorioAD<Producto> TProducto { get; }
+        IRepositorioAD<Cliente> TCliente { get; }
+        IRepositorioAD<Pedido> TPedido { get; }
+        IRepositorioAD<DetallesPedido> TDetallePedido { get; }
+        IRepositorioAD<SegPantalla> TSegPantalla { get; }
+        IRepositorioAD<SegPerfil> TSegPerfil { get; }
+        IRepositorioAD<SegPerfilXpantalla> TSegPerfilXpantalla { get; }
+        IRepositorioAD<SegUsuario> TSegUsuario { get; }
+        IRepositorioAD<TipoCedula> TTipoCedula { get; }
+        int Completar();
+        void CompletarTran();
+        void EmpezarTransaccion();
+        void Rollback();
+        void CerrarConexion();
+    }
+}

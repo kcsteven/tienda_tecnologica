@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="Ventas.AccesoDatos/Ventas.AccesoDatos.csproj" />
+  <Project Path="Ventas.API/Ventas.API.csproj" Id="8e5c5374-2d0d-454b-b68d-231dccf15aad" />
+  <Project Path="Ventas.Dominio/Ventas.Dominio.csproj" />
+  <Project Path="Ventas.LogicaNegocio/Ventas.LogicaNegocio.csproj" />
+  <Project Path="Ventas.Utilidades/Ventas.Utilidades.csproj" />
+  <Project Path="Ventas/Ventas.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
