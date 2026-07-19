@@ -6,6 +6,7 @@
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
     <!-- Folder where production build objects will be placed -->
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\Ventas\browser\</BuildOutputFolder>
+    <NpmInstallCommand>install --legacy-peer-deps</NpmInstallCommand>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="src\app\services\" />
