@@ -7,9 +7,9 @@ namespace Ventas.Dominio.InterfacesAD
 {
     public interface IUnidadTrabajoEF : IDisposable
     {
-        IRepositorioAD<Categorium> TCategoria { get; }
+        IRepositorioAD<Categoria> TCategoria { get; }
         IRepositorioAD<Producto> TProducto { get; }
-        IRepositorioAD<Cliente> TCliente { get; }
+        IRepositorioAD<Subcategoria> TSubcategoria { get; }
         IRepositorioAD<Pedido> TPedido { get; }
         IRepositorioAD<DetallesPedido> TDetallePedido { get; }
         IRepositorioAD<SegPantalla> TSegPantalla { get; }

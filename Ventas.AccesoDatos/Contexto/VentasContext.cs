@@ -16,9 +16,8 @@ public partial class VentasContext : DbContext
     {
     }
 
-    public virtual DbSet<Categorium> Categoria { get; set; }
-
-    public virtual DbSet<Cliente> Clientes { get; set; }
+    public virtual DbSet<Categoria> Categorias { get; set; }
+    public virtual DbSet<Subcategoria> Clientes { get; set; }
 
     public virtual DbSet<DetallesPedido> DetallesPedidos { get; set; }
 
@@ -45,52 +44,41 @@ public partial class VentasContext : DbContext
     {
         modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
-        modelBuilder.Entity<Categorium>(entity =>
+
+        modelBuilder.Entity<Categoria>(entity =>
         {
             entity.HasKey(e => e.CategoriaId);
+            entity.HasIndex(e => e.Nombre, "UQ_Categoria_Nombre").IsUnique();
 
-            entity.HasIndex(e => e.NombreCategoria, "UQ_Categoria_Nombre").IsUnique();
-
+            entity.Property(e => e.Nombre).HasMaxLength(150);
+            entity.Property(e => e.Descripcion).HasMaxLength(255);
             entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Categoria_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Categoria_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
             entity.Property(e => e.ActualizadoEn).HasPrecision(3);
             entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
-            entity.Property(e => e.CreadoEn)
-                .HasPrecision(3)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_Categoria_CreadoEn");
-            entity.Property(e => e.CreadoPor).HasMaxLength(50);
-            entity.Property(e => e.NombreCategoria).HasMaxLength(150);
-            entity.Property(e => e.RowVer)
-                .IsRowVersion()
-                .IsConcurrencyToken();
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
         });
 
-        modelBuilder.Entity<Cliente>(entity =>
+        modelBuilder.Entity<Subcategoria>(entity =>
         {
-            entity.HasIndex(e => e.Email, "UQ_Clientes_Email").IsUnique();
+            entity.HasKey(e => e.SubcategoriaId);
+            entity.HasIndex(e => e.CategoriaId, "IX_Subcategoria_CategoriaId");
 
-            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Clientes_Activo");
+            entity.Property(e => e.Nombre).HasMaxLength(150);
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Subcategoria_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Subcategoria_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
             entity.Property(e => e.ActualizadoEn).HasPrecision(3);
             entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
-            entity.Property(e => e.CreadoEn)
-                .HasPrecision(3)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_Clientes_CreadoEn");
-            entity.Property(e => e.CreadoPor).HasMaxLength(50);
-            entity.Property(e => e.Email).HasMaxLength(254);
-            entity.Property(e => e.FechaRegistro)
-                .HasPrecision(3)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_Clientes_FechaRegistro");
-            entity.Property(e => e.Nombre).HasMaxLength(100);
-            entity.Property(e => e.RowVer)
-                .IsRowVersion()
-                .IsConcurrencyToken();
-            entity.Property(e => e.Telefono).HasMaxLength(25);
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
 
-            entity.HasOne(d => d.TipoCedulaNavigation).WithMany(p => p.Clientes)
-                .HasForeignKey(d => d.TipoCedula)
+            entity.HasOne(d => d.Categoria).WithMany(p => p.Subcategorias)
+                .HasForeignKey(d => d.CategoriaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Clientes_TipoCedula");
+                .HasConstraintName("FK_Subcategoria_Categoria");
         });
-
+       
         modelBuilder.Entity<DetallesPedido>(entity =>
         {
             entity.HasKey(e => e.DetalleId);

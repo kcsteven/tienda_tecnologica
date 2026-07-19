@@ -7,20 +7,29 @@ namespace Ventas.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriaController : ControllerBase
+    public class SubcategoriaController : ControllerBase
     {
-        private ICategoriaLN _categoriaLN { get; }
+        private ISubcategoriaLN _subcategoriaLN { get; }
 
-        public CategoriaController(ICategoriaLN categoriaLN)
+        public SubcategoriaController(ISubcategoriaLN subcategoriaLN)
         {
-            _categoriaLN = categoriaLN;
+            _subcategoriaLN = subcategoriaLN;
         }
 
         [HttpGet("Listar")]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Listar()
         {
-            var resultado = await _categoriaLN.ListarAsync();
+            var resultado = await _subcategoriaLN.ListarAsync();
+            if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
+            return Ok(resultado);
+        }
+
+        [HttpGet("ListarPorCategoria/{categoriaId}")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ListarPorCategoria(int categoriaId)
+        {
+            var resultado = await _subcategoriaLN.ListarPorCategoriaAsync(categoriaId);
             if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
             return Ok(resultado);
         }
@@ -29,7 +38,7 @@ namespace Ventas.API.Controllers
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Obtener(int id)
         {
-            var resultado = await _categoriaLN.ObtenerAsync(new TCategoria { CategoriaId = id });
+            var resultado = await _subcategoriaLN.ObtenerAsync(new TSubcategoria { SubcategoriaId = id });
             if (!string.IsNullOrEmpty(resultado.Error)) return NotFound(resultado);
             return Ok(resultado);
         }
@@ -38,25 +47,25 @@ namespace Ventas.API.Controllers
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Buscar(string nombre)
         {
-            var resultado = await _categoriaLN.BuscarAsync(new TCategoria { Nombre = nombre });
+            var resultado = await _subcategoriaLN.BuscarAsync(new TSubcategoria { Nombre = nombre });
             if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
             return Ok(resultado);
         }
 
         [HttpPost("Insertar")]
-        public async Task<IActionResult> Insertar([FromBody] TCategoria categoria)
+        public async Task<IActionResult> Insertar([FromBody] TSubcategoria subcategoria)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var resultado = await _categoriaLN.InsertarAsync(categoria);
+            var resultado = await _subcategoriaLN.InsertarAsync(subcategoria);
             if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
             return Ok(resultado);
         }
 
         [HttpPut("Modificar")]
-        public async Task<IActionResult> Modificar([FromBody] TCategoria categoria)
+        public async Task<IActionResult> Modificar([FromBody] TSubcategoria subcategoria)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var resultado = await _categoriaLN.ModificarAsync(categoria);
+            var resultado = await _subcategoriaLN.ModificarAsync(subcategoria);
             if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
             return Ok(resultado);
         }
@@ -64,7 +73,7 @@ namespace Ventas.API.Controllers
         [HttpDelete("Eliminar/{id}")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            var resultado = await _categoriaLN.EliminarAsync(new TCategoria { CategoriaId = id });
+            var resultado = await _subcategoriaLN.EliminarAsync(new TSubcategoria { SubcategoriaId = id });
             if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
             return Ok(resultado);
         }

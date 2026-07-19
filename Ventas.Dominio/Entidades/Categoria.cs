@@ -3,33 +3,17 @@ using System.Collections.Generic;
 
 namespace Ventas.Dominio.Entidades;
 
-public partial class Cliente
+public partial class Categoria
 {
-    public int ClienteId { get; set; }
-
+    public int CategoriaId { get; set; }
     public string Nombre { get; set; } = null!;
-
-    public string? Email { get; set; }
-
-    public string? Telefono { get; set; }
-
-    public DateTime FechaRegistro { get; set; }
-
+    public string? Descripcion { get; set; }
     public bool Activo { get; set; }
-
     public DateTime CreadoEn { get; set; }
-
     public string? CreadoPor { get; set; }
-
     public DateTime? ActualizadoEn { get; set; }
-
     public string? ActualizadoPor { get; set; }
-
     public byte[] RowVer { get; set; } = null!;
 
-    public int TipoCedula { get; set; }
-
-    public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
-
-    public virtual TipoCedula TipoCedulaNavigation { get; set; } = null!;
+    public virtual ICollection<Subcategoria> Subcategorias { get; set; } = new List<Subcategoria>();
 }

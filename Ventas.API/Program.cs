@@ -72,7 +72,7 @@ builder.Services.AddScoped<IProductoLN, ProductoLN>();
 
 builder.Services.AddScoped<ProductoLN, ProductoLN>();
 builder.Services.AddScoped<PedidoLN, PedidoLN>();
-builder.Services.AddScoped<ClienteLN, ClienteLN>();
+builder.Services.AddScoped<SubcategoriaLN, SubcategoriaLN>();
 builder.Services.AddScoped<CategoriaLN, CategoriaLN>();
 
 

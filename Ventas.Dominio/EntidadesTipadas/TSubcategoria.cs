@@ -1,32 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Ventas.Dominio.EntidadesTipadas
 {
-    public class TCliente
+    public class TSubcategoria
     {
-        public int ClienteId { get; set; }
-
+        public int SubcategoriaId { get; set; }
+        public int CategoriaId { get; set; }
         public string Nombre { get; set; } = null!;
-
-        public string? Email { get; set; }
-
-        public string? Telefono { get; set; }
-
-        public DateTime FechaRegistro { get; set; }
-
         public bool Activo { get; set; }
-
         public DateTime CreadoEn { get; set; }
-
         public string? CreadoPor { get; set; }
-
         public DateTime? ActualizadoEn { get; set; }
-
         public string? ActualizadoPor { get; set; }
-
-        public int TipoCedula { get; set; }
-
     }
 }

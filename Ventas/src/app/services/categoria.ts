@@ -7,47 +7,26 @@ import { ICategoria } from '../model/ICategoria';
 
 const baseUrl = environment.baseUrl;
 
-@Injectable({
-  providedIn: 'root',
-})
-
+@Injectable({ providedIn: 'root' })
 export class CategoriaService {
   private http = inject(HttpClient);
 
   listar(): Observable<any> {
     return this.http.get<any>(`${baseUrl}/Categoria/Listar`);
   }
-
   obtener(id: number): Observable<any> {
     return this.http.get<any>(`${baseUrl}/Categoria/Obtener/${id}`);
   }
-
-  buscar(nombreCategoria: string): Observable<any> {
-    return this.http.get<any>(
-      `${baseUrl}/Categoria/Buscar`,
-      {
-        params: {
-          nombreCategoria
-        }
-      }
-    );
+  buscar(nombre: string): Observable<any> {
+    return this.http.get<any>(`${baseUrl}/Categoria/Buscar`, { params: { nombre } });
   }
-
   insertar(categoria: ICategoria): Observable<any> {
-    return this.http.post<any>(
-      `${baseUrl}/Categoria/Insertar`,
-      categoria
-    );
+    return this.http.post<any>(`${baseUrl}/Categoria/Insertar`, categoria);
   }
   modificar(categoria: ICategoria): Observable<any> {
-    return this.http.put<any>(
-      `${baseUrl}/Categoria/Modificar`,
-      categoria
-    );
+    return this.http.put<any>(`${baseUrl}/Categoria/Modificar`, categoria);
   }
   eliminar(id: number): Observable<any> {
-    return this.http.delete<any>(
-      `${baseUrl}/Categoria/Eliminar/${id}`
-    );
+    return this.http.delete<any>(`${baseUrl}/Categoria/Eliminar/${id}`);
   }
 }

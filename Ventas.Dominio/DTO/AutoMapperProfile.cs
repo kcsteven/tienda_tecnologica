@@ -14,8 +14,8 @@ namespace Ventas.Dominio.DTO
         public AutoMapperProfile() { 
         
             CreateMap<TPedido, Pedido>().ReverseMap();
-            CreateMap<TCategorium, Categorium>().ReverseMap();
-            CreateMap<TCliente, Cliente>().ReverseMap();
+            CreateMap<TCategoria, Categoria>().ReverseMap();
+            CreateMap<TSubcategoria, Subcategoria>().ReverseMap();
             CreateMap<TDetallePedido, DetallesPedido>().ReverseMap();
             CreateMap<TProducto, Producto>().ReverseMap();
         }

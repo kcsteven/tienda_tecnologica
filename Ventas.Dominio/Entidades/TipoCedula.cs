@@ -9,7 +9,7 @@ public partial class TipoCedula
 
     public string Descripcion { get; set; } = null!;
 
-    public virtual ICollection<Cliente> Clientes { get; set; } = new List<Cliente>();
+    public virtual ICollection<Subcategoria> Clientes { get; set; } = new List<Subcategoria>();
 
     public virtual ICollection<SegUsuario> SegUsuarios { get; set; } = new List<SegUsuario>();
 }

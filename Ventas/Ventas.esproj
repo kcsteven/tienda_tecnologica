@@ -8,7 +8,4 @@
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\Ventas\browser\</BuildOutputFolder>
     <NpmInstallCommand>install --legacy-peer-deps</NpmInstallCommand>
   </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="src\app\services\" />
-  </ItemGroup>
 </Project>

@@ -26,8 +26,8 @@ namespace Ventas.AccesoDatos.Implementaciones
 
         private IDbContextTransaction _transaction = null;
 
-        private RepositorioAD<Categorium> _TCategoria;
-        private RepositorioAD<Cliente> _TCliente;
+        private RepositorioAD<Categoria> _TCategoria;
+        private RepositorioAD<Subcategoria> _TSubcategoria;
         private RepositorioAD<DetallesPedido> _TDetallePedido;
         private RepositorioAD<Pedido> _TPedido;
         private RepositorioAD<Producto> _TProducto;
@@ -41,29 +41,31 @@ namespace Ventas.AccesoDatos.Implementaciones
         #endregion
         #region "Constructores"
 
-        public IRepositorioAD<Categorium> TCategoria
+        public IRepositorioAD<Categoria> TCategoria
         {
             get
             {
                 if (this._TCategoria == null)
                 {
-                    this._TCategoria = new RepositorioAD<Categorium>(_Contexto);
+                    this._TCategoria = new RepositorioAD<Categoria>(_Contexto);
                 }
                 return _TCategoria;
             }
         }
 
-        public IRepositorioAD<Cliente> TCliente
+        public IRepositorioAD<Subcategoria> TSubcategoria
         {
             get
             {
-                if (this._TCliente == null)
+                if (this._TSubcategoria == null)
                 {
-                    this._TCliente = new RepositorioAD<Cliente>(_Contexto);
+                    this._TSubcategoria = new RepositorioAD<Subcategoria>(_Contexto);
                 }
-                return _TCliente;
+                return _TSubcategoria;
             }
         }
+
+       
 
         public IRepositorioAD<DetallesPedido> TDetallePedido
         {
@@ -206,8 +208,6 @@ namespace Ventas.AccesoDatos.Implementaciones
         {
             _Contexto.Dispose();
         }
-
-
 
         #endregion
     }
