@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using Ventas.AccesoDatos.Contexto;
 using Ventas.Dominio.Entidades;
+using Ventas.Dominio.EntidadesTipadas;
 using Ventas.Dominio.InterfacesAD;
 
 namespace Ventas.AccesoDatos.Implementaciones
@@ -37,6 +38,8 @@ namespace Ventas.AccesoDatos.Implementaciones
         private RepositorioAD<SegPerfilXpantalla> _TSegPerfilXpantalla;
         private RepositorioAD<SegUsuario> _TSegUsuario;
         private RepositorioAD<TipoCedula> _TTipoCedula;
+        private RepositorioAD<Marca> _TMarca;
+        private RepositorioAD<Proveedor> _TProveedor;
 
         #endregion
         #region "Constructores"
@@ -163,6 +166,26 @@ namespace Ventas.AccesoDatos.Implementaciones
             }
         }
 
+        public IRepositorioAD<Marca> TMarca
+        {
+            get
+            {
+                if (this._TMarca == null)
+                    this._TMarca = new RepositorioAD<Marca>(_Contexto);
+                return _TMarca;
+            }
+        }
+
+        public IRepositorioAD<Proveedor> TProveedor
+        {
+            get
+            {
+                if (this._TProveedor == null)
+                    this._TProveedor = new RepositorioAD<Proveedor>(_Contexto);
+                return _TProveedor;
+            }
+        }
+
         public int Completar()
         {
             try
@@ -174,6 +197,7 @@ namespace Ventas.AccesoDatos.Implementaciones
                 throw ex;
             }
         }
+
 
         public void CompletarTran()
         {

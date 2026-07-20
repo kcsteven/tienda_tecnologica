@@ -17,6 +17,9 @@ namespace Ventas.Dominio.InterfacesAD
         IRepositorioAD<SegPerfilXpantalla> TSegPerfilXpantalla { get; }
         IRepositorioAD<SegUsuario> TSegUsuario { get; }
         IRepositorioAD<TipoCedula> TTipoCedula { get; }
+
+        IRepositorioAD<Marca> TMarca { get; }
+        IRepositorioAD<Proveedor> TProveedor { get; }
         int Completar();
         void CompletarTran();
         void EmpezarTransaccion();

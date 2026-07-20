@@ -18,6 +18,8 @@ namespace Ventas.Dominio.DTO
             CreateMap<TSubcategoria, Subcategoria>().ReverseMap();
             CreateMap<TDetallePedido, DetallesPedido>().ReverseMap();
             CreateMap<TProducto, Producto>().ReverseMap();
+            CreateMap<TMarca, Marca>().ReverseMap();
+            CreateMap<TProveedor, Proveedor>().ReverseMap();
         }
 
 

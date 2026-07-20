@@ -17,8 +17,9 @@ public partial class VentasContext : DbContext
     }
 
     public virtual DbSet<Categoria> Categorias { get; set; }
-    public virtual DbSet<Subcategoria> Clientes { get; set; }
+    public virtual DbSet<Subcategoria> Subcategorias { get; set; }
 
+    public virtual DbSet<Cliente> Clientes { get; set; }
     public virtual DbSet<DetallesPedido> DetallesPedidos { get; set; }
 
     public virtual DbSet<Pedido> Pedidos { get; set; }
@@ -34,6 +35,9 @@ public partial class VentasContext : DbContext
     public virtual DbSet<SegUsuario> SegUsuarios { get; set; }
 
     public virtual DbSet<TipoCedula> TipoCedulas { get; set; }
+
+    public virtual DbSet<Marca> Marcas { get; set; }
+    public virtual DbSet<Proveedor> Proveedores { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
 
@@ -251,6 +255,37 @@ public partial class VentasContext : DbContext
 
             entity.Property(e => e.TipoCedula1).HasColumnName("TipoCedula");
             entity.Property(e => e.Descripcion).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Marca>(entity =>
+        {
+            entity.HasKey(e => e.MarcaId);
+            entity.HasIndex(e => e.Nombre, "UQ_Marca_Nombre").IsUnique();
+
+            entity.Property(e => e.Nombre).HasMaxLength(100);
+            entity.Property(e => e.PaisOrigen).HasMaxLength(100);
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Marca_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Marca_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
+            entity.Property(e => e.ActualizadoEn).HasPrecision(3);
+            entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<Proveedor>(entity =>
+        {
+            entity.HasKey(e => e.ProveedorId);
+            entity.HasIndex(e => e.Nombre, "UQ_Proveedor_Nombre").IsUnique();
+
+            entity.Property(e => e.Nombre).HasMaxLength(100);
+            entity.Property(e => e.Telefono).HasMaxLength(20);
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Proveedor_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Proveedor_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
+            entity.Property(e => e.ActualizadoEn).HasPrecision(3);
+            entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
         });
 
         OnModelCreatingPartial(modelBuilder);
