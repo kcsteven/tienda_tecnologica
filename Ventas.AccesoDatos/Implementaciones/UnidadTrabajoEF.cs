@@ -40,6 +40,7 @@ namespace Ventas.AccesoDatos.Implementaciones
         private RepositorioAD<TipoCedula> _TTipoCedula;
         private RepositorioAD<Marca> _TMarca;
         private RepositorioAD<Proveedor> _TProveedor;
+        private RepositorioAD<Cliente> _TCliente;
 
         #endregion
         #region "Constructores"
@@ -68,7 +69,15 @@ namespace Ventas.AccesoDatos.Implementaciones
             }
         }
 
-       
+        public IRepositorioAD<Cliente> TCliente
+        {
+            get
+            {
+                if (this._TCliente == null)
+                    this._TCliente = new RepositorioAD<Cliente>(_Contexto);
+                return _TCliente;
+            }
+        }
 
         public IRepositorioAD<DetallesPedido> TDetallePedido
         {

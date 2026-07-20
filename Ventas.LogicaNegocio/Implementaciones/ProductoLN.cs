@@ -77,6 +77,36 @@ namespace Ventas.LogicaNegocio.Implementaciones
 
                 }
 
+                var subcategoria =
+                    await _unidadDeTrabajo.TSubcategoria.ObtenerEntidadAsync(
+                        x => x.SubcategoriaId == datos.SubcategoriaId);
+
+                if (subcategoria.Data == null)
+                {
+                    resultado.Error = "La subcategoría indicada no existe.";
+                    return resultado;
+                }
+
+                var marca =
+                    await _unidadDeTrabajo.TMarca.ObtenerEntidadAsync(
+                        x => x.MarcaId == datos.MarcaId);
+
+                if (marca.Data == null)
+                {
+                    resultado.Error = "La marca indicada no existe.";
+                    return resultado;
+                }
+
+                var proveedor =
+                    await _unidadDeTrabajo.TProveedor.ObtenerEntidadAsync(
+                        x => x.ProveedorId == datos.ProveedorId);
+
+                if (proveedor.Data == null)
+                {
+                    resultado.Error = "El proveedor indicado no existe.";
+                    return resultado;
+                }
+
 
                 datos.CreadoEn = DateTime.UtcNow;
 
@@ -423,4 +453,3 @@ namespace Ventas.LogicaNegocio.Implementaciones
     }
 
 }
-

@@ -27,7 +27,7 @@ public partial class Pedido
 
     public byte[] RowVer { get; set; } = null!;
 
-    public virtual Subcategoria Cliente { get; set; } = null!;
+    public virtual Cliente Cliente { get; set; } = null!;
 
     public virtual ICollection<DetallesPedido> DetallesPedidos { get; set; } = new List<DetallesPedido>();
 }

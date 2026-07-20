@@ -2,20 +2,18 @@
 
 namespace Ventas.Dominio.EntidadesTipadas
 {
-    public class TProducto
+    public class TCliente
     {
-        public int ProductoId { get; set; }
+        public int ClienteId { get; set; }
         public string Nombre { get; set; } = null!;
-        public string? Descripcion { get; set; }
-        public decimal Precio { get; set; }
-        public decimal? CostoCompra { get; set; }
-        public int SubcategoriaId { get; set; }
-        public int MarcaId { get; set; }
-        public int ProveedorId { get; set; }
+        public string? Email { get; set; }
+        public string? Telefono { get; set; }
+        public DateTime FechaRegistro { get; set; }
         public bool Activo { get; set; }
         public DateTime CreadoEn { get; set; }
         public string? CreadoPor { get; set; }
         public DateTime? ActualizadoEn { get; set; }
         public string? ActualizadoPor { get; set; }
+        public int TipoCedula { get; set; }
     }
 }

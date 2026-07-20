@@ -18,6 +18,8 @@ namespace Ventas.Dominio.InterfacesAD
         IRepositorioAD<SegUsuario> TSegUsuario { get; }
         IRepositorioAD<TipoCedula> TTipoCedula { get; }
 
+        IRepositorioAD<Cliente> TCliente { get; }
+
         IRepositorioAD<Marca> TMarca { get; }
         IRepositorioAD<Proveedor> TProveedor { get; }
         int Completar();

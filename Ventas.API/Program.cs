@@ -67,13 +67,14 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 
 );
 
-builder.Services.AddScoped<IUnidadTrabajoEF, UnidadTrabajoEF>(); 
+builder.Services.AddScoped<IUnidadTrabajoEF, UnidadTrabajoEF>();
+builder.Services.AddScoped<ICategoriaLN, CategoriaLN>();
+builder.Services.AddScoped<ISubcategoriaLN, SubcategoriaLN>();
+builder.Services.AddScoped<IClienteLN, ClienteLN>();
 builder.Services.AddScoped<IProductoLN, ProductoLN>();
-
-builder.Services.AddScoped<ProductoLN, ProductoLN>();
-builder.Services.AddScoped<PedidoLN, PedidoLN>();
-builder.Services.AddScoped<SubcategoriaLN, SubcategoriaLN>();
-builder.Services.AddScoped<CategoriaLN, CategoriaLN>();
+builder.Services.AddScoped<IPedidoLN, PedidoLN>();
+builder.Services.AddScoped<IMarcaLN, MarcaLN>();
+builder.Services.AddScoped<IProveedorLN, ProveedorLN>();
 
 
 builder.Services.AddAuthorization();

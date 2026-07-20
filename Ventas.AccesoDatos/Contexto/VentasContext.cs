@@ -140,30 +140,36 @@ public partial class VentasContext : DbContext
 
         modelBuilder.Entity<Producto>(entity =>
         {
-            entity.HasIndex(e => e.CategoriaId, "IX_Productos_CategoriaId");
+            entity.HasKey(e => e.ProductoId);
+            entity.HasIndex(e => e.SubcategoriaId, "IX_Producto_SubcategoriaId");
+            entity.HasIndex(e => e.MarcaId, "IX_Producto_MarcaId");
+            entity.HasIndex(e => e.ProveedorId, "IX_Producto_ProveedorId");
 
-            entity.HasIndex(e => e.Nombre, "UQ_Productos_Nombre")
-                .IsUnique()
-                .HasFilter("([Activo]=(1))");
-
-            entity.Property(e => e.ProductoId).HasMaxLength(50);
-            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Productos_Activo");
+            entity.Property(e => e.Nombre).HasMaxLength(150);
+            entity.Property(e => e.Descripcion).HasMaxLength(500);
+            entity.Property(e => e.Precio).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.CostoCompra).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Producto_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Producto_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
             entity.Property(e => e.ActualizadoEn).HasPrecision(3);
             entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
-            entity.Property(e => e.CreadoEn)
-                .HasPrecision(3)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_Productos_CreadoEn");
-            entity.Property(e => e.CreadoPor).HasMaxLength(50);
-            entity.Property(e => e.Nombre).HasMaxLength(150);
-            entity.Property(e => e.Precio).HasColumnType("decimal(19, 4)");
-            entity.Property(e => e.RowVer)
-                .IsRowVersion()
-                .IsConcurrencyToken();
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
 
-            entity.HasOne(d => d.Categoria).WithMany(p => p.Productos)
-                .HasForeignKey(d => d.CategoriaId)
+            entity.HasOne(d => d.Subcategoria).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.SubcategoriaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Productos_Categoria");
+                .HasConstraintName("FK_Producto_Subcategoria");
+
+            entity.HasOne(d => d.Marca).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.MarcaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Producto_Marca");
+
+            entity.HasOne(d => d.Proveedor).WithMany(p => p.Productos)
+                .HasForeignKey(d => d.ProveedorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Producto_Proveedor");
         });
 
         modelBuilder.Entity<SegPantalla>(entity =>

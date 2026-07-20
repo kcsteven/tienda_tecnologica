@@ -15,4 +15,5 @@ public partial class Subcategoria
     public byte[] RowVer { get; set; } = null!;
 
     public virtual Categoria Categoria { get; set; } = null!;
+    public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
 }
