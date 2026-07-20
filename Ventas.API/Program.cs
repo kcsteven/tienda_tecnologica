@@ -75,6 +75,10 @@ builder.Services.AddScoped<IProductoLN, ProductoLN>();
 builder.Services.AddScoped<IPedidoLN, PedidoLN>();
 builder.Services.AddScoped<IMarcaLN, MarcaLN>();
 builder.Services.AddScoped<IProveedorLN, ProveedorLN>();
+builder.Services.AddScoped<IBodegaLN, BodegaLN>();
+builder.Services.AddScoped<IDescuentoLN, DescuentoLN>();
+builder.Services.AddScoped<IGarantiaLN, GarantiaLN>();
+builder.Services.AddScoped<IEtiquetaLN, EtiquetaLN>();
 
 
 builder.Services.AddAuthorization();

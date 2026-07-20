@@ -41,6 +41,10 @@ namespace Ventas.AccesoDatos.Implementaciones
         private RepositorioAD<Marca> _TMarca;
         private RepositorioAD<Proveedor> _TProveedor;
         private RepositorioAD<Cliente> _TCliente;
+        private RepositorioAD<Bodega> _TBodega;
+        private RepositorioAD<Descuento> _TDescuento;
+        private RepositorioAD<Garantia> _TGarantia;
+        private RepositorioAD<Etiqueta> _TEtiqueta;
 
         #endregion
         #region "Constructores"
@@ -192,6 +196,46 @@ namespace Ventas.AccesoDatos.Implementaciones
                 if (this._TProveedor == null)
                     this._TProveedor = new RepositorioAD<Proveedor>(_Contexto);
                 return _TProveedor;
+            }
+        }
+
+        public IRepositorioAD<Bodega> TBodega
+        {
+            get
+            {
+                if (this._TBodega == null)
+                    this._TBodega = new RepositorioAD<Bodega>(_Contexto);
+                return _TBodega;
+            }
+        }
+
+        public IRepositorioAD<Descuento> TDescuento
+        {
+            get
+            {
+                if (this._TDescuento == null)
+                    this._TDescuento = new RepositorioAD<Descuento>(_Contexto);
+                return _TDescuento;
+            }
+        }
+
+        public IRepositorioAD<Garantia> TGarantia
+        {
+            get
+            {
+                if (this._TGarantia == null)
+                    this._TGarantia = new RepositorioAD<Garantia>(_Contexto);
+                return _TGarantia;
+            }
+        }
+
+        public IRepositorioAD<Etiqueta> TEtiqueta
+        {
+            get
+            {
+                if (this._TEtiqueta == null)
+                    this._TEtiqueta = new RepositorioAD<Etiqueta>(_Contexto);
+                return _TEtiqueta;
             }
         }
 

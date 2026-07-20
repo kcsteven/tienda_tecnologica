@@ -17,11 +17,13 @@ namespace Ventas.Dominio.InterfacesAD
         IRepositorioAD<SegPerfilXpantalla> TSegPerfilXpantalla { get; }
         IRepositorioAD<SegUsuario> TSegUsuario { get; }
         IRepositorioAD<TipoCedula> TTipoCedula { get; }
-
         IRepositorioAD<Cliente> TCliente { get; }
-
         IRepositorioAD<Marca> TMarca { get; }
         IRepositorioAD<Proveedor> TProveedor { get; }
+        IRepositorioAD<Bodega> TBodega { get; }
+        IRepositorioAD<Descuento> TDescuento { get; }
+        IRepositorioAD<Garantia> TGarantia { get; }
+        IRepositorioAD<Etiqueta> TEtiqueta { get; }
         int Completar();
         void CompletarTran();
         void EmpezarTransaccion();

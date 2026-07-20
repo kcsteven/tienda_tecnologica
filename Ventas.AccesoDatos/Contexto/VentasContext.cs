@@ -39,6 +39,11 @@ public partial class VentasContext : DbContext
     public virtual DbSet<Marca> Marcas { get; set; }
     public virtual DbSet<Proveedor> Proveedores { get; set; }
 
+    public virtual DbSet<Bodega> Bodegas { get; set; }
+    public virtual DbSet<Descuento> Descuentos { get; set; }
+    public virtual DbSet<Garantia> Garantias { get; set; }
+    public virtual DbSet<Etiqueta> Etiquetas { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
 
     }
@@ -288,6 +293,56 @@ public partial class VentasContext : DbContext
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Proveedor_Activo");
             entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Proveedor_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
+            entity.Property(e => e.ActualizadoEn).HasPrecision(3);
+            entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<Bodega>(entity =>
+        {
+            entity.HasKey(e => e.BodegaId);
+            entity.Property(e => e.Nombre).HasMaxLength(100);
+            entity.Property(e => e.Ubicacion).HasMaxLength(200);
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Bodega_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Bodega_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
+            entity.Property(e => e.ActualizadoEn).HasPrecision(3);
+            entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<Descuento>(entity =>
+        {
+            entity.HasKey(e => e.DescuentoId);
+            entity.Property(e => e.Nombre).HasMaxLength(100);
+            entity.Property(e => e.Porcentaje).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Descuento_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Descuento_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
+            entity.Property(e => e.ActualizadoEn).HasPrecision(3);
+            entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<Garantia>(entity =>
+        {
+            entity.HasKey(e => e.GarantiaId);
+            entity.Property(e => e.Nombre).HasMaxLength(100);
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Garantia_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Garantia_CreadoEn");
+            entity.Property(e => e.CreadoPor).HasMaxLength(50);
+            entity.Property(e => e.ActualizadoEn).HasPrecision(3);
+            entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
+            entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<Etiqueta>(entity =>
+        {
+            entity.HasKey(e => e.EtiquetaId);
+            entity.Property(e => e.Nombre).HasMaxLength(50);
+            entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Etiqueta_Activo");
+            entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Etiqueta_CreadoEn");
             entity.Property(e => e.CreadoPor).HasMaxLength(50);
             entity.Property(e => e.ActualizadoEn).HasPrecision(3);
             entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
