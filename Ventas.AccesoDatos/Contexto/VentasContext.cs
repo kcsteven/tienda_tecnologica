@@ -50,6 +50,12 @@ public partial class VentasContext : DbContext
     public virtual DbSet<ProductoGarantia> ProductoGarantias { get; set; }
     public virtual DbSet<ProductoEtiqueta> ProductoEtiquetas { get; set; }
 
+    public virtual DbSet<Pago> Pagos { get; set; }
+    public virtual DbSet<Envio> Envios { get; set; }
+    public virtual DbSet<Resena> Resenas { get; set; }
+    public virtual DbSet<ListaDeseos> ListaDeseos { get; set; }
+    public virtual DbSet<Devolucion> Devoluciones { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
 
     }
@@ -415,6 +421,80 @@ public partial class VentasContext : DbContext
                 .HasForeignKey(d => d.EtiquetaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ProductoEtiqueta_Etiqueta");
+        });
+
+        modelBuilder.Entity<Pago>(entity =>
+        {
+            entity.HasKey(e => e.PagoId);
+            entity.Property(e => e.MetodoPago).HasMaxLength(50);
+            entity.Property(e => e.Monto).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.Referencia).HasMaxLength(100);
+            entity.Property(e => e.FechaPago).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Pago_FechaPago");
+
+            entity.HasOne(d => d.Pedido).WithMany(p => p.Pagos)
+                .HasForeignKey(d => d.PedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pago_Pedido");
+        });
+
+        modelBuilder.Entity<Envio>(entity =>
+        {
+            entity.HasKey(e => e.EnvioId);
+            entity.Property(e => e.NumeroSeguimiento).HasMaxLength(100);
+            entity.Property(e => e.Transportista).HasMaxLength(100);
+
+            entity.HasOne(d => d.Pedido).WithMany(p => p.Envios)
+                .HasForeignKey(d => d.PedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Envio_Pedido");
+        });
+
+        modelBuilder.Entity<Resena>(entity =>
+        {
+            entity.HasKey(e => e.ResenaId);
+            entity.Property(e => e.Comentario).HasMaxLength(500);
+
+            entity.HasOne(d => d.Cliente).WithMany(p => p.Resenas)
+                .HasForeignKey(d => d.ClienteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Resena_Cliente");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.Resenas)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Resena_Producto");
+        });
+
+        modelBuilder.Entity<ListaDeseos>(entity =>
+        {
+            entity.HasKey(e => e.ListaDeseosId);
+
+            entity.HasOne(d => d.Cliente).WithMany(p => p.ListaDeseos)
+                .HasForeignKey(d => d.ClienteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ListaDeseos_Cliente");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.ListaDeseos)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ListaDeseos_Producto");
+        });
+
+        modelBuilder.Entity<Devolucion>(entity =>
+        {
+            entity.HasKey(e => e.DevolucionId);
+            entity.Property(e => e.Motivo).HasMaxLength(255);
+            entity.Property(e => e.EstadoDevolucion).HasMaxLength(50);
+
+            entity.HasOne(d => d.Pedido).WithMany(p => p.Devoluciones)
+                .HasForeignKey(d => d.PedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Devolucion_Pedido");
+
+            entity.HasOne(d => d.Producto).WithMany(p => p.Devoluciones)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Devolucion_Producto");
         });
 
         OnModelCreatingPartial(modelBuilder);

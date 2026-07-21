@@ -29,5 +29,8 @@ public partial class Producto
     public virtual ICollection<ImagenProducto> ImagenProductos { get; set; } = new List<ImagenProducto>();
     public virtual ICollection<ProductoGarantia> ProductoGarantias { get; set; } = new List<ProductoGarantia>();
     public virtual ICollection<ProductoEtiqueta> ProductoEtiquetas { get; set; } = new List<ProductoEtiqueta>();
+    public virtual ICollection<Resena> Resenas { get; set; } = new List<Resena>();
+    public virtual ICollection<ListaDeseos> ListaDeseos { get; set; } = new List<ListaDeseos>();
+    public virtual ICollection<Devolucion> Devoluciones { get; set; } = new List<Devolucion>();
 
 }

@@ -30,6 +30,8 @@ public partial class Cliente
     public int TipoCedula { get; set; }
 
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
+    public virtual ICollection<Resena> Resenas { get; set; } = new List<Resena>();
+    public virtual ICollection<ListaDeseos> ListaDeseos { get; set; } = new List<ListaDeseos>();
 
     public virtual TipoCedula TipoCedulaNavigation { get; set; } = null!;
 }

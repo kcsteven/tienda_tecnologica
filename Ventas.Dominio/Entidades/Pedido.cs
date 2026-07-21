@@ -28,6 +28,9 @@ public partial class Pedido
     public byte[] RowVer { get; set; } = null!;
 
     public virtual Cliente Cliente { get; set; } = null!;
+    public virtual ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+    public virtual ICollection<Envio> Envios { get; set; } = new List<Envio>();
+    public virtual ICollection<Devolucion> Devoluciones { get; set; } = new List<Devolucion>();
 
     public virtual ICollection<DetallesPedido> DetallesPedidos { get; set; } = new List<DetallesPedido>();
 }

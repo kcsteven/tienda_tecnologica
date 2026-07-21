@@ -20,4 +20,5 @@ public partial class DetallesPedido
     public virtual Pedido Pedido { get; set; } = null!;
 
     public virtual Producto Producto { get; set; } = null!;
+
 }

@@ -84,6 +84,11 @@ builder.Services.AddScoped<IProductoDescuentoLN, ProductoDescuentoLN>();
 builder.Services.AddScoped<IImagenProductoLN, ImagenProductoLN>();
 builder.Services.AddScoped<IProductoGarantiaLN, ProductoGarantiaLN>();
 builder.Services.AddScoped<IProductoEtiquetaLN, ProductoEtiquetaLN>();
+builder.Services.AddScoped<IPagoLN, PagoLN>();
+builder.Services.AddScoped<IEnvioLN, EnvioLN>();
+builder.Services.AddScoped<IResenaLN, ResenaLN>();
+builder.Services.AddScoped<IListaDeseosLN, ListaDeseosLN>();
+builder.Services.AddScoped<IDevolucionLN, DevolucionLN>();
 
 builder.Services.AddAuthorization();
 

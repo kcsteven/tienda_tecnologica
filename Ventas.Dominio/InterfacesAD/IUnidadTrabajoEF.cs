@@ -30,6 +30,11 @@ namespace Ventas.Dominio.InterfacesAD
         IRepositorioAD<ImagenProducto> TImagenProducto { get; }
         IRepositorioAD<ProductoGarantia> TProductoGarantia { get; }
         IRepositorioAD<ProductoEtiqueta> TProductoEtiqueta { get; }
+        IRepositorioAD<Pago> TPago { get; }
+        IRepositorioAD<Envio> TEnvio { get; }
+        IRepositorioAD<Resena> TResena { get; }
+        IRepositorioAD<ListaDeseos> TListaDeseos { get; }
+        IRepositorioAD<Devolucion> TDevolucion { get; }
         int Completar();
         void CompletarTran();
         void EmpezarTransaccion();

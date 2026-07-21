@@ -51,6 +51,12 @@ namespace Ventas.AccesoDatos.Implementaciones
         private RepositorioAD<ProductoGarantia> _TProductoGarantia;
         private RepositorioAD<ProductoEtiqueta> _TProductoEtiqueta;
 
+        private RepositorioAD<Pago> _TPago;
+        private RepositorioAD<Envio> _TEnvio;
+        private RepositorioAD<Resena> _TResena;
+        private RepositorioAD<ListaDeseos> _TListaDeseos;
+        private RepositorioAD<Devolucion> _TDevolucion;
+
         #endregion
         #region "Constructores"
 
@@ -267,6 +273,27 @@ namespace Ventas.AccesoDatos.Implementaciones
         public IRepositorioAD<ProductoEtiqueta> TProductoEtiqueta
         {
             get { if (this._TProductoEtiqueta == null) this._TProductoEtiqueta = new RepositorioAD<ProductoEtiqueta>(_Contexto); return _TProductoEtiqueta; }
+        }
+
+        public IRepositorioAD<Pago> TPago
+        {
+            get { if (this._TPago == null) this._TPago = new RepositorioAD<Pago>(_Contexto); return _TPago; }
+        }
+        public IRepositorioAD<Envio> TEnvio
+        {
+            get { if (this._TEnvio == null) this._TEnvio = new RepositorioAD<Envio>(_Contexto); return _TEnvio; }
+        }
+        public IRepositorioAD<Resena> TResena
+        {
+            get { if (this._TResena == null) this._TResena = new RepositorioAD<Resena>(_Contexto); return _TResena; }
+        }
+        public IRepositorioAD<ListaDeseos> TListaDeseos
+        {
+            get { if (this._TListaDeseos == null) this._TListaDeseos = new RepositorioAD<ListaDeseos>(_Contexto); return _TListaDeseos; }
+        }
+        public IRepositorioAD<Devolucion> TDevolucion
+        {
+            get { if (this._TDevolucion == null) this._TDevolucion = new RepositorioAD<Devolucion>(_Contexto); return _TDevolucion; }
         }
 
         public int Completar()
