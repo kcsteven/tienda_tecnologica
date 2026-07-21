@@ -14,4 +14,6 @@ public partial class Bodega
     public DateTime? ActualizadoEn { get; set; }
     public string? ActualizadoPor { get; set; }
     public byte[] RowVer { get; set; } = null!;
+
+    public virtual ICollection<Inventario> Inventarios { get; set; } = new List<Inventario>();
 }

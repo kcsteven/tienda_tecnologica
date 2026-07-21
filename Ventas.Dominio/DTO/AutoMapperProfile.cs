@@ -25,6 +25,11 @@ namespace Ventas.Dominio.DTO
             CreateMap<TDescuento, Descuento>().ReverseMap();
             CreateMap<TGarantia, Garantia>().ReverseMap();
             CreateMap<TEtiqueta, Etiqueta>().ReverseMap();
+            CreateMap<TInventario, Inventario>().ReverseMap();
+            CreateMap<TProductoDescuento, ProductoDescuento>().ReverseMap();
+            CreateMap<TImagenProducto, ImagenProducto>().ReverseMap();
+            CreateMap<TProductoGarantia, ProductoGarantia>().ReverseMap();
+            CreateMap<TProductoEtiqueta, ProductoEtiqueta>().ReverseMap();
         }
 
 

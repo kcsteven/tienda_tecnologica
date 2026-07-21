@@ -12,4 +12,6 @@ public partial class Etiqueta
     public DateTime? ActualizadoEn { get; set; }
     public string? ActualizadoPor { get; set; }
     public byte[] RowVer { get; set; } = null!;
+
+    public virtual ICollection<ProductoEtiqueta> ProductoEtiquetas { get; set; } = new List<ProductoEtiqueta>();
 }

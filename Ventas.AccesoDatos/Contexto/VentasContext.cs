@@ -44,6 +44,12 @@ public partial class VentasContext : DbContext
     public virtual DbSet<Garantia> Garantias { get; set; }
     public virtual DbSet<Etiqueta> Etiquetas { get; set; }
 
+    public virtual DbSet<Inventario> Inventarios { get; set; }
+    public virtual DbSet<ProductoDescuento> ProductoDescuentos { get; set; }
+    public virtual DbSet<ImagenProducto> ImagenProductos { get; set; }
+    public virtual DbSet<ProductoGarantia> ProductoGarantias { get; set; }
+    public virtual DbSet<ProductoEtiqueta> ProductoEtiquetas { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
 
     }
@@ -347,6 +353,68 @@ public partial class VentasContext : DbContext
             entity.Property(e => e.ActualizadoEn).HasPrecision(3);
             entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
             entity.Property(e => e.RowVer).IsRowVersion().IsConcurrencyToken();
+        });
+
+        modelBuilder.Entity<Inventario>(entity =>
+        {
+            entity.HasKey(e => e.InventarioId);
+            entity.HasOne(d => d.Producto).WithMany(p => p.Inventarios)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Inventario_Producto");
+            entity.HasOne(d => d.Bodega).WithMany(p => p.Inventarios)
+                .HasForeignKey(d => d.BodegaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Inventario_Bodega");
+        });
+
+        modelBuilder.Entity<ProductoDescuento>(entity =>
+        {
+            entity.HasKey(e => e.ProductoDescuentoId);
+            entity.HasOne(d => d.Producto).WithMany(p => p.ProductoDescuentos)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductoDescuento_Producto");
+            entity.HasOne(d => d.Descuento).WithMany(p => p.ProductoDescuentos)
+                .HasForeignKey(d => d.DescuentoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductoDescuento_Descuento");
+        });
+
+        modelBuilder.Entity<ImagenProducto>(entity =>
+        {
+            entity.HasKey(e => e.ImagenId);
+            entity.Property(e => e.RutaImagen).HasMaxLength(255);
+            entity.HasOne(d => d.Producto).WithMany(p => p.ImagenProductos)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ImagenProducto_Producto");
+        });
+
+        modelBuilder.Entity<ProductoGarantia>(entity =>
+        {
+            entity.HasKey(e => e.ProductoGarantiaId);
+            entity.HasOne(d => d.Producto).WithMany(p => p.ProductoGarantias)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductoGarantia_Producto");
+            entity.HasOne(d => d.Garantia).WithMany(p => p.ProductoGarantias)
+                .HasForeignKey(d => d.GarantiaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductoGarantia_Garantia");
+        });
+
+        modelBuilder.Entity<ProductoEtiqueta>(entity =>
+        {
+            entity.HasKey(e => e.ProductoEtiquetaId);
+            entity.HasOne(d => d.Producto).WithMany(p => p.ProductoEtiquetas)
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductoEtiqueta_Producto");
+            entity.HasOne(d => d.Etiqueta).WithMany(p => p.ProductoEtiquetas)
+                .HasForeignKey(d => d.EtiquetaId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ProductoEtiqueta_Etiqueta");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -45,6 +45,11 @@ namespace Ventas.AccesoDatos.Implementaciones
         private RepositorioAD<Descuento> _TDescuento;
         private RepositorioAD<Garantia> _TGarantia;
         private RepositorioAD<Etiqueta> _TEtiqueta;
+        private RepositorioAD<Inventario> _TInventario;
+        private RepositorioAD<ProductoDescuento> _TProductoDescuento;
+        private RepositorioAD<ImagenProducto> _TImagenProducto;
+        private RepositorioAD<ProductoGarantia> _TProductoGarantia;
+        private RepositorioAD<ProductoEtiqueta> _TProductoEtiqueta;
 
         #endregion
         #region "Constructores"
@@ -237,6 +242,31 @@ namespace Ventas.AccesoDatos.Implementaciones
                     this._TEtiqueta = new RepositorioAD<Etiqueta>(_Contexto);
                 return _TEtiqueta;
             }
+        }
+
+        public IRepositorioAD<Inventario> TInventario
+        {
+            get { if (this._TInventario == null) this._TInventario = new RepositorioAD<Inventario>(_Contexto); return _TInventario; }
+        }
+
+        public IRepositorioAD<ProductoDescuento> TProductoDescuento
+        {
+            get { if (this._TProductoDescuento == null) this._TProductoDescuento = new RepositorioAD<ProductoDescuento>(_Contexto); return _TProductoDescuento; }
+        }
+
+        public IRepositorioAD<ImagenProducto> TImagenProducto
+        {
+            get { if (this._TImagenProducto == null) this._TImagenProducto = new RepositorioAD<ImagenProducto>(_Contexto); return _TImagenProducto; }
+        }
+
+        public IRepositorioAD<ProductoGarantia> TProductoGarantia
+        {
+            get { if (this._TProductoGarantia == null) this._TProductoGarantia = new RepositorioAD<ProductoGarantia>(_Contexto); return _TProductoGarantia; }
+        }
+
+        public IRepositorioAD<ProductoEtiqueta> TProductoEtiqueta
+        {
+            get { if (this._TProductoEtiqueta == null) this._TProductoEtiqueta = new RepositorioAD<ProductoEtiqueta>(_Contexto); return _TProductoEtiqueta; }
         }
 
         public int Completar()

@@ -13,4 +13,6 @@ public partial class Garantia
     public DateTime? ActualizadoEn { get; set; }
     public string? ActualizadoPor { get; set; }
     public byte[] RowVer { get; set; } = null!;
+
+    public virtual ICollection<ProductoGarantia> ProductoGarantias { get; set; } = new List<ProductoGarantia>();
 }

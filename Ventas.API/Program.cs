@@ -79,7 +79,11 @@ builder.Services.AddScoped<IBodegaLN, BodegaLN>();
 builder.Services.AddScoped<IDescuentoLN, DescuentoLN>();
 builder.Services.AddScoped<IGarantiaLN, GarantiaLN>();
 builder.Services.AddScoped<IEtiquetaLN, EtiquetaLN>();
-
+builder.Services.AddScoped<IInventarioLN, InventarioLN>();
+builder.Services.AddScoped<IProductoDescuentoLN, ProductoDescuentoLN>();
+builder.Services.AddScoped<IImagenProductoLN, ImagenProductoLN>();
+builder.Services.AddScoped<IProductoGarantiaLN, ProductoGarantiaLN>();
+builder.Services.AddScoped<IProductoEtiquetaLN, ProductoEtiquetaLN>();
 
 builder.Services.AddAuthorization();
 

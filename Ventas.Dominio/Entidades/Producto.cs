@@ -24,4 +24,10 @@ public partial class Producto
     public virtual Marca Marca { get; set; } = null!;
     public virtual Proveedor Proveedor { get; set; } = null!;
     public virtual ICollection<DetallesPedido> DetallesPedidos { get; set; } = new List<DetallesPedido>();
+    public virtual ICollection<Inventario> Inventarios { get; set; } = new List<Inventario>();
+    public virtual ICollection<ProductoDescuento> ProductoDescuentos { get; set; } = new List<ProductoDescuento>();
+    public virtual ICollection<ImagenProducto> ImagenProductos { get; set; } = new List<ImagenProducto>();
+    public virtual ICollection<ProductoGarantia> ProductoGarantias { get; set; } = new List<ProductoGarantia>();
+    public virtual ICollection<ProductoEtiqueta> ProductoEtiquetas { get; set; } = new List<ProductoEtiqueta>();
+
 }

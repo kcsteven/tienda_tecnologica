@@ -15,4 +15,6 @@ public partial class Descuento
     public DateTime? ActualizadoEn { get; set; }
     public string? ActualizadoPor { get; set; }
     public byte[] RowVer { get; set; } = null!;
+
+    public virtual ICollection<ProductoDescuento> ProductoDescuentos { get; set; } = new List<ProductoDescuento>();
 }
