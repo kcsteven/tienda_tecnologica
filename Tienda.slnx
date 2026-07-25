@@ -4,7 +4,7 @@
   <Project Path="Tienda.Dominio/Tienda.Dominio.csproj" />
   <Project Path="Tienda.LogicaNegocio/Tienda.LogicaNegocio.csproj" />
   <Project Path="Tienda.Utilidades/Tienda.Utilidades.csproj" />
-  <Project Path="Ventas/Tienda.esproj">
+  <Project Path="Tienda/Ventas.esproj">
     <Build />
     <Deploy />
   </Project>
