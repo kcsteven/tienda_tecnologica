@@ -45,7 +45,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al insertar categoría {Nombre}", datos.Nombre);
-                resultado.Error = ex.Message;
+                resultado.Error = ex.InnerException?.Message ?? ex.Message;
             }
             return resultado;
         }

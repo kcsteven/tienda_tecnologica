@@ -69,6 +69,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Categoria>(entity =>
         {
             entity.HasKey(e => e.CategoriaId);
+            entity.ToTable("Categoria");
             entity.HasIndex(e => e.Nombre, "UQ_Categoria_Nombre").IsUnique();
 
             entity.Property(e => e.Nombre).HasMaxLength(150);
@@ -99,7 +100,7 @@ public partial class VentasContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Subcategoria_Categoria");
         });
-       
+
         modelBuilder.Entity<DetallesPedido>(entity =>
         {
             entity.HasKey(e => e.DetalleId);
@@ -112,7 +113,6 @@ public partial class VentasContext : DbContext
 
             entity.Property(e => e.Descuento).HasColumnType("decimal(19, 4)");
             entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(19, 4)");
-            entity.Property(e => e.ProductoId).HasMaxLength(50);
 
             entity.HasOne(d => d.Pedido).WithMany(p => p.DetallesPedidos)
                 .HasForeignKey(d => d.PedidoId)
