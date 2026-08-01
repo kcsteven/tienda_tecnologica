@@ -108,7 +108,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 }
 
 
-                datos.CreadoEn = DateTime.UtcNow;
+                
 
 
                 var entidad = _mapper.Map<Producto>(datos);
@@ -224,7 +224,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 }
 
 
-                datos.ActualizadoEn = DateTime.UtcNow;
+                
 
 
                 _mapper.Map(datos, productoActual.Data);

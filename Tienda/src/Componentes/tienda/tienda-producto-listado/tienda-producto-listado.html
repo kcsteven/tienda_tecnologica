@@ -1,0 +1,81 @@
+<div class="container py-4">
+  <h1 class="mb-4">{{ categoriaNombre() }}</h1>
+
+  @if (cargando()) {
+  <p class="text-muted">Cargando productos...</p>
+  } @else if (productosBase().length === 0) {
+  <p class="text-muted">No hay productos disponibles en esta categoría todavía.</p>
+  } @else {
+
+  <div class="barra-herramientas d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div class="mostrar-cantidad">
+      <span class="me-2">Mostrar:</span>
+      @for (n of [9, 12, 18, 24]; track n) {
+      <button class="btn-cantidad"
+              [class.activo]="cantidadPorPagina() === n"
+              (click)="cambiarCantidad(n)">
+        {{ n }}
+      </button>
+      }
+    </div>
+
+    <div class="ordenar">
+      <label class="me-2">Ordenar por precio:</label>
+      <select class="form-select form-select-sm d-inline-block w-auto"
+              (change)="cambiarOrden($any($event.target).value)">
+        <option value="asc" [selected]="ordenPrecio() === 'asc'">bajo</option>
+        <option value="desc" [selected]="ordenPrecio() === 'desc'">alto</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid-productos">
+    @for (prod of productosPaginados(); track prod.productoId) {
+    <a [routerLink]="['/producto', prod.productoId]" class="tarjeta-producto">
+
+      <div class="imagen-wrapper">
+        @if (prod.porcentajeDescuento > 0) {
+        <span class="cinta-descuento">-{{ prod.porcentajeDescuento }}%</span>
+        }
+        @if (prod.imagenUrl) {
+        <img [src]="prod.imagenUrl" [alt]="prod.nombre" class="imagen-producto" />
+        } @else {
+        <div class="imagen-placeholder">Sin imagen</div>
+        }
+      </div>
+
+      @if (prod.etiquetas.length > 0) {
+      <div class="fila-etiquetas">
+        @for (etq of prod.etiquetas.slice(0, 3); track etq) {
+        <span class="chip-etiqueta">{{ etq }}</span>
+        }
+      </div>
+      }
+
+      <div class="info">
+        <h3 class="nombre">{{ prod.nombre }}</h3>
+        <span class="marca">{{ prod.marcaNombre }}</span>
+        <div class="precios">
+          @if (prod.porcentajeDescuento > 0) {
+          <span class="precio-original">₡{{ prod.precioOriginal | number:'1.0-0' }}</span>
+          }
+          <span class="precio">₡{{ prod.precioFinal | number:'1.0-0' }} I.V.A.I</span>
+        </div>
+      </div>
+    </a>
+    }
+  </div>
+
+  @if (totalPaginas() > 1) {
+  <div class="paginacion d-flex justify-content-center gap-2 mt-4">
+    @for (pag of [].constructor(totalPaginas()); track $index) {
+    <button class="btn-pagina"
+            [class.activo]="paginaActual() === $index + 1"
+            (click)="paginaActual.set($index + 1)">
+      {{ $index + 1 }}
+    </button>
+    }
+  </div>
+  }
+  }
+</div>

@@ -56,11 +56,12 @@ public partial class VentasContext : DbContext
     public virtual DbSet<ListaDeseos> ListaDeseos { get; set; }
     public virtual DbSet<Devolucion> Devoluciones { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
 
     }
-    
-#warning 
+
+#warning
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
@@ -85,6 +86,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Subcategoria>(entity =>
         {
             entity.HasKey(e => e.SubcategoriaId);
+            entity.ToTable("Subcategoria");
             entity.HasIndex(e => e.CategoriaId, "IX_Subcategoria_CategoriaId");
 
             entity.Property(e => e.Nombre).HasMaxLength(150);
@@ -158,6 +160,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Producto>(entity =>
         {
             entity.HasKey(e => e.ProductoId);
+            entity.ToTable("Producto");
             entity.HasIndex(e => e.SubcategoriaId, "IX_Producto_SubcategoriaId");
             entity.HasIndex(e => e.MarcaId, "IX_Producto_MarcaId");
             entity.HasIndex(e => e.ProveedorId, "IX_Producto_ProveedorId");

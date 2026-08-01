@@ -1,9 +1,10 @@
 export interface IProducto {
   productoId: number;
-  nombreProducto: string;
-  activo: boolean;
-  creadoEn: Date;
-  creadoPor: String;
-  actualizadoEn: Date;
-  actualizadoPor: string;
+  nombre: string;
+  descripcion?: string;
+  precio: number;
+  costoCompra?: number;
+  subcategoriaId: number;
+  marcaId: number;
+  proveedorId: number;
 }

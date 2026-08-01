@@ -3,9 +3,4 @@ export interface IProveedor {
   nombre: string;
   telefono?: string;
   email?: string;
-  activo: boolean;
-  creadoEn: Date;
-  creadoPor: string;
-  actualizadoEn?: Date;
-  actualizadoPor?: string;
 }

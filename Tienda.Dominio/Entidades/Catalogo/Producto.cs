@@ -1,4 +1,6 @@
 ﻿using System;
+
+using System;
 using System.Collections.Generic;
 
 namespace Tienda.Dominio.Entidades;
@@ -32,5 +34,4 @@ public partial class Producto
     public virtual ICollection<Resena> Resenas { get; set; } = new List<Resena>();
     public virtual ICollection<ListaDeseos> ListaDeseos { get; set; } = new List<ListaDeseos>();
     public virtual ICollection<Devolucion> Devoluciones { get; set; } = new List<Devolucion>();
-
 }

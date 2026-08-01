@@ -109,6 +109,11 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
                 var resp = await _unidadDeTrabajo.TSubcategoria.ListarAsync();
+                if (!string.IsNullOrEmpty(resp.Error))
+                {
+                    resultado.Error = resp.Error;
+                    return resultado;
+                }
                 resultado.Data = _mapper.Map<IEnumerable<TSubcategoria>>(resp.Data);
             }
             catch (Exception ex)
@@ -125,6 +130,11 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
                 var respuesta = await _unidadDeTrabajo.TSubcategoria.BuscarAsync(x => x.Nombre.Contains(datos.Nombre));
+                if (!string.IsNullOrEmpty(respuesta.Error))
+                {
+                    resultado.Error = respuesta.Error;
+                    return resultado;
+                }
                 resultado.Data = _mapper.Map<IEnumerable<TSubcategoria>>(respuesta.Data);
             }
             catch (Exception ex)
@@ -162,6 +172,11 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
                 var respuesta = await _unidadDeTrabajo.TSubcategoria.BuscarAsync(x => x.CategoriaId == categoriaId);
+                if (!string.IsNullOrEmpty(respuesta.Error))
+                {
+                    resultado.Error = respuesta.Error;
+                    return resultado;
+                }
                 resultado.Data = _mapper.Map<IEnumerable<TSubcategoria>>(respuesta.Data);
             }
             catch (Exception ex)
