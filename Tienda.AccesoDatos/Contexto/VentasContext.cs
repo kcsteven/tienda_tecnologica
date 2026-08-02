@@ -16,59 +16,73 @@ public partial class VentasContext : DbContext
     {
     }
 
+    // ===== Catálogo (tu módulo) =====
     public virtual DbSet<Categoria> Categorias { get; set; }
     public virtual DbSet<Subcategoria> Subcategorias { get; set; }
-
-    public virtual DbSet<Cliente> Clientes { get; set; }
-    public virtual DbSet<DetallesPedido> DetallesPedidos { get; set; }
-
-    public virtual DbSet<Pedido> Pedidos { get; set; }
-
     public virtual DbSet<Producto> Productos { get; set; }
-
-    public virtual DbSet<SegPantalla> SegPantallas { get; set; }
-
-    public virtual DbSet<SegPerfil> SegPerfils { get; set; }
-
-    public virtual DbSet<SegPerfilXpantalla> SegPerfilXpantallas { get; set; }
-
-    public virtual DbSet<SegUsuario> SegUsuarios { get; set; }
-
-    public virtual DbSet<TipoCedula> TipoCedulas { get; set; }
-
     public virtual DbSet<Marca> Marcas { get; set; }
     public virtual DbSet<Proveedor> Proveedores { get; set; }
-
     public virtual DbSet<Bodega> Bodegas { get; set; }
     public virtual DbSet<Descuento> Descuentos { get; set; }
     public virtual DbSet<Garantia> Garantias { get; set; }
     public virtual DbSet<Etiqueta> Etiquetas { get; set; }
-
     public virtual DbSet<Inventario> Inventarios { get; set; }
     public virtual DbSet<ProductoDescuento> ProductoDescuentos { get; set; }
     public virtual DbSet<ImagenProducto> ImagenProductos { get; set; }
     public virtual DbSet<ProductoGarantia> ProductoGarantias { get; set; }
     public virtual DbSet<ProductoEtiqueta> ProductoEtiquetas { get; set; }
 
+    // ===== Módulo de Personas/Usuarios/Clientes/Pedidos (le toca a tu compañero) =====
+    // Temporalmente IGNORADO en OnModelCreating hasta que su módulo esté completo y correcto.
+    // NO borrar estas líneas de DbSet: cuando su parte esté lista, solo hay que quitar
+    // los modelBuilder.Ignore<...>() de abajo.
+    public virtual DbSet<Cliente> Clientes { get; set; }
+    public virtual DbSet<DetallesPedido> DetallesPedidos { get; set; }
+    public virtual DbSet<Pedido> Pedidos { get; set; }
+    public virtual DbSet<SegPantalla> SegPantallas { get; set; }
+    public virtual DbSet<SegPerfil> SegPerfils { get; set; }
+    public virtual DbSet<SegPerfilXpantalla> SegPerfilXpantallas { get; set; }
+    public virtual DbSet<SegUsuario> SegUsuarios { get; set; }
+    public virtual DbSet<TipoCedula> TipoCedulas { get; set; }
     public virtual DbSet<Pago> Pagos { get; set; }
     public virtual DbSet<Envio> Envios { get; set; }
     public virtual DbSet<Resena> Resenas { get; set; }
     public virtual DbSet<ListaDeseos> ListaDeseos { get; set; }
     public virtual DbSet<Devolucion> Devoluciones { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
 
     }
-    
-#warning 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
+        // =====================================================================
+        // TEMPORAL: se ignoran las entidades del módulo de Personas/Usuarios/
+        // Clientes/Pedidos mientras ese módulo está incompleto/roto (ej. TipoCedula
+        // tiene una colección mal tipada que rompe el modelo completo de EF).
+        // Cuando esté listo y corregido, borrar estas líneas de Ignore<>().
+        // =====================================================================
+        modelBuilder.Ignore<Cliente>();
+        modelBuilder.Ignore<DetallesPedido>();
+        modelBuilder.Ignore<Pedido>();
+        modelBuilder.Ignore<SegPantalla>();
+        modelBuilder.Ignore<SegPerfil>();
+        modelBuilder.Ignore<SegPerfilXpantalla>();
+        modelBuilder.Ignore<SegUsuario>();
+        modelBuilder.Ignore<TipoCedula>();
+        modelBuilder.Ignore<Pago>();
+        modelBuilder.Ignore<Envio>();
+        modelBuilder.Ignore<Resena>();
+        modelBuilder.Ignore<ListaDeseos>();
+        modelBuilder.Ignore<Devolucion>();
 
         modelBuilder.Entity<Categoria>(entity =>
         {
             entity.HasKey(e => e.CategoriaId);
+            entity.ToTable("Categoria");
             entity.HasIndex(e => e.Nombre, "UQ_Categoria_Nombre").IsUnique();
 
             entity.Property(e => e.Nombre).HasMaxLength(150);
@@ -84,6 +98,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Subcategoria>(entity =>
         {
             entity.HasKey(e => e.SubcategoriaId);
+            entity.ToTable("Subcategoria");
             entity.HasIndex(e => e.CategoriaId, "IX_Subcategoria_CategoriaId");
 
             entity.Property(e => e.Nombre).HasMaxLength(150);
@@ -99,65 +114,11 @@ public partial class VentasContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Subcategoria_Categoria");
         });
-       
-        modelBuilder.Entity<DetallesPedido>(entity =>
-        {
-            entity.HasKey(e => e.DetalleId);
-
-            entity.ToTable("DetallesPedido");
-
-            entity.HasIndex(e => e.PedidoId, "IX_DetallesPedido_PedidoId");
-
-            entity.HasIndex(e => e.ProductoId, "IX_DetallesPedido_ProductoId");
-
-            entity.Property(e => e.Descuento).HasColumnType("decimal(19, 4)");
-            entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(19, 4)");
-            entity.Property(e => e.ProductoId).HasMaxLength(50);
-
-            entity.HasOne(d => d.Pedido).WithMany(p => p.DetallesPedidos)
-                .HasForeignKey(d => d.PedidoId)
-                .HasConstraintName("FK_DetallesPedido_Pedido");
-
-            entity.HasOne(d => d.Producto).WithMany(p => p.DetallesPedidos)
-                .HasForeignKey(d => d.ProductoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_DetallesPedido_Producto");
-        });
-
-        modelBuilder.Entity<Pedido>(entity =>
-        {
-            entity.HasIndex(e => e.ClienteId, "IX_Pedidos_ClienteId");
-
-            entity.HasIndex(e => e.FechaPedido, "IX_Pedidos_Fecha");
-
-            entity.Property(e => e.ActualizadoEn).HasPrecision(3);
-            entity.Property(e => e.ActualizadoPor).HasMaxLength(50);
-            entity.Property(e => e.CreadoEn)
-                .HasPrecision(3)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_Pedidos_CreadoEn");
-            entity.Property(e => e.CreadoPor).HasMaxLength(50);
-            entity.Property(e => e.FechaPedido)
-                .HasPrecision(3)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_Pedidos_Fecha");
-            entity.Property(e => e.Moneda)
-                .HasMaxLength(3)
-                .IsUnicode(false)
-                .IsFixedLength()
-                .HasDefaultValue("CRC", "DF_Pedidos_Moneda");
-            entity.Property(e => e.RowVer)
-                .IsRowVersion()
-                .IsConcurrencyToken();
-            entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
-
-            entity.HasOne(d => d.Cliente).WithMany(p => p.Pedidos)
-                .HasForeignKey(d => d.ClienteId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Pedidos_Clientes");
-        });
 
         modelBuilder.Entity<Producto>(entity =>
         {
             entity.HasKey(e => e.ProductoId);
+            entity.ToTable("Producto");
             entity.HasIndex(e => e.SubcategoriaId, "IX_Producto_SubcategoriaId");
             entity.HasIndex(e => e.MarcaId, "IX_Producto_MarcaId");
             entity.HasIndex(e => e.ProveedorId, "IX_Producto_ProveedorId");
@@ -187,97 +148,6 @@ public partial class VentasContext : DbContext
                 .HasForeignKey(d => d.ProveedorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Producto_Proveedor");
-        });
-
-        modelBuilder.Entity<SegPantalla>(entity =>
-        {
-            entity.HasKey(e => e.CodigoPantalla);
-
-            entity.ToTable("SEG_Pantallas");
-
-            entity.HasIndex(e => e.NombrePantalla, "UQ_SEG_Pantallas_Nombre").IsUnique();
-
-            entity.Property(e => e.NombrePantalla).HasMaxLength(200);
-        });
-
-        modelBuilder.Entity<SegPerfil>(entity =>
-        {
-            entity.HasKey(e => e.CodigoPerfil);
-
-            entity.ToTable("SEG_Perfil");
-
-            entity.HasIndex(e => e.Descripcion, "UQ_SEG_Perfil_Descripcion").IsUnique();
-
-            entity.Property(e => e.Descripcion).HasMaxLength(150);
-        });
-
-        modelBuilder.Entity<SegPerfilXpantalla>(entity =>
-        {
-            entity.HasKey(e => e.PerfilXpantallaId);
-
-            entity.ToTable("SEG_PerfilXPantalla");
-
-            entity.HasIndex(e => e.CodigoPantalla, "IX_SEG_PXP_Pantalla");
-
-            entity.HasIndex(e => e.CodigoPerfil, "IX_SEG_PXP_Perfil");
-
-            entity.HasIndex(e => new { e.CodigoPerfil, e.CodigoPantalla }, "UQ_SEG_PerfilPantalla").IsUnique();
-
-            entity.Property(e => e.PerfilXpantallaId).HasColumnName("PerfilXPantallaId");
-
-            entity.HasOne(d => d.CodigoPantallaNavigation).WithMany(p => p.SegPerfilXpantallas)
-                .HasForeignKey(d => d.CodigoPantalla)
-                .HasConstraintName("FK_SEG_PXP_Pantalla");
-
-            entity.HasOne(d => d.CodigoPerfilNavigation).WithMany(p => p.SegPerfilXpantallas)
-                .HasForeignKey(d => d.CodigoPerfil)
-                .HasConstraintName("FK_SEG_PXP_Perfil");
-        });
-
-        modelBuilder.Entity<SegUsuario>(entity =>
-        {
-            entity.HasKey(e => e.Usuario);
-
-            entity.ToTable("SEG_Usuario");
-
-            entity.HasIndex(e => e.CedulaUsuario, "UQ_SEG_Usuario_Cedula").IsUnique();
-
-            entity.HasIndex(e => e.Email, "UQ_SEG_Usuario_Email").IsUnique();
-
-            entity.Property(e => e.Usuario).HasMaxLength(50);
-            entity.Property(e => e.Apellidos).HasMaxLength(150);
-            entity.Property(e => e.CedulaUsuario).HasMaxLength(25);
-            entity.Property(e => e.Clave).HasMaxLength(100);
-            entity.Property(e => e.Direccion).HasMaxLength(250);
-            entity.Property(e => e.Email).HasMaxLength(254);
-            entity.Property(e => e.Estado).HasDefaultValue((byte)1, "DF_SEG_Usuario_Estado");
-            entity.Property(e => e.FechaActualizacion)
-                .HasPrecision(3)
-                .HasDefaultValueSql("(sysutcdatetime())", "DF_SEG_Usuario_FechaAct");
-            entity.Property(e => e.Nombre).HasMaxLength(100);
-            entity.Property(e => e.Telefono).HasMaxLength(25);
-
-            entity.HasOne(d => d.CodigoPerfilNavigation).WithMany(p => p.SegUsuarios)
-                .HasForeignKey(d => d.CodigoPerfil)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SEG_Usuario_Perfil");
-
-            entity.HasOne(d => d.TipoCedula).WithMany(p => p.SegUsuarios)
-                .HasForeignKey(d => d.TipoCedulaId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_SEG_Usuario_TipoCedula");
-        });
-
-        modelBuilder.Entity<TipoCedula>(entity =>
-        {
-            entity.HasKey(e => e.TipoCedula1);
-
-            entity.ToTable("TipoCedula");
-
-            entity.HasIndex(e => e.Descripcion, "UQ_TipoCedula_Descripcion").IsUnique();
-
-            entity.Property(e => e.TipoCedula1).HasColumnName("TipoCedula");
-            entity.Property(e => e.Descripcion).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Marca>(entity =>
@@ -390,6 +260,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<ImagenProducto>(entity =>
         {
             entity.HasKey(e => e.ImagenId);
+            entity.ToTable("ImagenProducto");
             entity.Property(e => e.RutaImagen).HasMaxLength(255);
             entity.HasOne(d => d.Producto).WithMany(p => p.ImagenProductos)
                 .HasForeignKey(d => d.ProductoId)
@@ -421,80 +292,6 @@ public partial class VentasContext : DbContext
                 .HasForeignKey(d => d.EtiquetaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ProductoEtiqueta_Etiqueta");
-        });
-
-        modelBuilder.Entity<Pago>(entity =>
-        {
-            entity.HasKey(e => e.PagoId);
-            entity.Property(e => e.MetodoPago).HasMaxLength(50);
-            entity.Property(e => e.Monto).HasColumnType("decimal(10, 2)");
-            entity.Property(e => e.Referencia).HasMaxLength(100);
-            entity.Property(e => e.FechaPago).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Pago_FechaPago");
-
-            entity.HasOne(d => d.Pedido).WithMany(p => p.Pagos)
-                .HasForeignKey(d => d.PedidoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Pago_Pedido");
-        });
-
-        modelBuilder.Entity<Envio>(entity =>
-        {
-            entity.HasKey(e => e.EnvioId);
-            entity.Property(e => e.NumeroSeguimiento).HasMaxLength(100);
-            entity.Property(e => e.Transportista).HasMaxLength(100);
-
-            entity.HasOne(d => d.Pedido).WithMany(p => p.Envios)
-                .HasForeignKey(d => d.PedidoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Envio_Pedido");
-        });
-
-        modelBuilder.Entity<Resena>(entity =>
-        {
-            entity.HasKey(e => e.ResenaId);
-            entity.Property(e => e.Comentario).HasMaxLength(500);
-
-            entity.HasOne(d => d.Cliente).WithMany(p => p.Resenas)
-                .HasForeignKey(d => d.ClienteId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Resena_Cliente");
-
-            entity.HasOne(d => d.Producto).WithMany(p => p.Resenas)
-                .HasForeignKey(d => d.ProductoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Resena_Producto");
-        });
-
-        modelBuilder.Entity<ListaDeseos>(entity =>
-        {
-            entity.HasKey(e => e.ListaDeseosId);
-
-            entity.HasOne(d => d.Cliente).WithMany(p => p.ListaDeseos)
-                .HasForeignKey(d => d.ClienteId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ListaDeseos_Cliente");
-
-            entity.HasOne(d => d.Producto).WithMany(p => p.ListaDeseos)
-                .HasForeignKey(d => d.ProductoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_ListaDeseos_Producto");
-        });
-
-        modelBuilder.Entity<Devolucion>(entity =>
-        {
-            entity.HasKey(e => e.DevolucionId);
-            entity.Property(e => e.Motivo).HasMaxLength(255);
-            entity.Property(e => e.EstadoDevolucion).HasMaxLength(50);
-
-            entity.HasOne(d => d.Pedido).WithMany(p => p.Devoluciones)
-                .HasForeignKey(d => d.PedidoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Devolucion_Pedido");
-
-            entity.HasOne(d => d.Producto).WithMany(p => p.Devoluciones)
-                .HasForeignKey(d => d.ProductoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Devolucion_Producto");
         });
 
         OnModelCreatingPartial(modelBuilder);

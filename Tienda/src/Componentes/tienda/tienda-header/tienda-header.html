@@ -1,0 +1,63 @@
+<header class="tienda-header">
+  <div class="barra-superior">
+    <div class="d-flex align-items-center justify-content-between px-4 py-2">
+      <a routerLink="/" class="logo">
+        <span class="logo-x">X</span> tienda tecnológica
+      </a>
+
+      <div class="buscador flex-grow-1 mx-4">
+        <input type="text" placeholder="Búsqueda de productos..." class="form-control" />
+      </div>
+
+      <div class="acciones-usuario d-flex align-items-center gap-3">
+        <a routerLink="/acceso" class="link-acceso">ACCESO / REGISTRO</a>
+        <a routerLink="/favoritos" class="icono-accion">♡</a>
+        <a routerLink="/carrito" class="icono-accion carrito">🛒 ₡0</a>
+      </div>
+    </div>
+  </div>
+
+  <nav class="barra-categorias">
+    <div class="px-4 d-flex align-items-center">
+      <div class="dropdown-categorias"
+           (mouseenter)="menuAbierto.set(true)"
+           (mouseleave)="menuAbierto.set(false); categoriaActivaId.set(null)">
+
+        <button class="btn-ver-categorias">
+          ☰ VER CATEGORÍAS
+        </button>
+
+        @if (menuAbierto()) {
+        <ul class="lista-categorias">
+          @for (cat of categorias(); track cat.categoriaId) {
+          <li class="item-categoria"
+              (mouseenter)="categoriaActivaId.set(cat.categoriaId)">
+
+            <a [routerLink]="['/categoria', cat.categoriaId]">
+              {{ cat.nombre }}
+              @if (cat.subcategorias.length > 0) {
+              <span class="flecha">›</span>
+              }
+            </a>
+
+            @if (cat.subcategorias.length > 0 && categoriaActivaId() === cat.categoriaId) {
+            <ul class="flyout-subcategorias">
+              @for (sub of cat.subcategorias; track sub.subcategoriaId) {
+              <li>
+                <a [routerLink]="['/subcategoria', sub.subcategoriaId]">
+                  {{ sub.nombre }}
+                </a>
+              </li>
+              }
+            </ul>
+            }
+          </li>
+          } @empty {
+          <li class="item-categoria text-muted px-3 py-2">No hay categorías activas</li>
+          }
+        </ul>
+        }
+      </div>
+    </div>
+  </nav>
+</header>

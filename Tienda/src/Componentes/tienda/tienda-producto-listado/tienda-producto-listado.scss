@@ -1,0 +1,137 @@
+.barra-herramientas {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.75rem;
+
+  .btn-cantidad {
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    color: #999;
+    cursor: pointer;
+
+    &.activo {
+      color: #c8102e;
+      font-weight: 700;
+    }
+  }
+}
+
+.grid-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.tarjeta-producto {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+
+  .imagen-wrapper {
+    position: relative;
+
+    .cinta-descuento {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+      background: #c8102e;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      z-index: 1;
+    }
+
+    .imagen-placeholder {
+      aspect-ratio: 1;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 0.85rem;
+    }
+
+    .imagen-producto {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .fila-etiquetas {
+    display: flex;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem 0;
+    flex-wrap: wrap;
+
+    .chip-etiqueta {
+      font-size: 0.65rem;
+      background: #eef2f7;
+      color: #333;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+    }
+  }
+
+  .info {
+    padding: 0.75rem;
+
+    .nombre {
+      font-size: 0.95rem;
+      margin: 0 0 0.25rem;
+      color: #1a1a1a;
+    }
+
+    .marca {
+      font-size: 0.75rem;
+      color: #999;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .precios {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+
+      .precio-original {
+        text-decoration: line-through;
+        color: #999;
+        font-size: 0.8rem;
+      }
+
+      .precio {
+        font-weight: 700;
+        color: #c8102e;
+      }
+    }
+  }
+}
+
+.paginacion {
+  .btn-pagina {
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 0.25rem 0.65rem;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &.activo {
+      background: #c8102e;
+      color: #fff;
+      border-color: #c8102e;
+    }
+  }
+}
