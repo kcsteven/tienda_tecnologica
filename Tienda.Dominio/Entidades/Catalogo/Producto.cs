@@ -25,13 +25,13 @@ public partial class Producto
     public virtual Subcategoria Subcategoria { get; set; } = null!;
     public virtual Marca Marca { get; set; } = null!;
     public virtual Proveedor Proveedor { get; set; } = null!;
-    public virtual ICollection<DetallesPedido> DetallesPedidos { get; set; } = new List<DetallesPedido>();
+    // public virtual ICollection<DetallesPedido> DetallesPedidos { get; set; } = new List<DetallesPedido>();
     public virtual ICollection<Inventario> Inventarios { get; set; } = new List<Inventario>();
     public virtual ICollection<ProductoDescuento> ProductoDescuentos { get; set; } = new List<ProductoDescuento>();
     public virtual ICollection<ImagenProducto> ImagenProductos { get; set; } = new List<ImagenProducto>();
     public virtual ICollection<ProductoGarantia> ProductoGarantias { get; set; } = new List<ProductoGarantia>();
     public virtual ICollection<ProductoEtiqueta> ProductoEtiquetas { get; set; } = new List<ProductoEtiqueta>();
-    public virtual ICollection<Resena> Resenas { get; set; } = new List<Resena>();
-    public virtual ICollection<ListaDeseos> ListaDeseos { get; set; } = new List<ListaDeseos>();
-    public virtual ICollection<Devolucion> Devoluciones { get; set; } = new List<Devolucion>();
+    // public virtual ICollection<Resena> Resenas { get; set; } = new List<Resena>();
+    // public virtual ICollection<ListaDeseos> ListaDeseos { get; set; } = new List<ListaDeseos>();
+    // public virtual ICollection<Devolucion> Devoluciones { get; set; } = new List<Devolucion>();
 }

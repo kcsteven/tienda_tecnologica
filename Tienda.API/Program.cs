@@ -48,6 +48,34 @@ catch (Exception ex)
 File.WriteAllText(rutaDiagnostico, resultadoDiagnostico);
 // FIN DIAGNOSTICO TEMPORAL
 
+// DIAGNOSTICO 2 - ImagenProducto
+string rutaDiagnostico2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "diagnostico2.txt");
+string resultado2 = "";
+try
+{
+    using (var conexion2 = new Microsoft.Data.SqlClient.SqlConnection(cadenaConexion))
+    {
+        conexion2.Open();
+        using (var cmd2 = new Microsoft.Data.SqlClient.SqlCommand(
+            "SELECT COUNT(*) FROM ImagenProducto WHERE ProductoId = 1", conexion2))
+        {
+            var conteo = cmd2.ExecuteScalar();
+            resultado2 += "CONTEO IMAGENPRODUCTO ProductoId=1 (ADO.NET directo): " + conteo + Environment.NewLine;
+        }
+        using (var cmd3 = new Microsoft.Data.SqlClient.SqlCommand(
+            "SELECT DB_NAME()", conexion2))
+        {
+            resultado2 += "BASE DE DATOS de esta segunda conexion: " + cmd3.ExecuteScalar() + Environment.NewLine;
+        }
+    }
+}
+catch (Exception ex)
+{
+    resultado2 += "ERROR: " + ex.Message + Environment.NewLine;
+}
+File.WriteAllText(rutaDiagnostico2, resultado2);
+// FIN DIAGNOSTICO 2
+
 // Configuración de logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
