@@ -35,6 +35,7 @@ namespace Tienda.Dominio.DTO
             CreateMap<TResena, Resena>().ReverseMap();
             CreateMap<TListaDeseos, ListaDeseos>().ReverseMap();
             CreateMap<TDevolucion, Devolucion>().ReverseMap();
+            CreateMap<TEspecificacionProducto, EspecificacionProducto>().ReverseMap();
         }
 
 

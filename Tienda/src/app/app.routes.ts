@@ -9,6 +9,7 @@ import { CategoriaComponent } from '../Componentes/categoria/categoria';
 import { TiendaLayoutComponent } from '../Componentes/tienda/tienda-layout/tienda-layout';
 import { TiendaHomeComponent } from '../Componentes/tienda/tienda-home/tienda-home';
 import { TiendaProductoListadoComponent } from '../Componentes/tienda/tienda-producto-listado/tienda-producto-listado';
+import { TiendaProductoDetalleComponent } from '../Componentes/tienda/tienda-producto-detalle/tienda-producto-detalle';
 
 export const routes: Routes = [
 
@@ -16,17 +17,10 @@ export const routes: Routes = [
     path: '',
     component: TiendaLayoutComponent,
     children: [
-      { path: '', component: TiendaHomeComponent }
-    ]
-  },
-
-  {
-    path: '',
-    component: TiendaLayoutComponent,
-    children: [
       { path: '', component: TiendaHomeComponent },
       { path: 'categoria/:id', component: TiendaProductoListadoComponent, data: { tipo: 'categoria' } },
-      { path: 'subcategoria/:id', component: TiendaProductoListadoComponent, data: { tipo: 'subcategoria' } }
+      { path: 'subcategoria/:id', component: TiendaProductoListadoComponent, data: { tipo: 'subcategoria' } },
+      { path: 'producto/:id', component: TiendaProductoDetalleComponent }
     ]
   },
 
