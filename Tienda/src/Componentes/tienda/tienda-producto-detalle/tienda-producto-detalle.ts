@@ -22,6 +22,10 @@ import { EspecificacionProductoService } from '../../../app/services/especificac
 import { GarantiaService } from '../../../app/services/garantia';
 import { ProductoGarantiaService } from '../../../app/services/producto-garantia';
 import { IEspecificacionProducto } from '../../../app/model/IEspecificacionProducto';
+import { ResenaService } from '../../../app/services/resena';
+import { IResena } from '../../../app/model/IResena';
+import { CarritoService } from '../../../app/services/carrito';
+import { IItemCarrito } from '../../../app/model/IItemCarrito';
 
 interface DisponibilidadTienda {
   bodegaNombre: string;
@@ -49,6 +53,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
   private especificacionService = inject(EspecificacionProductoService);
   private garantiaService = inject(GarantiaService);
   private productoGarantiaService = inject(ProductoGarantiaService);
+  private resenaService = inject(ResenaService);
+  private carritoService = inject(CarritoService);
 
   especificaciones = signal<IEspecificacionProducto[]>([]);
   garantiaMeses = signal<number | null>(null);
@@ -71,6 +77,9 @@ export class TiendaProductoDetalleComponent implements OnInit {
   mostrarDisponibilidad = signal(false);
 
   cantidad = signal(1);
+
+  resenas = signal<IResena[]>([]); 
+  promedioCalificacion = signal(0); 
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -113,12 +122,14 @@ export class TiendaProductoDetalleComponent implements OnInit {
             .pipe(catchError(() => of({ data: [] }))),
           bodegas: this.bodegaService.listar()
             .pipe(catchError(() => of({ data: [] }))),
-            especificaciones: this.especificacionService.listarPorProducto(productoId)
+          especificaciones: this.especificacionService.listarPorProducto(productoId)
             .pipe(catchError(() => of({ data: [] }))),
           garantiasProducto: this.productoGarantiaService.listarPorProducto(productoId)
-            .pipe(catchError(() => of({ data: [] })))
+            .pipe(catchError(() => of({ data: [] }))),
+          resenasProducto: this.resenaService.listarPorProducto(productoId) 
+            .pipe(catchError(() => of({ data: [] })))          
         }).subscribe({
-          next: ({ marca, subcategoria, imagenes, descuentos, descuentosProducto, inventario, bodegas, especificaciones, garantiasProducto }) => {
+          next: ({ marca, subcategoria, imagenes, descuentos, descuentosProducto, inventario, bodegas, especificaciones, garantiasProducto, resenasProducto }) => {
 
             this.marcaNombre.set(marca.data?.nombre ?? '');
             this.subcategoriaNombre.set(subcategoria.data?.nombre ?? '');
@@ -174,6 +185,15 @@ export class TiendaProductoDetalleComponent implements OnInit {
                 }))
             );
 
+            const listaResenas: IResena[] = resenasProducto.data ?? [];
+            this.resenas.set(listaResenas);
+            this.promedioCalificacion.set(
+              listaResenas.length > 0
+                ? listaResenas.reduce((suma, r) => suma + r.calificacion, 0) / listaResenas.length
+                : 0
+            );
+        
+
             this.cargando.set(false);
           },
           error: () => {
@@ -202,5 +222,24 @@ export class TiendaProductoDetalleComponent implements OnInit {
 
   sumarCantidad(): void {
     this.cantidad.set(this.cantidad() + 1);
+  }
+  agregarAlCarrito(): void {
+    const prod = this.producto();
+    if (!prod) return;
+
+    const item: IItemCarrito = {
+      productoId: prod.productoId,
+      nombre: prod.nombre,
+      precioUnitario: this.precioFinal(),
+      cantidad: this.cantidad(),
+      imagenUrl: this.imagenActiva()
+    };
+
+    this.carritoService.agregar(item);
+  }
+
+
+  estrellas(calificacion: number): string { 
+    return '⭐'.repeat(Math.round(calificacion));
   }
 }

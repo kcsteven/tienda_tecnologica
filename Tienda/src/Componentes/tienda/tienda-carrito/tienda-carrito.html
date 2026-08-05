@@ -1,0 +1,58 @@
+<div class="container py-4 pagina-carrito">
+  <h1 class="titulo-carrito mb-4">Mi carrito</h1>
+
+  @if (carritoService.items().length > 0) {
+  <div class="contenido-carrito">
+    <div class="lista-items">
+      @for (item of carritoService.items(); track item.productoId) {
+      <div class="fila-item">
+        @if (item.imagenUrl) {
+        <img [src]="item.imagenUrl" [alt]="item.nombre" class="imagen-item" />
+        } @else {
+        <div class="imagen-placeholder">Sin imagen</div>
+        }
+
+        <div class="info-item">
+          <span class="nombre-item">{{ item.nombre }}</span>
+          <span class="precio-unitario">₡{{ item.precioUnitario | number:'1.0-0' }} c/u</span>
+        </div>
+
+        <div class="selector-cantidad">
+          <button (click)="restarCantidad(item.productoId, item.cantidad)">-</button>
+          <span>{{ item.cantidad }}</span>
+          <button (click)="sumarCantidad(item.productoId, item.cantidad)">+</button>
+        </div>
+
+        <div class="subtotal-item">
+          ₡{{ item.precioUnitario * item.cantidad | number:'1.0-0' }}
+        </div>
+
+        <button class="btn-quitar" (click)="quitarItem(item.productoId)" title="Quitar del carrito">
+          ✕
+        </button>
+      </div>
+      }
+    </div>
+
+    <aside class="resumen-carrito">
+      <h5>Resumen</h5>
+      <div class="fila-resumen">
+        <span>Productos ({{ carritoService.cantidadTotal() }})</span>
+        <span>₡{{ carritoService.total() | number:'1.0-0' }}</span>
+      </div>
+      <div class="fila-resumen total">
+        <span>Total</span>
+        <span>₡{{ carritoService.total() | number:'1.0-0' }}</span>
+      </div>
+
+      <button class="btn-finalizar">FINALIZAR COMPRA</button>
+      <button class="btn-vaciar" (click)="vaciarCarrito()">Vaciar carrito</button>
+    </aside>
+  </div>
+  } @else {
+  <div class="carrito-vacio">
+    <p>Tu carrito está vacío.</p>
+    <a routerLink="/" class="btn-seguir-comprando">Seguir comprando</a>
+  </div>
+  }
+</div>
