@@ -1,10 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CategoriaService } from '../../../app/services/categoria';
 import { SubcategoriaService } from '../../../app/services/subcategoria';
 import { ICategoria } from '../../../app/model/ICategoria';
 import { ISubcategoria } from '../../../app/model/ISubcategoria';
+import { CarritoService } from '../../../app/services/carrito';
 
 interface CategoriaConSubs extends ICategoria {
   subcategorias: ISubcategoria[];
@@ -20,6 +21,8 @@ interface CategoriaConSubs extends ICategoria {
 export class TiendaHeaderComponent implements OnInit {
   private categoriaService = inject(CategoriaService);
   private subcategoriaService = inject(SubcategoriaService);
+  carritoService = inject(CarritoService);
+  private router = inject(Router);
 
   categorias = signal<CategoriaConSubs[]>([]);
   menuAbierto = signal(false);
@@ -27,6 +30,12 @@ export class TiendaHeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarMenu();
+  }
+
+  buscar(termino: string): void {
+    const valor = termino.trim();
+    if (!valor) return;
+    this.router.navigate(['/buscar'], { queryParams: { q: valor } });
   }
 
   private cargarMenu(): void {

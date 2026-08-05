@@ -31,6 +31,7 @@ public partial class VentasContext : DbContext
     public virtual DbSet<ImagenProducto> ImagenProductos { get; set; }
     public virtual DbSet<ProductoGarantia> ProductoGarantias { get; set; }
     public virtual DbSet<ProductoEtiqueta> ProductoEtiquetas { get; set; }
+    public virtual DbSet<EspecificacionProducto> EspecificacionProductos { get; set; }
 
     // ===== Módulo de Personas/Usuarios/Clientes/Pedidos (le toca a tu compañero) =====
     // Temporalmente IGNORADO en OnModelCreating hasta que su módulo esté completo y correcto.
@@ -153,6 +154,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Marca>(entity =>
         {
             entity.HasKey(e => e.MarcaId);
+            entity.ToTable("Marca");
             entity.HasIndex(e => e.Nombre, "UQ_Marca_Nombre").IsUnique();
 
             entity.Property(e => e.Nombre).HasMaxLength(100);
@@ -168,6 +170,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Proveedor>(entity =>
         {
             entity.HasKey(e => e.ProveedorId);
+            entity.ToTable("Proveedor");
             entity.HasIndex(e => e.Nombre, "UQ_Proveedor_Nombre").IsUnique();
 
             entity.Property(e => e.Nombre).HasMaxLength(100);
@@ -184,6 +187,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Bodega>(entity =>
         {
             entity.HasKey(e => e.BodegaId);
+            entity.ToTable("Bodega");
             entity.Property(e => e.Nombre).HasMaxLength(100);
             entity.Property(e => e.Ubicacion).HasMaxLength(200);
             entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Bodega_Activo");
@@ -197,6 +201,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Descuento>(entity =>
         {
             entity.HasKey(e => e.DescuentoId);
+            entity.ToTable("Descuento");
             entity.Property(e => e.Nombre).HasMaxLength(100);
             entity.Property(e => e.Porcentaje).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Descuento_Activo");
@@ -210,6 +215,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Garantia>(entity =>
         {
             entity.HasKey(e => e.GarantiaId);
+            entity.ToTable("Garantia");
             entity.Property(e => e.Nombre).HasMaxLength(100);
             entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Garantia_Activo");
             entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Garantia_CreadoEn");
@@ -222,6 +228,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Etiqueta>(entity =>
         {
             entity.HasKey(e => e.EtiquetaId);
+            entity.ToTable("Etiqueta");
             entity.Property(e => e.Nombre).HasMaxLength(50);
             entity.Property(e => e.Activo).HasDefaultValue(true, "DF_Etiqueta_Activo");
             entity.Property(e => e.CreadoEn).HasPrecision(3).HasDefaultValueSql("(sysutcdatetime())", "DF_Etiqueta_CreadoEn");
@@ -234,6 +241,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<Inventario>(entity =>
         {
             entity.HasKey(e => e.InventarioId);
+            entity.ToTable("Inventario");
             entity.HasOne(d => d.Producto).WithMany(p => p.Inventarios)
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -247,6 +255,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<ProductoDescuento>(entity =>
         {
             entity.HasKey(e => e.ProductoDescuentoId);
+            entity.ToTable("ProductoDescuento");
             entity.HasOne(d => d.Producto).WithMany(p => p.ProductoDescuentos)
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -268,9 +277,22 @@ public partial class VentasContext : DbContext
                 .HasConstraintName("FK_ImagenProducto_Producto");
         });
 
+        modelBuilder.Entity<EspecificacionProducto>(entity =>
+        {
+            entity.HasKey(e => e.EspecificacionId);
+            entity.ToTable("EspecificacionProducto");
+            entity.Property(e => e.Etiqueta).HasMaxLength(50);
+            entity.Property(e => e.Valor).HasMaxLength(200);
+            entity.HasOne(d => d.Producto).WithMany()
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_EspecificacionProducto_Producto");
+        });
+
         modelBuilder.Entity<ProductoGarantia>(entity =>
         {
             entity.HasKey(e => e.ProductoGarantiaId);
+            entity.ToTable("ProductoGarantia");
             entity.HasOne(d => d.Producto).WithMany(p => p.ProductoGarantias)
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -284,6 +306,7 @@ public partial class VentasContext : DbContext
         modelBuilder.Entity<ProductoEtiqueta>(entity =>
         {
             entity.HasKey(e => e.ProductoEtiquetaId);
+            entity.ToTable("ProductoEtiqueta");
             entity.HasOne(d => d.Producto).WithMany(p => p.ProductoEtiquetas)
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

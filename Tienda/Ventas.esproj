@@ -9,6 +9,7 @@
     <NpmInstallCommand>install --legacy-peer-deps</NpmInstallCommand>
   </PropertyGroup>
   <ItemGroup>
+    <Folder Include="public\banner\" />
     <Folder Include="src\Componentes\tienda\" />
   </ItemGroup>
 </Project>

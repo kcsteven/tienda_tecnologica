@@ -56,6 +56,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         private RepositorioAD<Resena> _TResena;
         private RepositorioAD<ListaDeseos> _TListaDeseos;
         private RepositorioAD<Devolucion> _TDevolucion;
+        private RepositorioAD<EspecificacionProducto> _TEspecificacionProducto;
 
         #endregion
         #region "Constructores"
@@ -238,6 +239,11 @@ namespace Tienda.AccesoDatos.Implementaciones
                     this._TGarantia = new RepositorioAD<Garantia>(_Contexto);
                 return _TGarantia;
             }
+        }
+
+        public IRepositorioAD<EspecificacionProducto> TEspecificacionProducto
+        {
+            get { if (this._TEspecificacionProducto == null) this._TEspecificacionProducto = new RepositorioAD<EspecificacionProducto>(_Contexto); return _TEspecificacionProducto; }
         }
 
         public IRepositorioAD<Etiqueta> TEtiqueta
