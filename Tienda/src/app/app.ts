@@ -16,7 +16,7 @@ import { iconSubset } from './icons/icon-subset';
   styleUrl: './app.css'
 })
 export class App implements OnInit {
-  protected title = 'Ventas';
+  protected title = 'Tienda';
 readonly #destroyRef: DestroyRef = inject(DestroyRef);
   readonly #activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   readonly #router = inject(Router);
@@ -27,7 +27,7 @@ readonly #destroyRef: DestroyRef = inject(DestroyRef);
  
   constructor() {
     this.#titleService.setTitle(this.title);
-    // iconSet singleton
+    
     this.#iconSetService.icons = { ...iconSubset };
     this.#colorModeService.localStorageItemName.set('coreui-free-angular-admin-template-theme-default');
     this.#colorModeService.eventName.set('ColorSchemeChange');
