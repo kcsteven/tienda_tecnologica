@@ -153,11 +153,11 @@ builder.Services.AddScoped<IEnvioLN, EnvioLN>();
 builder.Services.AddScoped<IResenaLN, ResenaLN>();
 builder.Services.AddScoped<IListaDeseosLN, ListaDeseosLN>();
 builder.Services.AddScoped<IDevolucionLN, DevolucionLN>();
+builder.Services.AddScoped<IEspecificacionProductoLN, EspecificacionProductoLN>();
 
 builder.Services.AddAuthorization();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi//
-//builder.Services.AddOpenApi();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -185,6 +185,4 @@ app.UseAuthentication(); app.UseAuthorization(); if (app.Environment.IsDevelopme
 
 app.MapControllers();
 
-
-//// Configure the HTTP request pipeline.//if (app.Environment.IsDevelopment())//{//    app.MapOpenApi();//}//app.UseHttpsRedirection();//app.UseAuthorization();//app.MapControllers();
 app.Run();

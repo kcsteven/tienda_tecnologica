@@ -1,0 +1,132 @@
+<div class="container py-4">
+  @if (cargando()) {
+  <p class="text-muted">Cargando producto...</p>
+  } @else if (producto(); as prod) {
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb-tienda mb-4">
+    <a routerLink="/">Inicio</a> /
+    @if (categoriaId()) {
+    <a [routerLink]="['/categoria', categoriaId()]">{{ categoriaNombre() }}</a> /
+    }
+    <span>{{ subcategoriaNombre() }}</span> /
+    <span class="actual">{{ prod.nombre }}</span>
+  </nav>
+
+  <div class="detalle-producto">
+    <!-- Galería de imágenes -->
+    <div class="galeria">
+      <div class="imagen-principal">
+        @if (imagenActiva()) {
+        <img [src]="imagenActiva()" [alt]="prod.nombre" />
+        } @else {
+        <div class="imagen-placeholder">Sin imagen</div>
+        }
+      </div>
+
+      @if (imagenes().length > 1) {
+      <div class="miniaturas">
+        @for (img of imagenes(); track img) {
+        <img [src]="img"
+             [class.activa]="img === imagenActiva()"
+             (click)="cambiarImagenActiva(img)" />
+        }
+      </div>
+      }
+    </div>
+
+    <!-- Info del producto -->
+    <div class="info-producto">
+      <span class="marca">{{ marcaNombre() }}</span>
+      <h1 class="titulo">{{ prod.nombre }}</h1>
+
+      <div class="disponibilidad-tienda">
+        <button class="btn-disponibilidad" (click)="toggleDisponibilidad()">
+          🏬 Ver disponibilidad en tiendas
+        </button>
+
+        @if (mostrarDisponibilidad()) {
+        <div class="lista-disponibilidad">
+          @if (disponibilidad().length > 0) {
+          @for (d of disponibilidad(); track d.bodegaNombre) {
+          <div class="fila-disponibilidad">
+            <span>{{ d.bodegaNombre }}</span>
+            <span class="cantidad-stock">{{ d.cantidad }} unidades</span>
+          </div>
+          }
+          } @else {
+          <p class="text-muted mb-0">Sin stock disponible por el momento.</p>
+          }
+        </div>
+        }
+      </div>
+
+      @if (especificaciones().length > 0) {
+      <ul class="lista-especificaciones">
+        @for (esp of especificaciones(); track esp.especificacionId) {
+        <li>
+          <strong>{{ esp.etiqueta }}:</strong> {{ esp.valor }}
+        </li>
+        }
+      </ul>
+      } @else if (prod.descripcion) {
+      <div class="descripcion">
+        <h5>Descripción</h5>
+        <p>{{ prod.descripcion }}</p>
+      </div>
+      }
+
+      <div class="precios">
+        @if (porcentajeDescuento() > 0) {
+        <span class="precio-original">₡{{ precioOriginal() | number:'1.0-0' }}</span>
+        <span class="badge-descuento">-{{ porcentajeDescuento() }}%</span>
+        }
+        <div class="fila-precio-garantia">
+          <div class="precio-final">₡{{ precioFinal() | number:'1.0-0' }} I.V.A.I</div>
+          @if (garantiaMeses()) {
+          <span class="badge-garantia">
+            ✓ Garantía {{ garantiaMeses()! >= 12 ? (garantiaMeses()! / 12) + ' año' + (garantiaMeses()! > 12 ? 's' : '') : garantiaMeses() + ' meses' }}
+          </span>
+          }
+        </div>
+      </div>
+
+      <div class="acciones-compra">
+        <div class="selector-cantidad">
+          <button (click)="restarCantidad()">-</button>
+          <span>{{ cantidad() }}</span>
+          <button (click)="sumarCantidad()">+</button>
+        </div>
+        <button class="btn-agregar-carrito" (click)="agregarAlCarrito()">AÑADIR AL CARRITO</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="resenas mt-5">
+    <h5>Opiniones de clientes</h5>
+
+    @if (resenas().length > 0) {
+    <div class="promedio-resenas mb-3">
+      <span class="estrellas-promedio">{{ estrellas(promedioCalificacion()) }}</span>
+      <strong>{{ promedioCalificacion() | number:'1.1-1' }} / 5</strong>
+      <span class="text-muted">({{ resenas().length }} {{ resenas().length === 1 ? 'reseña' : 'reseñas' }})</span>
+    </div>
+
+    @for (r of resenas(); track r.resenaId) {
+    <div class="resena-item mb-3 pb-3 border-bottom">
+      <div class="estrellas">{{ estrellas(r.calificacion) }}</div>
+      @if (r.comentario) {
+      <p class="mb-1">{{ r.comentario }}</p>
+      }
+      <span class="text-muted small">{{ r.fecha | date:'dd/MM/yyyy' }}</span>
+    </div>
+    }
+    } @else {
+    <p class="text-muted">Este producto aún no tiene reseñas.</p>
+    }
+  </div>
+
+  } @else {
+  <p class="text-muted">Producto no encontrado.</p>
+  }
+</div>

@@ -6,13 +6,22 @@
       </a>
 
       <div class="buscador flex-grow-1 mx-4">
-        <input type="text" placeholder="Búsqueda de productos..." class="form-control" />
+        <input type="text"
+               #inputBusqueda
+               (keyup.enter)="buscar(inputBusqueda.value)"
+               placeholder="Búsqueda de productos..."
+               class="form-control" />
       </div>
 
       <div class="acciones-usuario d-flex align-items-center gap-3">
         <a routerLink="/registro" class="link-acceso">ACCESO / REGISTRO</a>
         <a routerLink="/favoritos" class="icono-accion">♡</a>
-        <a routerLink="/carrito" class="icono-accion carrito">🛒 ₡0</a>
+        <a routerLink="/carrito" class="icono-accion carrito">
+          🛒 ₡{{ carritoService.total() | number:'1.0-0' }}
+          @if (carritoService.cantidadTotal() > 0) {
+          <span class="badge-carrito">{{ carritoService.cantidadTotal() }}</span>
+          }
+        </a>
       </div>
     </div>
   </div>

@@ -1,4 +1,61 @@
-<div class="container py-5">
-  <h1>Bienvenido a la tienda</h1>
-  <p>Aquí irá el contenido principal (banner, productos destacados, etc.)</p>
+<div class="tienda-home">
+  <div class="carrusel-banner">
+    @for (banner of banners(); track banner.imagen; let i = $index) {
+    @if (banner.productoId) {
+    <a [routerLink]="['/producto', banner.productoId]" class="banner-slide" [class.activo]="i === bannerActivo()">
+      <img [src]="banner.imagen" class="banner-imagen" />
+    </a>
+    } @else {
+    <div class="banner-slide" [class.activo]="i === bannerActivo()">
+      <img [src]="banner.imagen" class="banner-imagen" />
+    </div>
+    }
+    }
+
+    @if (banners().length > 1) {
+    <div class="puntos-banner">
+      @for (banner of banners(); track banner.imagen; let i = $index) {
+      <button class="punto" [class.activo]="i === bannerActivo()" (click)="irABanner(i)"></button>
+      }
+    </div>
+    }
+  </div>
+
+  <div class="container py-5">
+    <h2 class="mb-4">Productos destacados</h2>
+
+    @if (cargandoDestacados()) {
+    <p class="text-muted">Cargando productos...</p>
+    } @else if (productosDestacados().length === 0) {
+    <p class="text-muted">Aún no hay productos cargados.</p>
+    } @else {
+    <div class="grid-productos">
+      @for (prod of productosDestacados(); track prod.productoId) {
+      <a [routerLink]="['/producto', prod.productoId]" class="tarjeta-producto">
+        <div class="imagen-wrapper">
+          @if (prod.porcentajeDescuento > 0) {
+          <span class="cinta-descuento">-{{ prod.porcentajeDescuento }}%</span>
+          }
+          @if (prod.imagenUrl) {
+          <img [src]="prod.imagenUrl" [alt]="prod.nombre" class="imagen-producto" />
+          } @else {
+          <div class="imagen-placeholder">Sin imagen</div>
+          }
+        </div>
+
+        <div class="info">
+          <h3 class="nombre">{{ prod.nombre }}</h3>
+          <span class="marca">{{ prod.marcaNombre }}</span>
+          <div class="precios">
+            @if (prod.porcentajeDescuento > 0) {
+            <span class="precio-original">₡{{ prod.precioOriginal | number:'1.0-0' }}</span>
+            }
+            <span class="precio">₡{{ prod.precioFinal | number:'1.0-0' }} I.V.A.I</span>
+          </div>
+        </div>
+      </a>
+      }
+    </div>
+    }
+  </div>
 </div>
