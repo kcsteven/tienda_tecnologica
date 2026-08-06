@@ -131,9 +131,10 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 );
 
 builder.Services.AddScoped<IUnidadTrabajoEF, UnidadTrabajoEF>();
+builder.Services.AddScoped<IRegistroClienteLN, RegistroClienteLN>();
+builder.Services.AddScoped<IHashContrasena, HashContrasena>();
 builder.Services.AddScoped<ICategoriaLN, CategoriaLN>();
 builder.Services.AddScoped<ISubcategoriaLN, SubcategoriaLN>();
-builder.Services.AddScoped<IClienteLN, ClienteLN>();
 builder.Services.AddScoped<IProductoLN, ProductoLN>();
 builder.Services.AddScoped<IPedidoLN, PedidoLN>();
 builder.Services.AddScoped<IMarcaLN, MarcaLN>();

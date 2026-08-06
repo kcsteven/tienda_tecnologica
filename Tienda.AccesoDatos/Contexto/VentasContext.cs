@@ -49,6 +49,11 @@ public partial class VentasContext : DbContext
     public virtual DbSet<Resena> Resenas { get; set; }
     public virtual DbSet<ListaDeseos> ListaDeseos { get; set; }
     public virtual DbSet<Devolucion> Devoluciones { get; set; }
+    public virtual DbSet<Persona> Personas { get; set; }
+    public virtual DbSet<TipoDocumento> TipoDocumentos { get; set; }
+    public virtual DbSet<Rol> Roles { get; set; }
+    public virtual DbSet<Usuario> Usuarios { get; set; }
+    public virtual DbSet<DireccionCliente> DireccionClientes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -65,7 +70,6 @@ public partial class VentasContext : DbContext
         // tiene una colección mal tipada que rompe el modelo completo de EF).
         // Cuando esté listo y corregido, borrar estas líneas de Ignore<>().
         // =====================================================================
-        modelBuilder.Ignore<Cliente>();
         modelBuilder.Ignore<DetallesPedido>();
         modelBuilder.Ignore<Pedido>();
         modelBuilder.Ignore<SegPantalla>();
@@ -78,6 +82,83 @@ public partial class VentasContext : DbContext
         modelBuilder.Ignore<Resena>();
         modelBuilder.Ignore<ListaDeseos>();
         modelBuilder.Ignore<Devolucion>();
+
+        modelBuilder.Entity<TipoDocumento>(entity =>
+        {
+            entity.HasKey(e => e.TipoDocumentoId);
+            entity.ToTable("TipoDocumento");
+            entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Persona>(entity =>
+        {
+            entity.HasKey(e => e.PersonaId);
+            entity.ToTable("Persona");
+            entity.HasIndex(e => new { e.TipoDocumentoId, e.NumeroDocumento }, "UQ_Persona_Documento").IsUnique();
+
+            entity.Property(e => e.NumeroDocumento).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.Nombre).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Apellido).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.FechaNacimiento).HasColumnType("date");
+            entity.Property(e => e.Telefono).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false);
+
+            entity.HasOne(d => d.TipoDocumento).WithMany(p => p.Personas)
+                .HasForeignKey(d => d.TipoDocumentoId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<Rol>(entity =>
+        {
+            entity.HasKey(e => e.RolId);
+            entity.ToTable("Rol");
+            entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.HasKey(e => e.UsuarioId);
+            entity.ToTable("Usuario");
+            entity.Property(e => e.NombreUsuario).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Contrasena).HasMaxLength(255).IsUnicode(false);
+            entity.Property(e => e.FechaRegistro).HasColumnType("date");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+
+            entity.HasOne(d => d.Persona).WithMany(p => p.Usuarios)
+                .HasForeignKey(d => d.PersonaId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Rol).WithMany(p => p.Usuarios)
+                .HasForeignKey(d => d.RolId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<Cliente>(entity =>
+        {
+            entity.HasKey(e => e.ClienteId);
+            entity.ToTable("Cliente");
+            entity.HasIndex(e => e.Cedula, "UQ_Cliente_Cedula").IsUnique();
+            entity.Property(e => e.Cedula).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.FechaRegistro).HasColumnType("date");
+
+            entity.HasOne(d => d.Persona).WithMany(p => p.Clientes)
+                .HasForeignKey(d => d.PersonaId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<DireccionCliente>(entity =>
+        {
+            entity.HasKey(e => e.DireccionId);
+            entity.ToTable("DireccionCliente");
+            entity.Property(e => e.Provincia).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Canton).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Distrito).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.SenaExacta).HasMaxLength(255).IsUnicode(false);
+            entity.Property(e => e.EsPrincipal).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Cliente).WithMany(p => p.DireccionClientes)
+                .HasForeignKey(d => d.ClienteId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
 
         modelBuilder.Entity<Categoria>(entity =>
         {

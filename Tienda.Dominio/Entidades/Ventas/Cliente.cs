@@ -7,31 +7,16 @@ public partial class Cliente
 {
     public int ClienteId { get; set; }
 
-    public string Nombre { get; set; } = null!;
+    public int PersonaId { get; set; }
 
-    public string? Email { get; set; }
-
-    public string? Telefono { get; set; }
+    public string Cedula { get; set; } = null!;
 
     public DateTime FechaRegistro { get; set; }
 
-    public bool Activo { get; set; }
-
-    public DateTime CreadoEn { get; set; }
-
-    public string? CreadoPor { get; set; }
-
-    public DateTime? ActualizadoEn { get; set; }
-
-    public string? ActualizadoPor { get; set; }
-
-    public byte[] RowVer { get; set; } = null!;
-
-    public int TipoCedula { get; set; }
+    public virtual Persona Persona { get; set; } = null!;
 
     public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
     public virtual ICollection<Resena> Resenas { get; set; } = new List<Resena>();
     public virtual ICollection<ListaDeseos> ListaDeseos { get; set; } = new List<ListaDeseos>();
-
-    public virtual TipoCedula TipoCedulaNavigation { get; set; } = null!;
+    public virtual ICollection<DireccionCliente> DireccionClientes { get; set; } = new List<DireccionCliente>();
 }

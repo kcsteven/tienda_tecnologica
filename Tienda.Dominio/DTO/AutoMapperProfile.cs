@@ -20,7 +20,6 @@ namespace Tienda.Dominio.DTO
             CreateMap<TProducto, Producto>().ReverseMap();
             CreateMap<TMarca, Marca>().ReverseMap();
             CreateMap<TProveedor, Proveedor>().ReverseMap();
-            CreateMap<TCliente, Cliente>().ReverseMap();
             CreateMap<TBodega, Bodega>().ReverseMap();
             CreateMap<TDescuento, Descuento>().ReverseMap();
             CreateMap<TGarantia, Garantia>().ReverseMap();
