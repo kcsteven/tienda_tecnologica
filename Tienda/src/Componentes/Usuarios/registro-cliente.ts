@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -22,6 +22,7 @@ import { RegistroClienteService } from '../../app/services/Usuarios/registro-cli
 export class RegistroClienteComponent implements OnInit {
   private fb = inject(FormBuilder);
   private registroClienteService = inject(RegistroClienteService);
+  private changeDetectorRef = inject(ChangeDetectorRef);
 
   tiposDocumento: ITipoDocumento[] = [];
   cargandoTipos = true;
@@ -98,14 +99,17 @@ export class RegistroClienteComponent implements OnInit {
           this.mensajeExito = 'Tu registro fue completado correctamente.';
           this.formulario.reset();
           this.enviado = false;
+          this.changeDetectorRef.markForCheck();
           return;
         }
 
         this.mensajeError = respuesta.error || 'No fue posible completar el registro.';
+        this.changeDetectorRef.markForCheck();
       },
       error: error => {
         this.enviando = false;
         this.mensajeError = error?.error?.error || 'No fue posible completar el registro.';
+        this.changeDetectorRef.markForCheck();
       }
     });
   }
@@ -156,10 +160,12 @@ export class RegistroClienteComponent implements OnInit {
         if (this.tiposDocumento.length === 0) {
           this.mensajeError = 'No hay tipos de documento disponibles para el registro.';
         }
+        this.changeDetectorRef.markForCheck();
       },
       error: error => {
         this.cargandoTipos = false;
         this.mensajeError = error?.error?.error || 'No fue posible cargar los tipos de documento.';
+        this.changeDetectorRef.markForCheck();
       }
     });
   }
