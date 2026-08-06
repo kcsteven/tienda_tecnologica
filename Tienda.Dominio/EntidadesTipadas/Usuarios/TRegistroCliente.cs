@@ -22,13 +22,15 @@ public class TRegistroCliente
     [StringLength(20)]
     public string? Telefono { get; set; }
 
-    [EmailAddress, StringLength(100)]
-    public string? Email { get; set; }
+    [Required, EmailAddress, StringLength(100)]
+    public string Email { get; set; } = null!;
 
     [Required, StringLength(50)]
     public string NombreUsuario { get; set; } = null!;
 
     [Required, MinLength(8), StringLength(128)]
+    [RegularExpression(@"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])[\s\S]+$",
+        ErrorMessage = "La contraseña debe incluir al menos una mayúscula, una minúscula y un dígito.")]
     public string Contrasena { get; set; } = null!;
 
     [Required, StringLength(100)]

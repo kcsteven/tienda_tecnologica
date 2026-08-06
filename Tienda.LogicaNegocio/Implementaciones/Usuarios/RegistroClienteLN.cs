@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
@@ -107,6 +108,20 @@ public class RegistroClienteLN : IRegistroClienteLN
             if (personaExistente.Data != null)
             {
                 resultado.Error = "Ya existe una persona registrada con ese tipo y número de documento.";
+                return resultado;
+            }
+
+            var correoExistente = await _unidadDeTrabajo.TPersona.ObtenerEntidadAsync(
+                x => x.Email == datosNormalizados.Email);
+            if (!string.IsNullOrEmpty(correoExistente.Error))
+            {
+                resultado.Error = "No fue posible validar el correo electrónico.";
+                return resultado;
+            }
+
+            if (correoExistente.Data != null)
+            {
+                resultado.Error = "El correo electrónico ya está registrado.";
                 return resultado;
             }
 
@@ -242,8 +257,26 @@ public class RegistroClienteLN : IRegistroClienteLN
             NormalizarTexto(datos.Canton),
             NormalizarTexto(datos.Distrito),
             NormalizarTextoOpcional(datos.Telefono),
-            NormalizarTextoOpcional(datos.Email),
+            NormalizarEmail(datos.Email),
             NormalizarTextoOpcional(datos.SenaExacta));
+
+        if (string.IsNullOrWhiteSpace(normalizados.Email))
+        {
+            error = "El correo electrónico es obligatorio.";
+            return false;
+        }
+
+        if (!new EmailAddressAttribute().IsValid(normalizados.Email))
+        {
+            error = "El correo electrónico no tiene un formato válido.";
+            return false;
+        }
+
+        if (!EsContrasenaValida(datos.Contrasena))
+        {
+            error = "La contraseña debe tener entre 8 y 128 caracteres e incluir al menos una mayúscula, una minúscula y un dígito.";
+            return false;
+        }
 
         if (datos.FechaNacimiento.HasValue && datos.FechaNacimiento.Value.Date > DateTime.UtcNow.Date)
         {
@@ -319,6 +352,14 @@ public class RegistroClienteLN : IRegistroClienteLN
 
     private static string? NormalizarTextoOpcional(string? valor) => string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
 
+    private static string NormalizarEmail(string? valor) => valor?.Trim().ToLowerInvariant() ?? string.Empty;
+
+    private static bool EsContrasenaValida(string? contrasena) =>
+        contrasena is { Length: >= 8 and <= 128 } &&
+        contrasena.Any(x => x is >= 'A' and <= 'Z') &&
+        contrasena.Any(x => x is >= 'a' and <= 'z') &&
+        contrasena.Any(x => x is >= '0' and <= '9');
+
     private static string NormalizarNumeroDocumento(string nombreTipoDocumento, string numeroDocumento)
     {
         var tipoNormalizado = nombreTipoDocumento.Trim().ToUpperInvariant();
@@ -343,6 +384,6 @@ public class RegistroClienteLN : IRegistroClienteLN
         string Canton,
         string Distrito,
         string? Telefono,
-        string? Email,
+        string Email,
         string? SenaExacta);
 }

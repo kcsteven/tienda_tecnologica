@@ -45,9 +45,14 @@ export class RegistroClienteComponent implements OnInit {
       apellido: ['', [Validators.required, Validators.maxLength(100)]],
       fechaNacimiento: [''],
       telefono: ['', Validators.maxLength(20)],
-      email: ['', [Validators.email, Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       nombreUsuario: ['', [Validators.required, Validators.maxLength(50)]],
-      contrasena: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
+      contrasena: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.maxLength(128),
+        Validators.pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])[\s\S]+$/)
+      ]],
       confirmacionContrasena: ['', Validators.required],
       provincia: ['', [Validators.required, Validators.maxLength(100)]],
       canton: ['', [Validators.required, Validators.maxLength(100)]],
@@ -82,7 +87,7 @@ export class RegistroClienteComponent implements OnInit {
       apellido: valor.apellido ?? '',
       fechaNacimiento: valor.fechaNacimiento || null,
       telefono: valor.telefono || null,
-      email: valor.email || null,
+      email: valor.email ?? '',
       nombreUsuario: valor.nombreUsuario ?? '',
       contrasena: valor.contrasena ?? '',
       provincia: valor.provincia ?? '',
@@ -136,6 +141,9 @@ export class RegistroClienteComponent implements OnInit {
     }
     if (campo.errors['maxlength']) {
       return `No puede superar ${campo.errors['maxlength'].requiredLength} caracteres.`;
+    }
+    if (campo.errors['pattern']) {
+      return 'Debe incluir al menos una mayúscula, una minúscula y un dígito.';
     }
     if (campo.errors['documento']) {
       return campo.errors['documento'];

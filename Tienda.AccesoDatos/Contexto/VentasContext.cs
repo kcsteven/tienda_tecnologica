@@ -88,6 +88,7 @@ public partial class VentasContext : DbContext
         {
             entity.HasKey(e => e.TipoDocumentoId);
             entity.ToTable("TipoDocumento");
+            entity.HasIndex(e => e.Nombre, "UX_TipoDocumento_Nombre").IsUnique();
             entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
         });
 
@@ -96,6 +97,7 @@ public partial class VentasContext : DbContext
             entity.HasKey(e => e.PersonaId);
             entity.ToTable("Persona");
             entity.HasIndex(e => new { e.TipoDocumentoId, e.NumeroDocumento }, "UQ_Persona_Documento").IsUnique();
+            entity.HasIndex(e => e.Email, "UX_Persona_Email").IsUnique().HasFilter("[Email] IS NOT NULL");
 
             entity.Property(e => e.NumeroDocumento).HasMaxLength(30).IsUnicode(false);
             entity.Property(e => e.Nombre).HasMaxLength(100).IsUnicode(false);
@@ -113,6 +115,7 @@ public partial class VentasContext : DbContext
         {
             entity.HasKey(e => e.RolId);
             entity.ToTable("Rol");
+            entity.HasIndex(e => e.Nombre, "UX_Rol_Nombre").IsUnique();
             entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
         });
 
@@ -120,6 +123,8 @@ public partial class VentasContext : DbContext
         {
             entity.HasKey(e => e.UsuarioId);
             entity.ToTable("Usuario");
+            entity.HasIndex(e => e.NombreUsuario, "UX_Usuario_NombreUsuario").IsUnique();
+            entity.HasIndex(e => e.PersonaId, "UX_Usuario_PersonaId").IsUnique();
             entity.Property(e => e.NombreUsuario).HasMaxLength(50).IsUnicode(false);
             entity.Property(e => e.Contrasena).HasMaxLength(255).IsUnicode(false);
             entity.Property(e => e.FechaRegistro).HasColumnType("date");
@@ -138,6 +143,7 @@ public partial class VentasContext : DbContext
             entity.HasKey(e => e.ClienteId);
             entity.ToTable("Cliente");
             entity.HasIndex(e => e.Cedula, "UQ_Cliente_Cedula").IsUnique();
+            entity.HasIndex(e => e.PersonaId, "UX_Cliente_PersonaId").IsUnique();
             entity.Property(e => e.Cedula).HasMaxLength(30).IsUnicode(false);
             entity.Property(e => e.FechaRegistro).HasColumnType("date");
 
@@ -150,6 +156,9 @@ public partial class VentasContext : DbContext
         {
             entity.HasKey(e => e.DireccionId);
             entity.ToTable("DireccionCliente");
+            entity.HasIndex(e => e.ClienteId, "UX_DireccionCliente_Principal")
+                .IsUnique()
+                .HasFilter("[EsPrincipal] = 1");
             entity.Property(e => e.Provincia).HasMaxLength(100).IsUnicode(false);
             entity.Property(e => e.Canton).HasMaxLength(100).IsUnicode(false);
             entity.Property(e => e.Distrito).HasMaxLength(100).IsUnicode(false);
@@ -323,6 +332,7 @@ public partial class VentasContext : DbContext
         {
             entity.HasKey(e => e.InventarioId);
             entity.ToTable("Inventario");
+            entity.HasIndex(e => new { e.ProductoId, e.BodegaId }, "UX_Inventario_Producto_Bodega").IsUnique();
             entity.HasOne(d => d.Producto).WithMany(p => p.Inventarios)
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
