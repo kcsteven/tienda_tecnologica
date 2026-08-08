@@ -1,15 +1,26 @@
 <div class="container py-4">
   <h1 class="mb-4">{{ categoriaNombre() }}</h1>
 
+  <!-- Mientras cargan los productos -->
   @if (cargando()) {
-  <p class="text-muted">Cargando productos...</p>
+  @if (cargando()) {
+  <div class="d-flex flex-column align-items-center justify-content-center py-5">
+    <div class="spinner-border text-danger" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="text-muted mt-3">Cargando productos...</p>
+  </div>
+  }
   } @else if (productosBase().length === 0) {
+  <!-- No hay productos en esta categoría -->
   <p class="text-muted">No hay productos disponibles en esta categoría todavía.</p>
   } @else {
 
+  <!-- Barra de filtros: cantidad a mostrar y orden por precio -->
   <div class="barra-herramientas d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
     <div class="mostrar-cantidad">
       <span class="me-2">Mostrar:</span>
+      <!-- Botones para elegir cuántos productos mostrar por página -->
       @for (n of [9, 12, 18, 24]; track n) {
       <button class="btn-cantidad"
               [class.activo]="cantidadPorPagina() === n"
@@ -21,6 +32,7 @@
 
     <div class="ordenar">
       <label class="me-2">Ordenar por precio:</label>
+      <!-- Selector para ordenar de menor a mayor o al revés -->
       <select class="form-select form-select-sm d-inline-block w-auto"
               (change)="cambiarOrden($any($event.target).value)">
         <option value="asc" [selected]="ordenPrecio() === 'asc'">bajo</option>
@@ -29,14 +41,17 @@
     </div>
   </div>
 
+  <!-- Grilla de productos de la página actual -->
   <div class="grid-productos">
     @for (prod of productosPaginados(); track prod.productoId) {
     <a [routerLink]="['/producto', prod.productoId]" class="tarjeta-producto">
 
       <div class="imagen-wrapper">
+        <!-- Cinta de descuento si aplica -->
         @if (prod.porcentajeDescuento > 0) {
         <span class="cinta-descuento">-{{ prod.porcentajeDescuento }}%</span>
         }
+        <!-- Imagen del producto o placeholder -->
         @if (prod.imagenUrl) {
         <img [src]="prod.imagenUrl" [alt]="prod.nombre" class="imagen-producto" />
         } @else {
@@ -44,6 +59,7 @@
         }
       </div>
 
+      <!-- Etiquetas del producto, máximo 3 -->
       @if (prod.etiquetas.length > 0) {
       <div class="fila-etiquetas">
         @for (etq of prod.etiquetas.slice(0, 3); track etq) {
@@ -56,6 +72,7 @@
         <h3 class="nombre">{{ prod.nombre }}</h3>
         <span class="marca">{{ prod.marcaNombre }}</span>
         <div class="precios">
+          <!-- Precio original tachado si hay descuento -->
           @if (prod.porcentajeDescuento > 0) {
           <span class="precio-original">₡{{ prod.precioOriginal | number:'1.0-0' }}</span>
           }
@@ -66,6 +83,7 @@
     }
   </div>
 
+  <!-- Paginación, solo si hay más de una página -->
   @if (totalPaginas() > 1) {
   <div class="paginacion d-flex justify-content-center gap-2 mt-4">
     @for (pag of [].constructor(totalPaginas()); track $index) {

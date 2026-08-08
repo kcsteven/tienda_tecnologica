@@ -1,5 +1,6 @@
 .tienda-home {
   .carrusel-banner {
+    // Contenedor del carrusel
     position: relative;
     width: 100%;
     aspect-ratio: 16 / 5;
@@ -7,6 +8,7 @@
     background: #f0f0f0;
 
     .banner-slide {
+      // Cada slide ocupa todo el espacio, superpuestos entre sí
       position: absolute;
       inset: 0;
       display: block;
@@ -15,12 +17,14 @@
       transition: opacity 0.6s ease-in-out;
 
       &.activo {
+        // Slide visible actualmente
         opacity: 1;
         pointer-events: auto;
       }
     }
 
     .banner-imagen {
+      // La imagen cubre todo el slide
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -29,6 +33,7 @@
   }
 
   .puntos-banner {
+    // Puntos indicadores, centrados en la parte inferior del carrusel
     position: absolute;
     bottom: 1rem;
     left: 50%;
@@ -37,6 +42,7 @@
     gap: 0.5rem;
 
     .punto {
+      // Estilo de cada punto
       width: 10px;
       height: 10px;
       border-radius: 50%;
@@ -45,18 +51,21 @@
       cursor: pointer;
 
       &.activo {
+        // Punto del banner actual
         background: #c8102e;
       }
     }
   }
 
   .grid-productos {
+    // Grilla de productos, columnas automáticas según el ancho disponible
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1.5rem;
   }
 
   .tarjeta-producto {
+    // Tarjeta individual del producto
     display: block;
     text-decoration: none;
     color: inherit;
@@ -66,10 +75,12 @@
     transition: box-shadow 0.2s;
 
     &:hover {
+      // Efecto al pasar el mouse
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     .imagen-wrapper {
+      // Contenedor de la imagen del producto
       position: relative;
       aspect-ratio: 1 / 1;
       background: #fafafa;
@@ -78,17 +89,20 @@
       justify-content: center;
 
       .imagen-producto {
+        // Imagen del producto, sin recortarse
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
       }
 
       .imagen-placeholder {
+        // Texto cuando no hay imagen
         color: #999;
         font-size: 0.85rem;
       }
 
       .cinta-descuento {
+        // Etiqueta de descuento en la esquina de la imagen
         position: absolute;
         top: 0.5rem;
         left: 0.5rem;
@@ -102,6 +116,7 @@
     }
 
     .info {
+      // Zona de texto de la tarjeta
       padding: 0.75rem;
 
       .nombre {
@@ -118,6 +133,7 @@
 
       .precios {
         .precio-original {
+          // Precio tachado cuando hay descuento
           display: block;
           text-decoration: line-through;
           color: #999;
@@ -125,6 +141,7 @@
         }
 
         .precio {
+          // Precio final que paga el cliente
           font-weight: 700;
           color: #c8102e;
         }

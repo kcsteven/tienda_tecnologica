@@ -8,12 +8,14 @@ using Tienda.Utilidades;
 
 namespace Tienda.AccesoDatos.Implementaciones
 {
+    // Repositorio genérico: implementa operaciones CRUD básicas para cualquier entidad
     public class RepositorioAD<TEntity> : IRepositorioAD<TEntity> where TEntity : class
     {
 
         #region Atributos y Variables
 
 
+        // Contexto de base de datos usado para las consultas
         protected readonly DbContext _context;
 
 
@@ -30,6 +32,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         #endregion#region Métodos Públicos
 
 
+        // Inserta una nueva entidad en la base de datos
         public async Task<Respuesta<TEntity>> InsertarAsync(TEntity objEntidad)
 
         {
@@ -51,6 +54,7 @@ namespace Tienda.AccesoDatos.Implementaciones
 
             {
 
+                // Si ocurre un error, se guarda el mensaje y no se devuelve dato
                 objRespuesta.Error = ex.Message;
 
                 objRespuesta.Data = null;
@@ -62,6 +66,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         }
 
 
+        // Actualiza una entidad existente en la base de datos
         public async Task<Respuesta<TEntity>> ModificarAsync(TEntity objEntidad)
 
         {
@@ -94,6 +99,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         }
 
 
+        // Elimina una entidad de la base de datos
         public async Task<Respuesta<bool>> EliminarAsync(TEntity objEntidad)
 
         {
@@ -126,6 +132,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         }
 
 
+        // Lista todas las entidades, incluyendo relaciones opcionales (objIncludes)
         public async Task<Respuesta<IEnumerable<TEntity>>> ListarAsync(List<string>? objIncludes = null)
 
         {
@@ -138,6 +145,7 @@ namespace Tienda.AccesoDatos.Implementaciones
                 IQueryable<TEntity> objPreconsulta = _context.Set<TEntity>();
 
 
+                // Agrega los includes (relaciones) indicados, si los hay
                 if (objIncludes != null)
 
                 {
@@ -165,6 +173,7 @@ namespace Tienda.AccesoDatos.Implementaciones
 
         }
 
+        // Busca varias entidades que cumplan una condición (predicado), con relaciones opcionales
         public async Task<Respuesta<IEnumerable<TEntity>>> BuscarAsync(Expression<Func<TEntity, bool>> objPredicado, List<string>? objIncludes = null)
 
         {
@@ -205,6 +214,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         }
 
 
+        // Obtiene una sola entidad que cumpla una condición (predicado), con relaciones opcionales
         public async Task<Respuesta<TEntity>> ObtenerEntidadAsync(Expression<Func<TEntity, bool>> objPredicado, List<string>? objIncludes = null)
 
         {
@@ -245,4 +255,3 @@ namespace Tienda.AccesoDatos.Implementaciones
         }
     }
 }
-

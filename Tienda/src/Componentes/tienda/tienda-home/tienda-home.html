@@ -1,17 +1,25 @@
 <div class="tienda-home">
+
+  <!-- Carrusel de banners -->
   <div class="carrusel-banner">
+
+    <!-- Recorre los banners, i es el índice de cada uno -->
     @for (banner of banners(); track banner.imagen; let i = $index) {
+
+    <!-- Si el banner tiene producto asociado, es un link al detalle -->
     @if (banner.productoId) {
     <a [routerLink]="['/producto', banner.productoId]" class="banner-slide" [class.activo]="i === bannerActivo()">
       <img [src]="banner.imagen" class="banner-imagen" />
     </a>
     } @else {
+    <!-- Si no tiene producto, solo se muestra la imagen -->
     <div class="banner-slide" [class.activo]="i === bannerActivo()">
       <img [src]="banner.imagen" class="banner-imagen" />
     </div>
     }
     }
 
+    <!-- Puntos del carrusel, solo si hay más de un banner -->
     @if (banners().length > 1) {
     <div class="puntos-banner">
       @for (banner of banners(); track banner.imagen; let i = $index) {
@@ -24,18 +32,28 @@
   <div class="container py-5">
     <h2 class="mb-4">Productos destacados</h2>
 
+    <!-- Mientras cargan los productos -->
     @if (cargandoDestacados()) {
     <p class="text-muted">Cargando productos...</p>
     } @else if (productosDestacados().length === 0) {
+    <!-- No hay productos destacados -->
     <p class="text-muted">Aún no hay productos cargados.</p>
     } @else {
     <div class="grid-productos">
+
+      <!-- Recorre los productos destacados -->
       @for (prod of productosDestacados(); track prod.productoId) {
+
+      <!-- Tarjeta del producto, lleva al detalle -->
       <a [routerLink]="['/producto', prod.productoId]" class="tarjeta-producto">
+
         <div class="imagen-wrapper">
+          <!-- Muestra el porcentaje de descuento si tiene -->
           @if (prod.porcentajeDescuento > 0) {
           <span class="cinta-descuento">-{{ prod.porcentajeDescuento }}%</span>
           }
+
+          <!-- Imagen del producto o placeholder si no tiene -->
           @if (prod.imagenUrl) {
           <img [src]="prod.imagenUrl" [alt]="prod.nombre" class="imagen-producto" />
           } @else {
@@ -46,10 +64,13 @@
         <div class="info">
           <h3 class="nombre">{{ prod.nombre }}</h3>
           <span class="marca">{{ prod.marcaNombre }}</span>
+
           <div class="precios">
+            <!-- Precio original tachado si hay descuento -->
             @if (prod.porcentajeDescuento > 0) {
             <span class="precio-original">₡{{ prod.precioOriginal | number:'1.0-0' }}</span>
             }
+            <!-- Precio final -->
             <span class="precio">₡{{ prod.precioFinal | number:'1.0-0' }} I.V.A.I</span>
           </div>
         </div>

@@ -27,6 +27,7 @@ import { IResena } from '../../../app/model/IResena';
 import { CarritoService } from '../../../app/services/carrito';
 import { IItemCarrito } from '../../../app/model/IItemCarrito';
 
+// Datos de stock de una bodega/tienda para mostrar en "disponibilidad"
 interface DisponibilidadTienda {
   bodegaNombre: string;
   cantidad: number;
@@ -40,6 +41,7 @@ interface DisponibilidadTienda {
   styleUrl: './tienda-producto-detalle.scss'
 })
 export class TiendaProductoDetalleComponent implements OnInit {
+  // Servicios inyectados
   private route = inject(ActivatedRoute);
   private productoService = inject(ProductoService);
   private marcaService = inject(MarcaService);
@@ -56,32 +58,42 @@ export class TiendaProductoDetalleComponent implements OnInit {
   private resenaService = inject(ResenaService);
   private carritoService = inject(CarritoService);
 
+  // Especificaciones técnicas del producto
   especificaciones = signal<IEspecificacionProducto[]>([]);
+  // Meses de garantía del producto (si tiene)
   garantiaMeses = signal<number | null>(null);
 
+  // Estado de carga del producto
   cargando = signal(true);
+  // Producto actual
   producto = signal<IProducto | null>(null);
   marcaNombre = signal('');
   categoriaNombre = signal('');
   categoriaId = signal<number | null>(null);
   subcategoriaNombre = signal('');
 
+  // Imágenes del producto y cuál está seleccionada
   imagenes = signal<string[]>([]);
   imagenActiva = signal('');
 
+  // Precios calculados
   precioOriginal = signal(0);
   precioFinal = signal(0);
   porcentajeDescuento = signal(0);
 
+  // Disponibilidad en tiendas/bodegas
   disponibilidad = signal<DisponibilidadTienda[]>([]);
   mostrarDisponibilidad = signal(false);
 
+  // Cantidad a agregar al carrito
   cantidad = signal(1);
 
-  resenas = signal<IResena[]>([]); 
-  promedioCalificacion = signal(0); 
+  // Reseñas del producto y su promedio
+  resenas = signal<IResena[]>([]);
+  promedioCalificacion = signal(0);
 
   ngOnInit(): void {
+    // Escucha el id del producto en la URL y carga sus datos
     this.route.paramMap.subscribe(params => {
       const productoId = Number(params.get('id'));
       if (productoId) {
@@ -93,10 +105,12 @@ export class TiendaProductoDetalleComponent implements OnInit {
   private cargarProducto(productoId: number): void {
     this.cargando.set(true);
 
+    // Primero obtiene el producto base
     this.productoService.obtener(productoId).subscribe({
       next: respProd => {
         const prod: IProducto | undefined = respProd?.data;
 
+        // Si no existe el producto, detiene la carga
         if (!prod) {
           this.cargando.set(false);
           this.producto.set(null);
@@ -107,6 +121,7 @@ export class TiendaProductoDetalleComponent implements OnInit {
         this.precioOriginal.set(prod.precio);
         this.precioFinal.set(prod.precio);
 
+        // Trae toda la información relacionada al producto en paralelo
         forkJoin({
           marca: this.marcaService.obtener(prod.marcaId)
             .pipe(catchError(() => of({ data: null }))),
@@ -126,8 +141,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
             .pipe(catchError(() => of({ data: [] }))),
           garantiasProducto: this.productoGarantiaService.listarPorProducto(productoId)
             .pipe(catchError(() => of({ data: [] }))),
-          resenasProducto: this.resenaService.listarPorProducto(productoId) 
-            .pipe(catchError(() => of({ data: [] })))          
+          resenasProducto: this.resenaService.listarPorProducto(productoId)
+            .pipe(catchError(() => of({ data: [] })))
         }).subscribe({
           next: ({ marca, subcategoria, imagenes, descuentos, descuentosProducto, inventario, bodegas, especificaciones, garantiasProducto, resenasProducto }) => {
 
@@ -135,6 +150,7 @@ export class TiendaProductoDetalleComponent implements OnInit {
             this.subcategoriaNombre.set(subcategoria.data?.nombre ?? '');
             this.especificaciones.set(especificaciones.data ?? []);
 
+            // Si el producto tiene garantía, obtiene sus meses
             const primeraGarantia = (garantiasProducto.data ?? [])[0];
             if (primeraGarantia) {
               this.garantiaService.obtener(primeraGarantia.garantiaId).subscribe({
@@ -143,6 +159,7 @@ export class TiendaProductoDetalleComponent implements OnInit {
               });
             }
 
+            // Obtiene el nombre y id de la categoría a partir de la subcategoría
             if (subcategoria.data?.categoriaId) {
               this.categoriaService.obtener(subcategoria.data.categoriaId).subscribe({
                 next: respCat => {
@@ -153,11 +170,13 @@ export class TiendaProductoDetalleComponent implements OnInit {
               });
             }
 
+            // Arma las URLs de las imágenes y selecciona la primera como activa
             const rutasImagenes: IImagenProducto[] = imagenes.data ?? [];
             const urls = rutasImagenes.map(img => urlImagen(img.rutaImagen));
             this.imagenes.set(urls);
             this.imagenActiva.set(urls[0] ?? '');
 
+            // Busca un descuento vigente para el producto y calcula el precio final
             const descuentosData: IDescuento[] = descuentos.data ?? [];
             const hoy = new Date();
             const descuentoActivo = (descuentosProducto.data ?? [])
@@ -174,6 +193,7 @@ export class TiendaProductoDetalleComponent implements OnInit {
               this.precioFinal.set(Math.round(prod.precio * (1 - porcentaje / 100)));
             }
 
+            // Arma la disponibilidad por bodega, solo con las que tienen stock
             const inventarioData: IInventario[] = inventario.data ?? [];
             const bodegasData: IBodega[] = bodegas.data ?? [];
             this.disponibilidad.set(
@@ -185,6 +205,7 @@ export class TiendaProductoDetalleComponent implements OnInit {
                 }))
             );
 
+            // Guarda las reseñas y calcula el promedio de calificación
             const listaResenas: IResena[] = resenasProducto.data ?? [];
             this.resenas.set(listaResenas);
             this.promedioCalificacion.set(
@@ -192,7 +213,7 @@ export class TiendaProductoDetalleComponent implements OnInit {
                 ? listaResenas.reduce((suma, r) => suma + r.calificacion, 0) / listaResenas.length
                 : 0
             );
-        
+
 
             this.cargando.set(false);
           },
@@ -208,21 +229,27 @@ export class TiendaProductoDetalleComponent implements OnInit {
     });
   }
 
+  // Cambia la imagen principal mostrada en la galería
   cambiarImagenActiva(url: string): void {
     this.imagenActiva.set(url);
   }
 
+  // Muestra u oculta el bloque de disponibilidad en tiendas
   toggleDisponibilidad(): void {
     this.mostrarDisponibilidad.set(!this.mostrarDisponibilidad());
   }
 
+  // Disminuye la cantidad, sin bajar de 1
   restarCantidad(): void {
     if (this.cantidad() > 1) this.cantidad.set(this.cantidad() - 1);
   }
 
+  // Aumenta la cantidad
   sumarCantidad(): void {
     this.cantidad.set(this.cantidad() + 1);
   }
+
+  // Agrega el producto actual al carrito con la cantidad seleccionada
   agregarAlCarrito(): void {
     const prod = this.producto();
     if (!prod) return;
@@ -238,8 +265,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
     this.carritoService.agregar(item);
   }
 
-
-  estrellas(calificacion: number): string { 
+  // Convierte la calificación numérica en estrellas para mostrar
+  estrellas(calificacion: number): string {
     return '⭐'.repeat(Math.round(calificacion));
   }
 }

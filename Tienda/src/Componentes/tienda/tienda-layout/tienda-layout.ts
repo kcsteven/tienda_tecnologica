@@ -8,4 +8,5 @@ import { TiendaHeaderComponent } from '../tienda-header/tienda-header';
   imports: [RouterOutlet, TiendaHeaderComponent],
   templateUrl: './tienda-layout.html'
 })
+// Componente de layout: envuelve el header y el contenido de las páginas de la tienda
 export class TiendaLayoutComponent { }

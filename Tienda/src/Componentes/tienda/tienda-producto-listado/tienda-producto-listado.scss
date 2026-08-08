@@ -1,14 +1,14 @@
 .barra-herramientas {
   border-bottom: 1px solid #eee;
   padding-bottom: 0.75rem;
-
+  // Botones para elegir la cantidad de productos por página
   .btn-cantidad {
     background: none;
     border: none;
     padding: 0.25rem 0.5rem;
     color: #999;
     cursor: pointer;
-
+    // Cantidad seleccionada actualmente
     &.activo {
       color: #c8102e;
       font-weight: 700;
@@ -16,12 +16,14 @@
   }
 }
 
+// Grilla de productos
 .grid-productos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.5rem;
 }
 
+// Tarjeta individual de producto
 .tarjeta-producto {
   display: block;
   text-decoration: none;
@@ -37,7 +39,7 @@
 
   .imagen-wrapper {
     position: relative;
-
+    // Etiqueta de descuento en la esquina de la imagen
     .cinta-descuento {
       position: absolute;
       top: 0.5rem;
@@ -50,7 +52,7 @@
       border-radius: 4px;
       z-index: 1;
     }
-
+    // Espacio cuando el producto no tiene imagen
     .imagen-placeholder {
       aspect-ratio: 1;
       background: #f5f5f5;
@@ -67,7 +69,7 @@
       object-fit: contain;
     }
   }
-
+  // Etiquetas/chips del producto
   .fila-etiquetas {
     display: flex;
     gap: 0.35rem;
@@ -105,7 +107,7 @@
       align-items: baseline;
       gap: 0.5rem;
       flex-wrap: wrap;
-
+      // Precio tachado cuando hay descuento
       .precio-original {
         text-decoration: line-through;
         color: #999;
@@ -120,6 +122,7 @@
   }
 }
 
+// Botones de paginación
 .paginacion {
   .btn-pagina {
     border: 1px solid #ddd;
@@ -127,7 +130,7 @@
     padding: 0.25rem 0.65rem;
     border-radius: 4px;
     cursor: pointer;
-
+    // Página actualmente seleccionada
     &.activo {
       background: #c8102e;
       color: #fff;

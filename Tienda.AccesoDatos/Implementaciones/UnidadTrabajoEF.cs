@@ -11,10 +11,12 @@ using Tienda.Dominio.InterfacesAD;
 
 namespace Tienda.AccesoDatos.Implementaciones
 {
+    // Implementación de la Unidad de Trabajo (patrón Unit of Work) usando Entity Framework
     public class UnidadTrabajoEF : IUnidadTrabajoEF
     {
         #region "Atributos y Variables"
 
+        // Contexto de base de datos (Entity Framework)
         private VentasContext _Contexto { get; set; }
 
         private IConfiguration _configuration { get; set; }
@@ -25,8 +27,10 @@ namespace Tienda.AccesoDatos.Implementaciones
             _configuration = configuration;
         }
 
+        // Transacción activa (se usa con EmpezarTransaccion/CompletarTran/Rollback)
         private IDbContextTransaction _transaction = null;
 
+        // Repositorios de cada entidad, se crean solo cuando se usan (lazy loading)
         private RepositorioAD<Categoria> _TCategoria;
         private RepositorioAD<Subcategoria> _TSubcategoria;
         private RepositorioAD<DetallesPedido> _TDetallePedido;
@@ -61,6 +65,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         #endregion
         #region "Constructores"
 
+        // Cada propiedad expone su repositorio, creándolo la primera vez que se pide (lazy loading)
         public IRepositorioAD<Categoria> TCategoria
         {
             get
@@ -302,6 +307,7 @@ namespace Tienda.AccesoDatos.Implementaciones
             get { if (this._TDevolucion == null) this._TDevolucion = new RepositorioAD<Devolucion>(_Contexto); return _TDevolucion; }
         }
 
+        // Guarda los cambios pendientes en la base de datos (sin transacción explícita)
         public int Completar()
         {
             try
@@ -314,7 +320,7 @@ namespace Tienda.AccesoDatos.Implementaciones
             }
         }
 
-
+        // Guarda los cambios y confirma la transacción; si falla, revierte todo
         public void CompletarTran()
         {
             try
@@ -329,21 +335,25 @@ namespace Tienda.AccesoDatos.Implementaciones
             }
         }
 
+        // Inicia una nueva transacción en la base de datos
         public void EmpezarTransaccion()
         {
             _transaction = _Contexto.Database.BeginTransaction();
         }
 
+        // Revierte la transacción actual
         public void Rollback()
         {
             _transaction.Rollback();
         }
 
+        // Cierra la conexión a la base de datos
         public void CerrarConexion()
         {
             _Contexto.Database.CloseConnection();
         }
 
+        // Libera los recursos del contexto
         public void Dispose()
         {
             _Contexto.Dispose();

@@ -10,18 +10,19 @@
       color: #c8102e;
     }
   }
-
+  // Última parte del breadcrumb (página actual)
   .actual {
     color: #1a1a1a;
     font-weight: 600;
   }
 }
 
+// Layout general: galería a la izquierda, info a la derecha
 .detalle-producto {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2.5rem;
-
+  // En pantallas pequeñas, se apilan en una sola columna
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
   }
@@ -47,7 +48,7 @@
       color: #aaa;
     }
   }
-
+  // Miniaturas debajo de la imagen principal
   .miniaturas {
     display: flex;
     gap: 0.5rem;
@@ -61,7 +62,7 @@
       border-radius: 6px;
       cursor: pointer;
       padding: 4px;
-
+      // Miniatura correspondiente a la imagen principal actual
       &.activa {
         border-color: #c8102e;
       }
@@ -80,7 +81,7 @@
     font-size: 1.6rem;
     margin: 0.4rem 0 1rem;
   }
-
+  // Sección de disponibilidad por tienda
   .disponibilidad-tienda {
     margin-bottom: 1.5rem;
 
@@ -92,7 +93,7 @@
       font-weight: 600;
       cursor: pointer;
     }
-
+    // Lista desplegable con el stock por bodega/tienda
     .lista-disponibilidad {
       margin-top: 0.5rem;
       border: 1px solid #eee;
@@ -126,7 +127,7 @@
       font-size: 0.92rem;
     }
   }
-
+  // Lista de especificaciones técnicas del producto
   .lista-especificaciones {
     list-style: none;
     padding: 0;
@@ -148,10 +149,10 @@
       }
     }
   }
-
+  // Precio, descuento y garantía
   .precios {
     margin-bottom: 1.5rem;
-
+    // Precio tachado cuando hay descuento
     .precio-original {
       text-decoration: line-through;
       color: #999;
@@ -179,7 +180,7 @@
       font-weight: 800;
       color: #c8102e;
     }
-
+    // Etiqueta de garantía del producto
     .badge-garantia {
       display: inline-flex;
       align-items: center;
@@ -193,7 +194,7 @@
       white-space: nowrap;
     }
   }
-
+  // Selector de cantidad y botón de agregar al carrito
   .acciones-compra {
     display: flex;
     gap: 1rem;

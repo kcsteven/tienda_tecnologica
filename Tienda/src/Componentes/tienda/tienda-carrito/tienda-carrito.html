@@ -1,11 +1,14 @@
 <div class="container py-4 pagina-carrito">
   <h1 class="titulo-carrito mb-4">Mi carrito</h1>
 
+  <!-- Si hay items en el carrito, muestra el contenido -->
   @if (carritoService.items().length > 0) {
   <div class="contenido-carrito">
     <div class="lista-items">
+      <!-- Recorre cada item del carrito -->
       @for (item of carritoService.items(); track item.productoId) {
       <div class="fila-item">
+        <!-- Imagen del producto o placeholder si no tiene -->
         @if (item.imagenUrl) {
         <img [src]="item.imagenUrl" [alt]="item.nombre" class="imagen-item" />
         } @else {
@@ -17,16 +20,19 @@
           <span class="precio-unitario">₡{{ item.precioUnitario | number:'1.0-0' }} c/u</span>
         </div>
 
+        <!-- Controles para aumentar o disminuir la cantidad -->
         <div class="selector-cantidad">
           <button (click)="restarCantidad(item.productoId, item.cantidad)">-</button>
           <span>{{ item.cantidad }}</span>
           <button (click)="sumarCantidad(item.productoId, item.cantidad)">+</button>
         </div>
 
+        <!-- Subtotal del item (precio unitario x cantidad) -->
         <div class="subtotal-item">
           ₡{{ item.precioUnitario * item.cantidad | number:'1.0-0' }}
         </div>
 
+        <!-- Botón para quitar el item del carrito -->
         <button class="btn-quitar" (click)="quitarItem(item.productoId)" title="Quitar del carrito">
           ✕
         </button>
@@ -34,6 +40,7 @@
       }
     </div>
 
+    <!-- Resumen del carrito con el total -->
     <aside class="resumen-carrito">
       <h5>Resumen</h5>
       <div class="fila-resumen">
@@ -50,6 +57,7 @@
     </aside>
   </div>
   } @else {
+  <!-- Si el carrito está vacío -->
   <div class="carrito-vacio">
     <p>Tu carrito está vacío.</p>
     <a routerLink="/" class="btn-seguir-comprando">Seguir comprando</a>
