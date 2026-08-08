@@ -10,12 +10,17 @@ using Tienda.Utilidades;
 
 namespace Tienda.LogicaNegocio.Implementaciones
 {
+    // Implementación de la lógica de negocio (LN) para la entidad Inventario
     public class InventarioLN : IInventarioLN
     {
+        // Unidad de trabajo (Entity Framework) para acceder a los repositorios de datos
         private IUnidadTrabajoEF _unidadDeTrabajo { get; set; }
+        // Logger para registrar errores y eventos de esta clase
         private ILogger<InventarioLN> _logger { get; }
+        // AutoMapper para convertir entre entidades de dominio (Inventario) y entidades tipadas (TInventario)
         private readonly IMapper _mapper;
 
+        // Constructor: recibe las dependencias mediante inyección de dependencias
         public InventarioLN(IUnidadTrabajoEF unidadTrabajo, ILogger<InventarioLN> logger, IMapper mapper)
         {
             _unidadDeTrabajo = unidadTrabajo;
@@ -23,11 +28,13 @@ namespace Tienda.LogicaNegocio.Implementaciones
             _mapper = mapper;
         }
 
+        // Inserta un nuevo registro de inventario, validando que el producto y la bodega indicados existan
         public async Task<Respuesta<TInventario>> InsertarAsync(TInventario datos)
         {
             var resultado = new Respuesta<TInventario>();
             try
             {
+                // Verifica que el producto indicado exista
                 var producto = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(x => x.ProductoId == datos.ProductoId);
                 if (producto.Data == null)
                 {
@@ -35,6 +42,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
+                // Verifica que la bodega indicada exista
                 var bodega = await _unidadDeTrabajo.TBodega.ObtenerEntidadAsync(x => x.BodegaId == datos.BodegaId);
                 if (bodega.Data == null)
                 {
@@ -42,25 +50,33 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
+                // Convierte el DTO tipado a la entidad de dominio
                 var entidad = _mapper.Map<Inventario>(datos);
+                // Inserta la entidad en el repositorio
                 var respuesta = await _unidadDeTrabajo.TInventario.InsertarAsync(entidad);
+                // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
 
+                // Convierte la entidad insertada de vuelta a DTO tipado para la respuesta
                 resultado.Data = _mapper.Map<TInventario>(respuesta.Data);
             }
             catch (Exception ex)
             {
+                // Registra el error y lo devuelve en la respuesta
                 _logger.LogError(ex, "Error al insertar inventario del producto {ProductoId}", datos.ProductoId);
                 resultado.Error = ex.Message;
             }
             return resultado;
         }
 
+        // Modifica un registro de inventario existente, validando primero que exista
+        // Nota: a diferencia de otros LN, aquí no se asignan fechas CreadoEn/ActualizadoEn
         public async Task<Respuesta<TInventario>> ModificarAsync(TInventario datos)
         {
             var resultado = new Respuesta<TInventario>();
             try
             {
+                // Busca el registro de inventario actual en base de datos por su Id
                 var actual = await _unidadDeTrabajo.TInventario.ObtenerEntidadAsync(x => x.InventarioId == datos.InventarioId);
                 if (actual.Data == null)
                 {
@@ -68,11 +84,15 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
+                // Copia los valores del DTO recibido sobre la entidad existente rastreada por EF
                 _mapper.Map(datos, actual.Data);
 
+                // Guarda los cambios en el repositorio
                 var respuesta = await _unidadDeTrabajo.TInventario.ModificarAsync(actual.Data);
+                // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
 
+                // Convierte la entidad modificada de vuelta a DTO tipado para la respuesta
                 resultado.Data = _mapper.Map<TInventario>(respuesta.Data);
             }
             catch (Exception ex)
@@ -83,11 +103,13 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
+        // Elimina un registro de inventario existente, validando primero que exista
         public async Task<Respuesta<bool>> EliminarAsync(TInventario datos)
         {
             var resultado = new Respuesta<bool>();
             try
             {
+                // Busca el registro de inventario a eliminar por su Id
                 var inventario = await _unidadDeTrabajo.TInventario.ObtenerEntidadAsync(x => x.InventarioId == datos.InventarioId);
                 if (inventario.Data == null)
                 {
@@ -95,7 +117,9 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
+                // Elimina la entidad del repositorio
                 var respuesta = await _unidadDeTrabajo.TInventario.EliminarAsync(inventario.Data);
+                // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
 
                 resultado.Data = respuesta.Data;
@@ -108,12 +132,15 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
+        // Lista todos los registros de inventario existentes
         public async Task<Respuesta<IEnumerable<TInventario>>> ListarAsync()
         {
             var resultado = new Respuesta<IEnumerable<TInventario>>();
             try
             {
+                // Obtiene todos los registros de inventario desde el repositorio
                 var resp = await _unidadDeTrabajo.TInventario.ListarAsync();
+                // Convierte la lista de entidades de dominio a DTOs tipados
                 resultado.Data = _mapper.Map<IEnumerable<TInventario>>(resp.Data);
             }
             catch (Exception ex)
@@ -124,11 +151,13 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
+        // Lista los registros de inventario asociados a un producto específico
         public async Task<Respuesta<IEnumerable<TInventario>>> ListarPorProductoAsync(int productoId)
         {
             var resultado = new Respuesta<IEnumerable<TInventario>>();
             try
             {
+                // Filtra el inventario por el Id de producto recibido
                 var respuesta = await _unidadDeTrabajo.TInventario.BuscarAsync(x => x.ProductoId == productoId);
                 resultado.Data = _mapper.Map<IEnumerable<TInventario>>(respuesta.Data);
             }
@@ -140,11 +169,13 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
+        // Obtiene un registro de inventario puntual según su Id
         public async Task<Respuesta<TInventario>> ObtenerAsync(TInventario datos)
         {
             var resultado = new Respuesta<TInventario>();
             try
             {
+                // Busca el registro de inventario por su Id
                 var respuesta = await _unidadDeTrabajo.TInventario.ObtenerEntidadAsync(x => x.InventarioId == datos.InventarioId);
                 if (respuesta.Data == null)
                 {

@@ -12,17 +12,22 @@ using Tienda.Utilidades;
 
 namespace Tienda.LogicaNegocio.Implementaciones
 {
+    // Implementación de la lógica de negocio (LN) para la entidad Producto
     public class ProductoLN : IProductoLN
     {
+        // Unidad de trabajo (Entity Framework) para acceder a los repositorios de datos
         private IUnidadTrabajoEF _unidadDeTrabajo { get; set; }
 
 
+        // Logger para registrar errores y eventos de esta clase
         private ILogger<ProductoLN> _logger { get; }
 
 
+        // AutoMapper para convertir entre entidades de dominio (Producto) y entidades tipadas (TProducto)
         private readonly IMapper _mapper;
 
 
+        // Constructor: recibe las dependencias mediante inyección de dependencias
         public ProductoLN(
 
             IUnidadTrabajoEF unidadTrabajo,
@@ -42,6 +47,8 @@ namespace Tienda.LogicaNegocio.Implementaciones
         }
 
 
+        // Inserta un nuevo producto, validando que no exista ya uno con el mismo nombre
+        // y que la subcategoría, marca y proveedor indicados realmente existan
         public async Task<Respuesta<TProducto>> InsertarAsync(TProducto datos)
 
         {
@@ -52,6 +59,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
 
+                // Verifica si ya existe un producto registrado con el mismo nombre
                 var productoExistente =
 
                     await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
@@ -63,6 +71,8 @@ namespace Tienda.LogicaNegocio.Implementaciones
 
                 {
 
+                    // Nota: a diferencia de otras validaciones de duplicado, aquí sí se devuelve
+                    // el producto existente en Data, además del mensaje de error
                     resultado.Data =
 
                         _mapper.Map<TProducto>(productoExistente.Data);
@@ -77,6 +87,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
 
                 }
 
+                // Verifica que la subcategoría indicada exista
                 var subcategoria =
                     await _unidadDeTrabajo.TSubcategoria.ObtenerEntidadAsync(
                         x => x.SubcategoriaId == datos.SubcategoriaId);
@@ -87,6 +98,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
+                // Verifica que la marca indicada exista
                 var marca =
                     await _unidadDeTrabajo.TMarca.ObtenerEntidadAsync(
                         x => x.MarcaId == datos.MarcaId);
@@ -97,6 +109,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
+                // Verifica que el proveedor indicado exista
                 var proveedor =
                     await _unidadDeTrabajo.TProveedor.ObtenerEntidadAsync(
                         x => x.ProveedorId == datos.ProveedorId);
@@ -108,20 +121,24 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 }
 
 
-                
 
 
+
+                // Convierte el DTO tipado a la entidad de dominio
                 var entidad = _mapper.Map<Producto>(datos);
 
 
+                // Inserta la entidad en el repositorio
                 var respuestaRepositorio =
 
                     await _unidadDeTrabajo.TProducto.InsertarAsync(entidad);
 
 
+                // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
 
 
+                // Convierte la entidad insertada de vuelta a DTO tipado para la respuesta
                 resultado.Data =
 
                     _mapper.Map<TProducto>(respuestaRepositorio.Data);
@@ -132,6 +149,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
 
             {
 
+                // Registra el error y lo devuelve en la respuesta
                 _logger.LogError(ex,
 
                     "Error al insertar producto {NombreProducto}",
@@ -149,6 +167,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
         }
 
 
+        // Lista todos los productos existentes
         public async Task<Respuesta<IEnumerable<TProducto>>> ListarAsync()
 
         {
@@ -161,11 +180,13 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
 
+                // Obtiene todos los productos desde el repositorio
                 var resp =
 
                     await _unidadDeTrabajo.TProducto.ListarAsync();
 
 
+                // Convierte la lista de entidades de dominio a DTOs tipados
                 resultado.Data =
 
                     _mapper.Map<IEnumerable<TProducto>>(resp.Data);
@@ -191,6 +212,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
         }
 
 
+        // Modifica un producto existente, validando primero que exista
         public async Task<Respuesta<TProducto>> ModificarAsync(TProducto datos)
 
         {
@@ -203,6 +225,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
 
+                // Busca el producto actual en base de datos por su Id
                 var productoActual =
 
                     await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
@@ -224,12 +247,14 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 }
 
 
-                
 
 
+
+                // Copia los valores del DTO recibido sobre la entidad existente rastreada por EF
                 _mapper.Map(datos, productoActual.Data);
 
 
+                // Guarda los cambios en el repositorio
                 var respuestaRepositorio =
 
                     await _unidadDeTrabajo.TProducto.ModificarAsync(
@@ -237,9 +262,11 @@ namespace Tienda.LogicaNegocio.Implementaciones
                         productoActual.Data);
 
 
+                // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
 
 
+                // Convierte la entidad modificada de vuelta a DTO tipado para la respuesta
                 resultado.Data =
 
                     _mapper.Map<TProducto>(respuestaRepositorio.Data);
@@ -267,6 +294,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
         }
 
 
+        // Elimina un producto existente, validando primero que exista
         public async Task<Respuesta<bool>> EliminarAsync(TProducto datos)
 
         {
@@ -279,6 +307,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
 
+                // Busca el producto a eliminar por su Id
                 var producto =
 
                     await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
@@ -300,6 +329,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 }
 
 
+                // Elimina la entidad del repositorio
                 var respuestaRepositorio =
 
                     await _unidadDeTrabajo.TProducto.EliminarAsync(
@@ -307,6 +337,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                         producto.Data);
 
 
+                // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
 
 
@@ -337,6 +368,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
         }
 
 
+        // Busca productos cuyo nombre contenga el texto recibido
         public async Task<Respuesta<IEnumerable<TProducto>>> BuscarAsync(
 
             TProducto datos)
@@ -351,6 +383,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
 
+                // Filtra los productos cuyo nombre contenga el texto de búsqueda
                 var respuestaRepositorio =
 
                     await _unidadDeTrabajo.TProducto.BuscarAsync(
@@ -387,6 +420,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
         }
 
 
+        // Obtiene un producto puntual según su Id
         public async Task<Respuesta<TProducto>> ObtenerAsync(
 
             TProducto datos)
@@ -401,6 +435,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             try
             {
 
+                // Busca el producto por su Id
                 var respuestaRepositorio =
 
                     await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
