@@ -31,7 +31,28 @@ export class RegistroClienteComponent implements OnInit {
   mensajeExito = '';
   mensajeError = '';
 
+  // Catálogo local para limitar las provincias y sus cantones válidos.
+  readonly provincias = ['San José', 'Alajuela', 'Cartago', 'Heredia', 'Guanacaste', 'Puntarenas', 'Limón'];
+
+  readonly cantonesPorProvincia: Record<string, string[]> = {
+    'San José': ['San José', 'Escazú', 'Desamparados', 'Puriscal', 'Tarrazú', 'Aserrí', 'Mora', 'Goicoechea', 'Santa Ana', 'Alajuelita', 'Vázquez de Coronado', 'Acosta', 'Tibás', 'Moravia', 'Montes de Oca', 'Turrubares', 'Dota', 'Curridabat', 'Pérez Zeledón', 'León Cortés Castro'],
+
+    Alajuela: ['Alajuela', 'San Ramón', 'Grecia', 'San Mateo', 'Atenas', 'Naranjo', 'Palmares', 'Poás', 'Orotina', 'San Carlos', 'Zarcero', 'Sarchí', 'Upala', 'Los Chiles', 'Guatuso', 'Río Cuarto'],
+
+    Cartago: ['Cartago', 'Paraíso', 'La Unión', 'Jiménez', 'Turrialba', 'Alvarado', 'Oreamuno', 'El Guarco'],
+
+    Heredia: ['Heredia', 'Barva', 'Santo Domingo', 'Santa Bárbara', 'San Rafael', 'San Isidro', 'Belén', 'Flores', 'San Pablo', 'Sarapiquí'],
+
+    Guanacaste: ['Liberia', 'Nicoya', 'Santa Cruz', 'Bagaces', 'Carrillo', 'Cañas', 'Abangares', 'Tilarán', 'Nandayure', 'La Cruz', 'Hojancha'],
+
+    Puntarenas: ['Puntarenas', 'Esparza', 'Buenos Aires', 'Montes de Oro', 'Osa', 'Quepos', 'Golfito', 'Coto Brus', 'Parrita', 'Corredores', 'Garabito', 'Monteverde', 'Puerto Jiménez'],
+
+    Limón: ['Limón', 'Pococí', 'Siquirres', 'Talamanca', 'Matina', 'Guácimo']
+  };
+  readonly fechaMaximaNacimiento = this.obtenerFechaMaximaNacimiento();
+
   private contrasenasCoinciden: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+
     const contrasena = control.get('contrasena')?.value;
     const confirmacion = control.get('confirmacionContrasena')?.value;
     return contrasena === confirmacion ? null : { contrasenasNoCoinciden: true };
@@ -39,13 +60,14 @@ export class RegistroClienteComponent implements OnInit {
 
   formulario = this.fb.group(
     {
+
       tipoDocumentoId: [null as number | null, Validators.required],
-      numeroDocumento: ['', [Validators.required, Validators.maxLength(30)]],
-      nombre: ['', [Validators.required, Validators.maxLength(100)]],
-      apellido: ['', [Validators.required, Validators.maxLength(100)]],
-      fechaNacimiento: [''],
+      numeroDocumento: ['', [Validators.required, Validators.maxLength(30), this.validadorDocumento()]],
+      nombre: ['', [Validators.required, Validators.maxLength(100), this.validadorSoloLetras()]],
+      apellido: ['', [Validators.required, Validators.maxLength(100), this.validadorSoloLetras()]],
+      fechaNacimiento: ['', [Validators.required, this.validadorMayorEdad()]],
       telefono: ['', Validators.maxLength(20)],
-      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(100), this.validadorCorreoGmail()]],
       nombreUsuario: ['', [Validators.required, Validators.maxLength(50)]],
       contrasena: ['', [
         Validators.required,
@@ -54,9 +76,9 @@ export class RegistroClienteComponent implements OnInit {
         Validators.pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])[\s\S]+$/)
       ]],
       confirmacionContrasena: ['', Validators.required],
-      provincia: ['', [Validators.required, Validators.maxLength(100)]],
-      canton: ['', [Validators.required, Validators.maxLength(100)]],
-      distrito: ['', [Validators.required, Validators.maxLength(100)]],
+      provincia: ['', [Validators.required, this.validadorProvincia()]],
+      canton: [{ value: '', disabled: true }, [Validators.required, this.validadorCanton()]],
+      distrito: ['', [Validators.required, Validators.maxLength(100), this.validadorSoloLetras()]],
       senaExacta: ['', Validators.maxLength(255)]
     },
     { validators: this.contrasenasCoinciden }
@@ -64,8 +86,17 @@ export class RegistroClienteComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarTiposDocumento();
+
+    // Cambia las reglas del documento sin asumir identificadores fijos.
     this.formulario.controls.tipoDocumentoId.valueChanges.subscribe(() => {
-      this.formulario.controls.numeroDocumento.updateValueAndValidity();
+
+      this.actualizarValidacionesDocumento();
+    });
+
+    // Al cambiar provincia se limpia y habilita únicamente el cantón correspondiente.
+    this.formulario.controls.provincia.valueChanges.subscribe(() => {
+
+      this.actualizarCantones();
     });
   }
 
@@ -81,25 +112,29 @@ export class RegistroClienteComponent implements OnInit {
 
     const valor = this.formulario.getRawValue();
     const registro: IRegistroCliente = {
+
+
       tipoDocumentoId: Number(valor.tipoDocumentoId),
-      numeroDocumento: valor.numeroDocumento ?? '',
-      nombre: valor.nombre ?? '',
-      apellido: valor.apellido ?? '',
+      numeroDocumento: this.normalizarNumeroDocumento(valor.numeroDocumento),
+      nombre: this.normalizarTexto(valor.nombre),
+      apellido: this.normalizarTexto(valor.apellido),
       fechaNacimiento: valor.fechaNacimiento || null,
       telefono: valor.telefono || null,
-      email: valor.email ?? '',
-      nombreUsuario: valor.nombreUsuario ?? '',
+      email: this.normalizarTexto(valor.email).toLowerCase(),
+      nombreUsuario: this.normalizarTexto(valor.nombreUsuario),
       contrasena: valor.contrasena ?? '',
-      provincia: valor.provincia ?? '',
-      canton: valor.canton ?? '',
-      distrito: valor.distrito ?? '',
-      senaExacta: valor.senaExacta || null
+      provincia: this.normalizarTexto(valor.provincia),
+      canton: this.normalizarTexto(valor.canton),
+      distrito: this.normalizarTexto(valor.distrito),
+      senaExacta: this.normalizarTexto(valor.senaExacta) || null
     };
 
     this.enviando = true;
     this.registroClienteService.registrar(registro).subscribe({
       next: respuesta => {
         this.enviando = false;
+
+
         if (respuesta.data) {
           this.mensajeExito = 'Tu registro fue completado correctamente.';
           this.formulario.reset();
@@ -120,18 +155,45 @@ export class RegistroClienteComponent implements OnInit {
   }
 
   campoInvalido(nombre: string): boolean {
+
     const campo = this.formulario.get(nombre);
-    return !!campo && campo.invalid && (campo.touched || this.enviado);
+    return !!campo && campo.invalid && (campo.touched || campo.dirty || this.enviado);
   }
 
   mensajeCampo(nombre: string): string {
+
     const campo = this.formulario.get(nombre);
     if (!campo?.errors) {
       return '';
     }
 
     if (campo.errors['required']) {
+
       return 'Este campo es obligatorio.';
+    }
+    if (campo.errors['soloLetras']) {
+      if (nombre === 'nombre') {
+        return 'El nombre solo puede contener letras';
+      }
+      if (nombre === 'apellido') {
+        return 'El apellido solo puede contener letras';
+      }
+      return 'El distrito solo puede contener letras';
+    }
+    if (campo.errors['correoGmail'] || campo.errors['email']) {
+      return 'Ingrese un correo valido';
+    }
+    if (campo.errors['documento']) {
+      return campo.errors['documento'];
+    }
+    if (campo.errors['mayorEdad']) {
+      return 'Necesitas ser mayor de 18 años';
+    }
+    if (campo.errors['provinciaInvalida']) {
+      return 'Seleccione una provincia válida.';
+    }
+    if (campo.errors['cantonInvalido']) {
+      return 'Seleccione un cantón válido para la provincia.';
     }
     if (campo.errors['email']) {
       return 'Ingresa un correo electrónico válido.';
@@ -149,7 +211,7 @@ export class RegistroClienteComponent implements OnInit {
       return campo.errors['documento'];
     }
     if (campo.errors['contrasenasNoCoinciden']) {
-      return 'Las contraseñas no coinciden.';
+     return 'Las contraseñas no coinciden.';
     }
 
     return 'Verifica el valor ingresado.';
@@ -164,6 +226,7 @@ export class RegistroClienteComponent implements OnInit {
     this.registroClienteService.listarTiposDocumento().subscribe({
       next: respuesta => {
         this.tiposDocumento = respuesta.data ?? [];
+        this.actualizarValidacionesDocumento();
         this.cargandoTipos = false;
         if (this.tiposDocumento.length === 0) {
           this.mensajeError = 'No hay tipos de documento disponibles para el registro.';
@@ -180,32 +243,207 @@ export class RegistroClienteComponent implements OnInit {
 
   private validadorDocumento(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const numeroDocumento = String(control.value ?? '').trim();
-      const tipoDocumentoId = this.formulario?.controls.tipoDocumentoId.value;
-      const tipoDocumento = this.tiposDocumento.find(x => x.tipoDocumentoId === tipoDocumentoId)?.nombre.toUpperCase();
-      const numeroSinSeparadores = numeroDocumento.replace(/[\s-]/g, '');
+      const numeroDocumento = String(control.value ?? '');
+      const tipoDocumento = this.tipoDocumentoSeleccionado();
 
       if (!numeroDocumento || !tipoDocumento) {
         return null;
       }
 
-      if ((tipoDocumento === 'CÉDULA DE IDENTIDAD COSTARRICENSE' || tipoDocumento === 'CEDULA DE IDENTIDAD COSTARRICENSE') && !/^\d{9}$/.test(numeroSinSeparadores)) {
-        return { documento: 'La cédula debe contener exactamente 9 dígitos.' };
+      if (this.esCedula(tipoDocumento)) {
+        if (!/^\d+$/.test(numeroDocumento)) {
+          return { documento: 'El numero de documento solo puede contener numeros' };
+        }
+        return /^\d{9}$/.test(numeroDocumento)
+          ? null
+          : { documento: 'La cédula debe contener exactamente 9 dígitos.' };
       }
 
-      if (tipoDocumento === 'DIMEX' && !/^\d{12}$/.test(numeroSinSeparadores)) {
-        return { documento: 'El DIMEX debe contener exactamente 12 dígitos.' };
+      if (tipoDocumento === 'DIMEX') {
+        if (!/^\d+$/.test(numeroDocumento)) {
+          return { documento: 'El numero de documento solo puede contener numeros' };
+        }
+        return /^\d{11,12}$/.test(numeroDocumento)
+          ? null
+          : { documento: 'El DIMEX debe contener 11 o 12 dígitos.' };
       }
 
-      if (tipoDocumento === 'PASAPORTE' && numeroDocumento.length > 30) {
-        return { documento: 'El pasaporte no puede superar 30 caracteres.' };
+      if (tipoDocumento === 'PASAPORTE') {
+        if (!/^[A-Za-z0-9]+$/.test(numeroDocumento)) {
+          return { documento: 'El pasaporte solo puede contener letras y números.' };
+        }
+        return numeroDocumento.length >= 5 && numeroDocumento.length <= 20
+          ? null
+          : { documento: 'El pasaporte debe contener entre 5 y 20 caracteres.' };
       }
 
-      return null;
+      return { documento: 'El tipo de documento indicado no está admitido para el registro.' };
     };
   }
 
+  // Ajusta longitud, teclado y reglas al documento elegido por el usuario.
+  private actualizarValidacionesDocumento(): void {
+    const control = this.formulario.controls.numeroDocumento;
+    control.setValidators([
+      Validators.required,
+      Validators.maxLength(this.longitudMaximaNumeroDocumento),
+      this.validadorDocumento()
+    ]);
+    control.updateValueAndValidity();
+  }
+
+  normalizarPasaporte(): void {
+    if (this.tipoDocumentoSeleccionado() !== 'PASAPORTE') {
+      return;
+    }
+
+    const control = this.formulario.controls.numeroDocumento;
+    const valorEnMayuscula = String(control.value ?? '').toUpperCase();
+    if (valorEnMayuscula !== control.value) {
+      control.setValue(valorEnMayuscula);
+    }
+  }
+
+  get cantonesDisponibles(): readonly string[] {
+    return this.cantonesPorProvincia[this.formulario.controls.provincia.value ?? ''] ?? [];
+  }
+
+  get longitudMaximaNumeroDocumento(): number {
+    const tipoDocumento = this.tipoDocumentoSeleccionado();
+    if (this.esCedula(tipoDocumento)) {
+      return 9;
+    }
+    if (tipoDocumento === 'DIMEX') {
+      return 12;
+    }
+    if (tipoDocumento === 'PASAPORTE') {
+      return 20;
+    }
+    return 30;
+  }
+
+  get modoEntradaNumeroDocumento(): 'numeric' | 'text' {
+    const tipoDocumento = this.tipoDocumentoSeleccionado();
+    return this.esCedula(tipoDocumento) || tipoDocumento === 'DIMEX' ? 'numeric' : 'text';
+  }
+
+  get ayudaNumeroDocumento(): string {
+    const tipoDocumento = this.tipoDocumentoSeleccionado();
+    if (this.esCedula(tipoDocumento)) {
+      return 'X-XXXX-XXXX';
+    }
+    if (tipoDocumento === 'DIMEX') {
+      return '11 o 12 dígitos';
+    }
+    if (tipoDocumento === 'PASAPORTE') {
+      return '5 a 20 letras o números';
+    }
+    return '';
+  }
+
+  private actualizarCantones(): void {
+    const control = this.formulario.controls.canton;
+    control.reset('', { emitEvent: false });
+
+    if (this.cantonesDisponibles.length === 0) {
+      control.disable({ emitEvent: false });
+    } else {
+      control.enable({ emitEvent: false });
+    }
+
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private validadorSoloLetras(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const valor = String(control.value ?? '');
+      return !valor || /^(?=.*\p{L})[\p{L} ]+$/u.test(valor) ? null : { soloLetras: true };
+    };
+  }
+
+  private validadorCorreoGmail(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const correo = String(control.value ?? '');
+      return !correo || /^[A-Za-z0-9._+-]+@gmail\.com$/i.test(correo) ? null : { correoGmail: true };
+    };
+  }
+
+  // Calcula la mayoría de edad con la fecha local para evitar desfases de UTC.
+  private validadorMayorEdad(): ValidatorFn {
+
+
+    return (control: AbstractControl): ValidationErrors | null => {
+      const valor = String(control.value ?? '');
+      if (!valor) {
+        return null;
+      }
+
+      const [anio, mes, dia] = valor.split('-').map(Number);
+      const fechaNacimiento = new Date(anio, mes - 1, dia);
+      const fechaValida = fechaNacimiento.getFullYear() === anio &&
+        fechaNacimiento.getMonth() === mes - 1 && fechaNacimiento.getDate() === dia;
+
+      return fechaValida && fechaNacimiento <= this.fechaDeMayoriaEdad() ? null : { mayorEdad: true };
+    };
+  }
+
+  private validadorProvincia(): ValidatorFn {
+
+    return (control: AbstractControl): ValidationErrors | null => {
+      const provincia = String(control.value ?? '');
+      return !provincia || this.provincias.includes(provincia) ? null : { provinciaInvalida: true };
+    };
+  }
+
+  private validadorCanton(): ValidatorFn {
+
+    return (control: AbstractControl): ValidationErrors | null => {
+      const canton = String(control.value ?? '');
+      return !canton || this.cantonesDisponibles.includes(canton) ? null : { cantonInvalido: true };
+    };
+  }
+
+  private tipoDocumentoSeleccionado(): string {
+
+    const tipoDocumentoId = this.formulario?.controls.tipoDocumentoId.value;
+    const nombre = this.tiposDocumento.find(x => x.tipoDocumentoId === tipoDocumentoId)?.nombre ?? '';
+    return nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+  }
+
+  private esCedula(tipoDocumento: string): boolean {
+    return tipoDocumento === 'CEDULA DE IDENTIDAD COSTARRICENSE';
+  }
+
+  private normalizarNumeroDocumento(valor: string | null | undefined): string {
+
+
+    const numeroDocumento = String(valor ?? '');
+    return this.tipoDocumentoSeleccionado() === 'PASAPORTE'
+      ? numeroDocumento.trim().toUpperCase()
+      : numeroDocumento.trim();
+  }
+
+  private normalizarTexto(valor: string | null | undefined): string {
+    return String(valor ?? '').trim();
+  }
+
+  private fechaDeMayoriaEdad(): Date {
+
+
+    const hoy = new Date();
+    return new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+  }
+
+  private obtenerFechaMaximaNacimiento(): string {
+
+
+    const fecha = this.fechaDeMayoriaEdad();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${fecha.getFullYear()}-${mes}-${dia}`;
+  }
+
   constructor() {
-    this.formulario.controls.numeroDocumento.addValidators(this.validadorDocumento());
+    this.actualizarValidacionesDocumento();
   }
 }

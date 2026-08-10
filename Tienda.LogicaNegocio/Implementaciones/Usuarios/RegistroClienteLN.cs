@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
@@ -16,6 +16,23 @@ public class RegistroClienteLN : IRegistroClienteLN
     private readonly IUnidadTrabajoEF _unidadDeTrabajo;
     private readonly IHashContrasena _hashContrasena;
     private readonly ILogger<RegistroClienteLN> _logger;
+
+    // Catálogo local usado para impedir combinaciones provincia-cantón manipuladas.
+    private static readonly IReadOnlyDictionary<string, string[]> CatalogoProvinciasCantones =
+        new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["San José"] = new[] { "San José", "Escazú", "Desamparados", "Puriscal", "Tarrazú", "Aserrí", "Mora", "Goicoechea", "Santa Ana", "Alajuelita", "Vázquez de Coronado", "Acosta", "Tibás", "Moravia", "Montes de Oca", "Turrubares", "Dota", "Curridabat", "Pérez Zeledón", "León Cortés Castro" },
+            ["Alajuela"] = new[] { "Alajuela", "San Ramón", "Grecia", "San Mateo", "Atenas", "Naranjo", "Palmares", "Poás", "Orotina", "San Carlos", "Zarcero", "Sarchí", "Upala", "Los Chiles", "Guatuso", "Río Cuarto" },
+            ["Cartago"] = new[] { "Cartago", "Paraíso", "La Unión", "Jiménez", "Turrialba", "Alvarado", "Oreamuno", "El Guarco" },
+            ["Heredia"] = new[] { "Heredia", "Barva", "Santo Domingo", "Santa Bárbara", "San Rafael", "San Isidro", "Belén", "Flores", "San Pablo", "Sarapiquí" },
+            ["Guanacaste"] = new[] { "Liberia", "Nicoya", "Santa Cruz", "Bagaces", "Carrillo", "Cañas", "Abangares", "Tilarán", "Nandayure", "La Cruz", "Hojancha" },
+            ["Puntarenas"] = new[] { "Puntarenas", "Esparza", "Buenos Aires", "Montes de Oro", "Osa", "Quepos", "Golfito", "Coto Brus", "Parrita", "Corredores", "Garabito", "Monteverde", "Puerto Jiménez" },
+            ["Limón"] = new[] { "Limón", "Pococí", "Siquirres", "Talamanca", "Matina", "Guácimo" }
+        };
+
+    private static readonly Regex CorreoGmailRegex = new(
+        "^[a-z0-9._+\\-]+@gmail\\.com$",
+        RegexOptions.CultureInvariant);
 
     public RegistroClienteLN(
         IUnidadTrabajoEF unidadDeTrabajo,
@@ -249,7 +266,7 @@ public class RegistroClienteLN : IRegistroClienteLN
     private static bool TryNormalizarDatos(TRegistroCliente datos, out DatosNormalizados normalizados, out string error)
     {
         normalizados = new DatosNormalizados(
-            NormalizarTexto(datos.NumeroDocumento),
+            datos.NumeroDocumento ?? string.Empty,
             NormalizarTexto(datos.Nombre),
             NormalizarTexto(datos.Apellido),
             NormalizarTexto(datos.NombreUsuario),
@@ -260,27 +277,101 @@ public class RegistroClienteLN : IRegistroClienteLN
             NormalizarEmail(datos.Email),
             NormalizarTextoOpcional(datos.SenaExacta));
 
+        if (string.IsNullOrWhiteSpace(normalizados.Nombre))
+        {
+            error = "El nombre es obligatorio.";
+            return false;
+        }
+
+        if (!EsTextoSoloLetrasYEspacios(normalizados.Nombre))
+        {
+            error = "El nombre solo puede contener letras";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(normalizados.Apellido))
+        {
+            error = "El apellido es obligatorio.";
+            return false;
+        }
+
+        if (!EsTextoSoloLetrasYEspacios(normalizados.Apellido))
+        {
+            error = "El apellido solo puede contener letras";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(normalizados.Distrito))
+        {
+            error = "El distrito es obligatorio.";
+            return false;
+        }
+
+        if (!EsTextoSoloLetrasYEspacios(normalizados.Distrito))
+        {
+            error = "El distrito solo puede contener letras";
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(normalizados.Email))
         {
             error = "El correo electrónico es obligatorio.";
             return false;
         }
 
-        if (!new EmailAddressAttribute().IsValid(normalizados.Email))
+        // El registro público admite únicamente direcciones Gmail con formato controlado.
+        if (!CorreoGmailRegex.IsMatch(normalizados.Email))
         {
-            error = "El correo electrónico no tiene un formato válido.";
+            error = "Ingrese un correo valido";
+            return false;
+        }
+
+        var provinciaRecibida = normalizados.Provincia;
+        var cantonRecibido = normalizados.Canton;
+        if (string.IsNullOrWhiteSpace(provinciaRecibida))
+        {
+            error = "La provincia es obligatoria.";
+            return false;
+        }
+
+        if (!CatalogoProvinciasCantones.TryGetValue(provinciaRecibida, out var cantonesProvincia))
+        {
+            error = "Seleccione una provincia válida.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(cantonRecibido))
+        {
+            error = "El cantón es obligatorio.";
+            return false;
+        }
+
+        var provinciaCanonica = CatalogoProvinciasCantones.Keys.First(x =>
+            string.Equals(x, provinciaRecibida, StringComparison.OrdinalIgnoreCase));
+        var cantonCanonico = cantonesProvincia.FirstOrDefault(x =>
+            string.Equals(x, cantonRecibido, StringComparison.OrdinalIgnoreCase));
+        if (cantonCanonico is null)
+        {
+            error = "Seleccione un cantón válido para la provincia.";
+            return false;
+        }
+
+        normalizados = normalizados with
+        {
+            Provincia = provinciaCanonica,
+            Canton = cantonCanonico
+        };
+
+        // La fecha se valida contra la fecha local del servidor, no contra el cliente.
+        if (!datos.FechaNacimiento.HasValue || !EsMayorDeEdad(datos.FechaNacimiento.Value.Date))
+        {
+            error = "Necesitas ser mayor de 18 años";
             return false;
         }
 
         if (!EsContrasenaValida(datos.Contrasena))
         {
             error = "La contraseña debe tener entre 8 y 128 caracteres e incluir al menos una mayúscula, una minúscula y un dígito.";
-            return false;
-        }
-
-        if (datos.FechaNacimiento.HasValue && datos.FechaNacimiento.Value.Date > DateTime.UtcNow.Date)
-        {
-            error = "La fecha de nacimiento no puede ser futura.";
             return false;
         }
 
@@ -296,7 +387,7 @@ public class RegistroClienteLN : IRegistroClienteLN
             normalizados.Email,
             normalizados.SenaExacta))
         {
-            error = "Los datos no pueden contener caracteres de control.";
+            error = "Los datos no pueden contener caracteres especiales.";
             return false;
         }
 
@@ -307,13 +398,19 @@ public class RegistroClienteLN : IRegistroClienteLN
     private static bool EsDocumentoValido(string nombreTipoDocumento, string numeroDocumento, out string error)
     {
         var tipoNormalizado = nombreTipoDocumento.Trim().ToUpperInvariant();
-        var documentoSinSeparadores = new string(numeroDocumento.Where(x => !char.IsWhiteSpace(x) && x != '-').ToArray());
 
+        // Las reglas se determinan por el nombre del tipo, no por un identificador fijo.
         switch (tipoNormalizado)
         {
             case "CÉDULA DE IDENTIDAD COSTARRICENSE":
             case "CEDULA DE IDENTIDAD COSTARRICENSE":
-                if (documentoSinSeparadores.Length == 9 && documentoSinSeparadores.All(char.IsDigit))
+                if (!numeroDocumento.All(char.IsDigit))
+                {
+                    error = "El numero de documento solo puede contener numeros";
+                    return false;
+                }
+
+                if (numeroDocumento.Length == 9)
                 {
                     error = string.Empty;
                     return true;
@@ -323,23 +420,36 @@ public class RegistroClienteLN : IRegistroClienteLN
                 return false;
 
             case "DIMEX":
-                if (documentoSinSeparadores.Length == 12 && documentoSinSeparadores.All(char.IsDigit))
+                if (!numeroDocumento.All(char.IsDigit))
+                {
+                    error = "El numero de documento solo puede contener numeros";
+                    return false;
+                }
+
+                if (numeroDocumento.Length is 11 or 12)
                 {
                     error = string.Empty;
                     return true;
                 }
 
-                error = "El DIMEX debe contener exactamente 12 dígitos.";
+                error = "El DIMEX debe contener 11 o 12 dígitos.";
                 return false;
 
             case "PASAPORTE":
-                if (!string.IsNullOrWhiteSpace(numeroDocumento) && numeroDocumento.Length <= 30)
+                var pasaporteNormalizado = numeroDocumento.Trim().ToUpperInvariant();
+                if (!pasaporteNormalizado.All(x => x is >= 'A' and <= 'Z' or >= '0' and <= '9'))
+                {
+                    error = "El pasaporte solo puede contener letras y números.";
+                    return false;
+                }
+
+                if (pasaporteNormalizado.Length is >= 5 and <= 20)
                 {
                     error = string.Empty;
                     return true;
                 }
 
-                error = "El pasaporte es obligatorio y no puede superar 30 caracteres.";
+                error = "El pasaporte debe contener entre 5 y 20 caracteres.";
                 return false;
 
             default:
@@ -354,6 +464,27 @@ public class RegistroClienteLN : IRegistroClienteLN
 
     private static string NormalizarEmail(string? valor) => valor?.Trim().ToLowerInvariant() ?? string.Empty;
 
+    private static bool EsTextoSoloLetrasYEspacios(string valor) =>
+        valor.All(x => char.IsLetter(x) || x == ' ');
+
+    // Calcula la edad por año, mes y día para permitir el registro al cumplir 18 años.
+    private static bool EsMayorDeEdad(DateTime fechaNacimiento)
+    {
+        var hoy = DateTime.Today;
+        if (fechaNacimiento > hoy)
+        {
+            return false;
+        }
+
+        var edad = hoy.Year - fechaNacimiento.Year;
+        if (fechaNacimiento > hoy.AddYears(-edad))
+        {
+            edad--;
+        }
+
+        return edad >= 18;
+    }
+
     private static bool EsContrasenaValida(string? contrasena) =>
         contrasena is { Length: >= 8 and <= 128 } &&
         contrasena.Any(x => x is >= 'A' and <= 'Z') &&
@@ -363,9 +494,9 @@ public class RegistroClienteLN : IRegistroClienteLN
     private static string NormalizarNumeroDocumento(string nombreTipoDocumento, string numeroDocumento)
     {
         var tipoNormalizado = nombreTipoDocumento.Trim().ToUpperInvariant();
-        if (tipoNormalizado is "CÉDULA DE IDENTIDAD COSTARRICENSE" or "CEDULA DE IDENTIDAD COSTARRICENSE" or "DIMEX")
+        if (tipoNormalizado == "PASAPORTE")
         {
-            return new string(numeroDocumento.Where(x => !char.IsWhiteSpace(x) && x != '-').ToArray());
+            return numeroDocumento.Trim().ToUpperInvariant();
         }
 
         return numeroDocumento;
