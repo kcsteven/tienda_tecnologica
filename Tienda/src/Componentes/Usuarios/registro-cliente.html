@@ -13,8 +13,53 @@
       }
 
       @if (cargandoTipos) {
-      <div class="text-center py-4">Cargando tipos de documento...</div>
-      } @else {
+      <!-- Esqueleto visual de carga-->
+      <div class="registro-esqueleto" role="status" aria-live="polite">
+        <div class="registro-esqueleto__contenido" aria-hidden="true">
+          <div class="registro-esqueleto__elemento registro-esqueleto__titulo"></div>
+
+          <div class="row g-3">
+            <div class="col-md-5">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-7">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+          </div>
+         </div>
+
+        <span class="visually-hidden">Cargando formulario de registro.....</span>
+        </div>
+
+        } @else {
       <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
         <h2>Datos personales</h2>
         <!-- Documento y datos personales -->
