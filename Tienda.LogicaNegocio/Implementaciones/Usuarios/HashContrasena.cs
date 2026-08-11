@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Security.Cryptography;
 using Tienda.Dominio.InterfazLN;
 
@@ -31,5 +32,52 @@ public class HashContrasena : IHashContrasena
             Iteraciones,
             Convert.ToBase64String(sal),
             Convert.ToBase64String(hash));
+    }
+
+    public bool VerificarHash(string contrasena, string hashAlmacenado)
+    {
+        if (string.IsNullOrWhiteSpace(contrasena) || string.IsNullOrWhiteSpace(hashAlmacenado))
+        {
+            return false;
+        }
+
+        try
+        {
+            // El formato persistido conserva versión, algoritmo, iteraciones, sal y hash.
+            var partes = hashAlmacenado.Split('$');
+            if (partes.Length != 5 ||
+                !string.Equals(partes[0], Version, StringComparison.Ordinal) ||
+                !string.Equals(partes[1], Algoritmo, StringComparison.Ordinal) ||
+                !int.TryParse(partes[2], NumberStyles.None, CultureInfo.InvariantCulture, out var iteraciones) ||
+                iteraciones != Iteraciones)
+            {
+                return false;
+            }
+
+            var sal = Convert.FromBase64String(partes[3]);
+            var hashEsperado = Convert.FromBase64String(partes[4]);
+            if (sal.Length != TamanoSal || hashEsperado.Length != TamanoHash)
+            {
+                return false;
+            }
+
+            var hashCalculado = Rfc2898DeriveBytes.Pbkdf2(
+                contrasena,
+                sal,
+                iteraciones,
+                HashAlgorithmName.SHA256,
+                TamanoHash);
+
+            // Evita revelar diferencias de tiempo entre hashes coincidentes y no coincidentes.
+            return CryptographicOperations.FixedTimeEquals(hashCalculado, hashEsperado);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
     }
 }
