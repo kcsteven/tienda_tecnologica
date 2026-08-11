@@ -1,10 +1,21 @@
 <header class="tienda-header">
   <div class="barra-superior">
     <div class="d-flex align-items-center justify-content-between px-4 py-2">
+      <!-- Logo con enlace al inicio -->
       <a routerLink="/" class="logo">
-        <span class="logo-x">X</span> tienda tecnológica
+        <svg class="logo-icono" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="0" y="0" width="40" height="36" rx="7" class="logo-fondo" />
+          <polygon points="6,26 17,9 23,9 12,26" class="logo-ala" />
+          <polygon points="19,26 30,9 36,9 25,26" class="logo-ala" />
+          <polygon points="30,4 34,8 30,12 26,8" class="logo-diamante" />
+        </svg>
+        <span class="logo-texto">
+          TIENDA
+          <span class="logo-sub">TECNOLÓGICA</span>
+        </span>
       </a>
 
+      <!-- Campo de búsqueda de productos -->
       <div class="buscador flex-grow-1 mx-4">
         <input type="text"
                #inputBusqueda
@@ -13,11 +24,13 @@
                class="form-control" />
       </div>
 
+      <!-- Acciones del usuario: acceso, favoritos y carrito -->
       <div class="acciones-usuario d-flex align-items-center gap-3">
         <a routerLink="/acceso" class="link-acceso">ACCESO / REGISTRO</a>
         <a routerLink="/favoritos" class="icono-accion">♡</a>
         <a routerLink="/carrito" class="icono-accion carrito">
           🛒 ₡{{ carritoService.total() | number:'1.0-0' }}
+          <!-- Muestra la cantidad de items solo si hay algo en el carrito -->
           @if (carritoService.cantidadTotal() > 0) {
           <span class="badge-carrito">{{ carritoService.cantidadTotal() }}</span>
           }
@@ -26,8 +39,10 @@
     </div>
   </div>
 
+  <!-- Barra de navegación con el menú de categorías -->
   <nav class="barra-categorias">
     <div class="px-4 d-flex align-items-center">
+      <!-- Dropdown de categorías, se abre/cierra con el mouse -->
       <div class="dropdown-categorias"
            (mouseenter)="menuAbierto.set(true)"
            (mouseleave)="menuAbierto.set(false); categoriaActivaId.set(null)">
@@ -36,6 +51,7 @@
           ☰ VER CATEGORÍAS
         </button>
 
+        <!-- Lista de categorías, visible solo cuando el menú está abierto -->
         @if (menuAbierto()) {
         <ul class="lista-categorias">
           @for (cat of categorias(); track cat.categoriaId) {
@@ -44,11 +60,13 @@
 
             <a [routerLink]="['/categoria', cat.categoriaId]">
               {{ cat.nombre }}
+              <!-- Flecha indicando que la categoría tiene subcategorías -->
               @if (cat.subcategorias.length > 0) {
               <span class="flecha">›</span>
               }
             </a>
 
+            <!-- Submenú flotante con las subcategorías, solo si esta categoría está activa -->
             @if (cat.subcategorias.length > 0 && categoriaActivaId() === cat.categoriaId) {
             <ul class="flyout-subcategorias">
               @for (sub of cat.subcategorias; track sub.subcategoriaId) {
@@ -62,6 +80,7 @@
             }
           </li>
           } @empty {
+          <!-- Si no hay categorías activas -->
           <li class="item-categoria text-muted px-3 py-2">No hay categorías activas</li>
           }
         </ul>

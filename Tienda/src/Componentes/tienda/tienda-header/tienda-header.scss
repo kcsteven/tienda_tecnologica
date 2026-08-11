@@ -1,19 +1,50 @@
 .tienda-header {
   font-family: system-ui, sans-serif;
-
+  // Barra superior: logo, buscador y acciones de usuario
   .barra-superior {
     background: #fff;
     border-bottom: 1px solid #eee;
 
     .logo {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
       text-decoration: none;
 
-      .logo-x {
-        color: #c8102e;
-        font-weight: 900;
+      .logo-icono {
+        width: 36px;
+        height: 32px;
+        flex-shrink: 0;
+
+        .logo-fondo {
+          fill: #1a1a1a;
+        }
+
+        .logo-ala {
+          fill: #fff;
+        }
+
+        .logo-diamante {
+          fill: #c8102e;
+        }
+      }
+
+      .logo-texto {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.05;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #1a1a1a;
+        font-size: 1.05rem;
+
+        .logo-sub {
+          font-size: 0.6rem;
+          font-weight: 600;
+          letter-spacing: 0.14em;
+          color: #6b6b6b;
+        }
       }
     }
 
@@ -34,14 +65,14 @@
       font-size: 1.2rem;
       text-decoration: none;
       color: #1a1a1a;
-
+      // Estilo especial para el ícono del carrito (con texto de total)
       &.carrito {
         font-size: 0.9rem;
         font-weight: 600;
       }
     }
   }
-
+  // Barra de categorías, debajo de la barra superior
   .barra-categorias {
     background: #fff;
     border-bottom: 3px solid #c8102e;
@@ -58,7 +89,7 @@
       padding: 0.75rem 1rem;
       cursor: pointer;
     }
-
+    // Menú desplegable de categorías
     .lista-categorias {
       position: absolute;
       top: 100%;
@@ -94,7 +125,7 @@
         color: #999;
       }
     }
-
+    // Submenú flotante de subcategorías, aparece al lado de la categoría
     .flyout-subcategorias {
       position: absolute;
       top: 0;
