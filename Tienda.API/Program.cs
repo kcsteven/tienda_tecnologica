@@ -18,14 +18,13 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// Opcional: configurar niveles
+// configurar niveles
 builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
 
-// Add services to the container
-//builder.Services.AddControllers();
+
 
 IdentityModelEventSource.ShowPII = true;
-//NUEVO
+
 builder.Services.AddCors(options =>
 {
 
@@ -44,7 +43,7 @@ builder.Services.AddCors(options =>
 
 });
 
-//NUEVO
+
 builder.Services.AddResponseCaching();
 
 

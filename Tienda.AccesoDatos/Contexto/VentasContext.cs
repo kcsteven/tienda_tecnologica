@@ -16,7 +16,7 @@ public partial class VentasContext : DbContext
     {
     }
 
-    // ===== Catálogo (tu módulo) =====
+    // ===== Catálogo =====
     public virtual DbSet<Categoria> Categorias { get; set; }
     public virtual DbSet<Subcategoria> Subcategorias { get; set; }
     public virtual DbSet<Producto> Productos { get; set; }
@@ -33,7 +33,7 @@ public partial class VentasContext : DbContext
     public virtual DbSet<ProductoEtiqueta> ProductoEtiquetas { get; set; }
     public virtual DbSet<EspecificacionProducto> EspecificacionProductos { get; set; }
 
-    // ===== Módulo de Personas/Usuarios/Clientes/Pedidos (le toca a tu compañero) =====
+    // ===== Módulo de Personas/Usuarios/Clientes/Pedidos =====
     // Temporalmente IGNORADO en OnModelCreating hasta que su módulo esté completo y correcto.
     // NO borrar estas líneas de DbSet: cuando su parte esté lista, solo hay que quitar
     // los modelBuilder.Ignore<...>() de abajo.
