@@ -12,7 +12,7 @@ namespace Tienda.LogicaNegocio.Implementaciones;
 
 public class AccesoUsuarioLN : IAccesoUsuarioLN
 {
-    private const string ErrorCredenciales = "Correo o contraseña incorrectos.";
+    private const string ErrorCredenciales = "Correo o contraseña incorrectos";
     private readonly IUnidadTrabajoEF _unidadDeTrabajo;
     private readonly IHashContrasena _hashContrasena;
     private readonly ITokenSesion _tokenSesion;
@@ -24,6 +24,7 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
         ITokenSesion tokenSesion,
         ILogger<AccesoUsuarioLN> logger)
     {
+
         _unidadDeTrabajo = unidadDeTrabajo;
         _hashContrasena = hashContrasena;
         _tokenSesion = tokenSesion;
@@ -43,15 +44,15 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
 
         try
         {
-            // La búsqueda y el error de credenciales son genéricos para no revelar correos existentes.
+            // La busqueda y el error de correo y contra son genericos para no revelar correos existentes
             var respuestaUsuario = await _unidadDeTrabajo.TUsuario.ObtenerEntidadAsync(
                 usuario => usuario.Persona.Email == emailNormalizado,
                 new List<string> { nameof(Usuario.Persona), nameof(Usuario.Rol) });
 
             if (!string.IsNullOrEmpty(respuestaUsuario.Error))
             {
-                _logger.LogError("Error técnico al buscar el usuario para inicio de sesión.");
-                resultado.Error = "No fue posible iniciar sesión.";
+                _logger.LogError("Error técnico al buscar el usuario para inicio de sesión");
+                resultado.Error = "No fue posible iniciar sesión";
                 return resultado;
             }
 
@@ -64,21 +65,21 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
 
             if (!usuario.Activo)
             {
-                resultado.Error = "La cuenta se encuentra inactiva.";
+                resultado.Error = "La cuenta se encuentra inactiva";
                 return resultado;
             }
 
             if (usuario.Persona is null || usuario.Rol is null)
             {
-                _logger.LogError("El usuario autenticado no tiene Persona o Rol cargados.");
-                resultado.Error = "No fue posible iniciar sesión.";
+                _logger.LogError("El usuario autenticado no tiene sus datos o Rol cargados correctamente");
+                resultado.Error = "No fue posible iniciar sesión";
                 return resultado;
             }
 
             var rol = ObtenerRolCanonico(usuario.Rol.Nombre);
             if (rol is null)
             {
-                resultado.Error = "La cuenta no tiene un rol autorizado.";
+                resultado.Error = "La cuenta no tiene un rol autorizado";
                 return resultado;
             }
 
@@ -98,8 +99,8 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error técnico durante el inicio de sesión.");
-            resultado.Error = "No fue posible iniciar sesión.";
+            _logger.LogError(ex, "Error técnico durante el inicio de sesión");
+            resultado.Error = "No fue posible iniciar sesión";
         }
 
         return resultado;
@@ -107,6 +108,7 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
 
     private static string? ObtenerRolCanonico(string? rol)
     {
+
         if (string.Equals(rol?.Trim(), "Cliente", StringComparison.OrdinalIgnoreCase))
         {
             return "Cliente";
@@ -115,6 +117,7 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
         if (string.Equals(rol?.Trim(), "Empleado", StringComparison.OrdinalIgnoreCase))
         {
             return "Empleado";
+
         }
 
         return null;

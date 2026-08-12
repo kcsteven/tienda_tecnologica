@@ -34,7 +34,7 @@ public class TokenSesion : ITokenSesion
         var emisionUtc = DateTime.UtcNow;
         var expiraEnUtc = emisionUtc.AddMinutes(ObtenerDuracionMinutos());
 
-        // Claims mínimos para identificar al usuario y autorizar su rol sin exponer datos sensibles.
+        // Claims para identificar al usuario y autorizar su rol sin exponer datos
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, usuarioId.ToString(CultureInfo.InvariantCulture)),

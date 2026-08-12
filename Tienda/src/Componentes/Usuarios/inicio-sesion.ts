@@ -42,17 +42,18 @@ export class InicioSesionComponent {
         this.enviando = false;
 
         if (!respuesta.data) {
-          this.mensajeError = 'Correo o contraseña incorrectos.';
+          this.mensajeError = 'Correo o contraseña incorrectos';
           return;
         }
+
 
         this.router.navigate([respuesta.data.rol === 'Empleado' ? '/admin' : '/']);
       },
       error: error => {
         this.enviando = false;
         this.mensajeError = error?.status === 401
-          ? 'Correo o contraseña incorrectos.'
-          : 'No fue posible iniciar sesión.';
+          ? 'Correo o contraseña incorrectos'
+          : 'No fue posible iniciar sesión';
       }
     });
   }
@@ -65,9 +66,9 @@ export class InicioSesionComponent {
   mensajeCampo(nombre: 'email' | 'contrasena'): string {
     const campo = this.formulario.controls[nombre];
     if (campo.hasError('required')) {
-      return nombre === 'email' ? 'El correo electrónico es obligatorio.' : 'La contraseña es obligatoria.';
+      return nombre === 'email' ? 'El correo electrónico es obligatorio' : 'La contraseña es obligatoria';
     }
 
-    return nombre === 'email' ? 'Ingrese un correo válido.' : 'Verifica la contraseña ingresada.';
+    return nombre === 'email' ? 'Ingrese un correo válido' : 'Verifica la contraseña ingresada';
   }
 }

@@ -18,8 +18,9 @@ using Tienda.LogicaNegocio.Implementaciones;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// La API valida la misma configuración JWT que usará el emisor del token.
+// la API revisa la misma configuración JWT que usará el emisor del token
 var jwtClave = builder.Configuration["Jwt:Clave"];
+
 if (string.IsNullOrWhiteSpace(jwtClave) || jwtClave.Length < 32)
 {
     throw new InvalidOperationException("La configuración Jwt:Clave es obligatoria y debe tener al menos 32 caracteres.");
@@ -28,10 +29,13 @@ if (string.IsNullOrWhiteSpace(jwtClave) || jwtClave.Length < 32)
 var jwtEmisor = string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Emisor"])
     ? "Tienda.API"
     : builder.Configuration["Jwt:Emisor"]!;
+
 var jwtAudiencia = string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Audiencia"])
     ? "Tienda.Angular"
     : builder.Configuration["Jwt:Audiencia"]!;
+
 var jwtDuracionConfigurada = builder.Configuration["Jwt:DuracionMinutos"];
+
 if (!string.IsNullOrWhiteSpace(jwtDuracionConfigurada) &&
     (!int.TryParse(jwtDuracionConfigurada, NumberStyles.None, CultureInfo.InvariantCulture, out var jwtDuracionMinutos) ||
      jwtDuracionMinutos < 5 || jwtDuracionMinutos > 1440))

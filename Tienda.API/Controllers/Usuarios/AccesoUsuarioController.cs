@@ -26,7 +26,7 @@ public class AccesoUsuarioController : ControllerBase
         }
 
         var resultado = await _accesoUsuarioLN.IniciarSesionAsync(datos);
-        if (resultado.Error == "No fue posible iniciar sesión.")
+        if (resultado.Error == "No fue posible iniciar sesión")
         {
             return StatusCode(StatusCodes.Status500InternalServerError, resultado);
         }

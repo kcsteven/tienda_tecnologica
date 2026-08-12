@@ -17,12 +17,14 @@ export class RegistroClienteService {
   private http = inject(HttpClient);
 
   listarTiposDocumento(): Observable<IRespuestaApi<ITipoDocumento[]>> {
+
     return this.http.get<IRespuestaApi<ITipoDocumento[]>>(
       `${baseUrl}/RegistroCliente/TiposDocumento`
     );
   }
 
   registrar(registro: IRegistroCliente): Observable<IRespuestaApi<boolean>> {
+
     return this.http.post<IRespuestaApi<boolean>>(
       `${baseUrl}/RegistroCliente/Registrar`,
       registro
