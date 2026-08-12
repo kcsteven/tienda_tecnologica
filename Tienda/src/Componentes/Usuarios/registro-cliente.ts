@@ -49,6 +49,7 @@ export class RegistroClienteComponent implements OnInit {
 
     Limón: ['Limón', 'Pococí', 'Siquirres', 'Talamanca', 'Matina', 'Guácimo']
   };
+
   readonly fechaMaximaNacimiento = this.obtenerFechaMaximaNacimiento();
 
   private contrasenasCoinciden: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -80,6 +81,7 @@ export class RegistroClienteComponent implements OnInit {
       canton: [{ value: '', disabled: true }, [Validators.required, this.validadorCanton()]],
       distrito: ['', [Validators.required, Validators.maxLength(100), this.validadorSoloLetras()]],
       senaExacta: ['', Validators.maxLength(255)]
+
     },
     { validators: this.contrasenasCoinciden }
   );
@@ -87,13 +89,13 @@ export class RegistroClienteComponent implements OnInit {
   ngOnInit(): void {
     this.cargarTiposDocumento();
 
-    // Cambia las reglas del documento sin asumir identificadores fijos.
+    // Recalcula las reglas cuando cambia el tipo de documento.
     this.formulario.controls.tipoDocumentoId.valueChanges.subscribe(() => {
 
       this.actualizarValidacionesDocumento();
     });
 
-    // Al cambiar provincia se limpia y habilita únicamente el cantón correspondiente.
+    // Al cambiar la provincia, limpia el cantón previo y habilita únicamente los correspondientes.
     this.formulario.controls.provincia.valueChanges.subscribe(() => {
 
       this.actualizarCantones();
@@ -134,7 +136,6 @@ export class RegistroClienteComponent implements OnInit {
       next: respuesta => {
         this.enviando = false;
 
-
         if (respuesta.data) {
           this.mensajeExito = 'Tu registro fue completado correctamente.';
           this.formulario.reset();
@@ -142,6 +143,7 @@ export class RegistroClienteComponent implements OnInit {
           this.changeDetectorRef.markForCheck();
           return;
         }
+
 
         this.mensajeError = respuesta.error || 'No fue posible completar el registro.';
         this.changeDetectorRef.markForCheck();
@@ -281,7 +283,7 @@ export class RegistroClienteComponent implements OnInit {
     };
   }
 
-  // Ajusta longitud, teclado y reglas al documento elegido por el usuario.
+  // Aplica las validaciones específicas de Cédula, DIMEX o Pasaporte.
   private actualizarValidacionesDocumento(): void {
     const control = this.formulario.controls.numeroDocumento;
     control.setValidators([
@@ -368,7 +370,7 @@ export class RegistroClienteComponent implements OnInit {
     };
   }
 
-  // Calcula la mayoría de edad con la fecha local para evitar desfases de UTC.
+  // Valida la mayoría de edad con fecha local para evitar desfases de UTC.
   private validadorMayorEdad(): ValidatorFn {
 
 

@@ -36,15 +36,17 @@ export class InicioSesionComponent {
 
     const { email, contrasena } = this.formulario.getRawValue();
     this.enviando = true;
+
     this.accesoUsuarioService.iniciarSesion({ email: email.trim(), contrasena }).subscribe({
       next: respuesta => {
         this.enviando = false;
+
         if (!respuesta.data) {
           this.mensajeError = 'Correo o contraseña incorrectos.';
           return;
         }
 
-        this.router.navigate(['/']);
+        this.router.navigate([respuesta.data.rol === 'Empleado' ? '/admin' : '/']);
       },
       error: error => {
         this.enviando = false;
