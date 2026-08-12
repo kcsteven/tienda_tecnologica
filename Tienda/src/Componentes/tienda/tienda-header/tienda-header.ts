@@ -6,6 +6,7 @@ import { SubcategoriaService } from '../../../app/services/subcategoria';
 import { ICategoria } from '../../../app/model/ICategoria';
 import { ISubcategoria } from '../../../app/model/ISubcategoria';
 import { CarritoService } from '../../../app/services/carrito';
+import { AccesoUsuarioService } from '../../../app/services/Usuarios/acceso-usuario.service';
 
 interface CategoriaConSubs extends ICategoria {
   subcategorias: ISubcategoria[];
@@ -22,7 +23,10 @@ export class TiendaHeaderComponent implements OnInit {
   private categoriaService = inject(CategoriaService);
   private subcategoriaService = inject(SubcategoriaService);
   carritoService = inject(CarritoService);
+  private accesoUsuarioService = inject(AccesoUsuarioService);
   private router = inject(Router);
+
+  sesion = this.accesoUsuarioService.sesion;
 
   categorias = signal<CategoriaConSubs[]>([]);
   menuAbierto = signal(false);
@@ -36,6 +40,11 @@ export class TiendaHeaderComponent implements OnInit {
     const valor = termino.trim();
     if (!valor) return;
     this.router.navigate(['/buscar'], { queryParams: { q: valor } });
+  }
+
+  cerrarSesion(): void {
+    this.accesoUsuarioService.cerrarSesion();
+    this.router.navigate(['/']);
   }
 
   private cargarMenu(): void {

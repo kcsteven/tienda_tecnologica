@@ -10,6 +10,7 @@ import { TiendaLayoutComponent } from '../Componentes/tienda/tienda-layout/tiend
 import { TiendaHomeComponent } from '../Componentes/tienda/tienda-home/tienda-home';
 import { TiendaProductoListadoComponent } from '../Componentes/tienda/tienda-producto-listado/tienda-producto-listado';
 import { RegistroClienteComponent } from '../Componentes/Usuarios/registro-cliente';
+import { InicioSesionComponent } from '../Componentes/Usuarios/inicio-sesion';
 import { TiendaProductoDetalleComponent } from '../Componentes/tienda/tienda-producto-detalle/tienda-producto-detalle';
 import { TiendaCarritoComponent } from '../Componentes/tienda/tienda-carrito/tienda-carrito';
 
@@ -25,7 +26,8 @@ export const routes: Routes = [
       { path: 'subcategoria/:id', component: TiendaProductoListadoComponent, data: { tipo: 'subcategoria' } },
       { path: 'producto/:id', component: TiendaProductoDetalleComponent },
       { path: 'carrito', component: TiendaCarritoComponent },
-      { path: 'registro', component: RegistroClienteComponent }
+      { path: 'registro', component: RegistroClienteComponent },
+      { path: 'iniciar-sesion', component: InicioSesionComponent }
     ]
   },
 
