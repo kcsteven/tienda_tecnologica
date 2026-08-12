@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
 
@@ -24,6 +25,7 @@ namespace Tienda.API.Controllers
         }
 
         [HttpPost("Insertar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TEspecificacionProducto datos)
         {
             var resultado = await _especificacionLN.InsertarAsync(datos);
@@ -32,6 +34,7 @@ namespace Tienda.API.Controllers
         }
 
         [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var resultado = await _especificacionLN.EliminarAsync(new TEspecificacionProducto { EspecificacionId = id });

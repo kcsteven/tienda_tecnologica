@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
@@ -13,12 +13,13 @@ import {
 import { IconSetService } from '@coreui/icons-angular';
 
 import { routes } from './app.routes';
+import { autenticacionInterceptor } from './seguridad/autenticacion.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([autenticacionInterceptor])),
     provideRouter(routes,
       withRouterConfig({
         onSameUrlNavigation: 'reload'

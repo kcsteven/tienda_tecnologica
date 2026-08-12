@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
@@ -60,6 +61,7 @@ namespace Tienda.API.Controllers
         }
 
         [HttpPost("Insertar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TProducto producto)
         {
             if (!ModelState.IsValid)
@@ -74,6 +76,7 @@ namespace Tienda.API.Controllers
         }
 
         [HttpPut("Modificar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Modificar([FromBody] TProducto producto)
         {
             if (!ModelState.IsValid)
@@ -88,6 +91,7 @@ namespace Tienda.API.Controllers
         }
 
         [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var resultado = await _productoLN.EliminarAsync(

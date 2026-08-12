@@ -13,6 +13,7 @@ import { RegistroClienteComponent } from '../Componentes/Usuarios/registro-clien
 import { InicioSesionComponent } from '../Componentes/Usuarios/inicio-sesion';
 import { TiendaProductoDetalleComponent } from '../Componentes/tienda/tienda-producto-detalle/tienda-producto-detalle';
 import { TiendaCarritoComponent } from '../Componentes/tienda/tienda-carrito/tienda-carrito';
+import { empleadoGuard } from './seguridad/empleado.guard';
 
 export const routes: Routes = [
 
@@ -34,6 +35,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: DashboardPrincipal,
+    canActivate: [empleadoGuard],
     children: [
       { path: '', component: PrincipalComponent },
       { path: 'cliente', component: ClienteComponent },
