@@ -1,11 +1,13 @@
-<section class="inicio-sesion py-5">
+<section class="inicio-sesion">
   <div class="container">
     <div class="inicio-sesion__card mx-auto">
-      <h1>Iniciar sesión</h1>
-      <p class="text-muted">Ingresa con tus credenciales para continuar.</p>
+      <div class="inicio-sesion__encabezado">
+        <h1>Iniciar sesión</h1>
+        <p class="text-muted mb-0">Ingresa con tus credenciales para continuar.</p>
+      </div>
 
       @if (mensajeError) {
-      <div class="alert alert-danger" role="alert">{{ mensajeError }}</div>
+      <div class="alert alert-danger inicio-sesion__alerta" role="alert" aria-live="assertive">{{ mensajeError }}</div>
       }
 
       <form [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
@@ -14,11 +16,14 @@
           <input id="email"
                  type="email"
                  class="form-control"
+                 [class.is-invalid]="campoInvalido('email')"
                  formControlName="email"
                  maxlength="100"
-                 autocomplete="email" />
+                 autocomplete="email"
+                 [attr.aria-invalid]="campoInvalido('email')"
+                 [attr.aria-describedby]="campoInvalido('email') ? 'email-error' : null" />
           @if (campoInvalido('email')) {
-          <small class="text-danger">{{ mensajeCampo('email') }}</small>
+          <small id="email-error" class="inicio-sesion__validacion text-danger d-block">{{ mensajeCampo('email') }}</small>
           }
         </div>
         <div class="mb-3">
@@ -26,20 +31,28 @@
           <input id="contrasena"
                  type="password"
                  class="form-control"
+                 [class.is-invalid]="campoInvalido('contrasena')"
                  formControlName="contrasena"
                  maxlength="128"
-                 autocomplete="current-password" />
+                 autocomplete="current-password"
+                 [attr.aria-invalid]="campoInvalido('contrasena')"
+                 [attr.aria-describedby]="campoInvalido('contrasena') ? 'contrasena-error' : null" />
           @if (campoInvalido('contrasena')) {
-          <small class="text-danger">{{ mensajeCampo('contrasena') }}</small>
+          <small id="contrasena-error" class="inicio-sesion__validacion text-danger d-block">{{ mensajeCampo('contrasena') }}</small>
           }
         </div>
 
-        <button type="submit" class="btn btn-primary w-100" [disabled]="enviando">
-          {{ enviando ? 'Ingresando...' : 'Iniciar sesión' }}
+        <button type="submit" class="btn btn-primary w-100 inicio-sesion__boton" [disabled]="enviando" [attr.aria-busy]="enviando">
+          @if (enviando) {
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-label="Ingresando"></span>
+          Ingresando...
+          } @else {
+          Iniciar sesión
+          }
         </button>
       </form>
 
-      <p class="text-center text-muted mt-3 mb-0">
+      <p class="inicio-sesion__registro text-center text-muted mb-0">
         ¿No tienes una cuenta? <a routerLink="/registro">Regístrate</a>
       </p>
     </div>
