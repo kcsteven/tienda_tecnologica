@@ -52,6 +52,34 @@
       border-radius: 4px;
       z-index: 1;
     }
+
+    .btn-favorito {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      z-index: 2;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      color: #1a1a1a;
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+
+      &:hover {
+        color: #c8102e;
+      }
+
+      &.activo {
+        color: #c8102e;
+      }
+    }
     // Espacio cuando el producto no tiene imagen
     .imagen-placeholder {
       aspect-ratio: 1;

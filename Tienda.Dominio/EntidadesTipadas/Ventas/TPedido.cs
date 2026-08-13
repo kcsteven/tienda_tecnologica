@@ -25,5 +25,10 @@ namespace Tienda.Dominio.EntidadesTipadas
         public DateTime? ActualizadoEn { get; set; }
 
         public string? ActualizadoPor { get; set; }
+
+        // Solo se llenan al procesar CrearCompra, para enviar la factura
+        public string? CorreoCliente { get; set; }
+        public string? NombreCliente { get; set; }
+        public List<TItemFactura>? ItemsFactura { get; set; }
     }
 }

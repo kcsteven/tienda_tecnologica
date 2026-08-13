@@ -74,13 +74,38 @@
     }
 
     .icono-accion {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
       font-size: 1.2rem;
       text-decoration: none;
       color: #1a1a1a;
-      // Estilo especial para el ícono del carrito (con texto de total)
+
       &.carrito {
         font-size: 0.9rem;
         font-weight: 600;
+      }
+
+      &.favoritos:hover {
+        color: #c8102e;
+      }
+
+      .badge-carrito {
+        position: absolute;
+        top: -0.4rem;
+        right: -0.6rem;
+        background: #c8102e;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 1;
+        min-width: 1.1rem;
+        height: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 0 0.15rem;
       }
     }
   }

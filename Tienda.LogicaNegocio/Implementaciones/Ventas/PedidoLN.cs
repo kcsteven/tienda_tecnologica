@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
@@ -247,11 +248,18 @@ namespace Tienda.LogicaNegocio.Implementaciones
 
                 decimal totalAcumulado = 0;
 
+                // Voy guardando nombre + imagen de cada producto comprado
+                // para poder armar la factura con esos datos más adelante
+                var itemsFactura = new List<TItemFactura>();
+
                 // 3. Crear los detalles del pedido
                 foreach (var item in datos.Detalles)
                 {
+                    // Incluyo ImagenProductos porque, sin el include, EF no la trae
+                    // y necesito la ruta de la imagen para la factura
                     var prodRes = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
-                        p => p.ProductoId == item.ProductoId);
+                        p => p.ProductoId == item.ProductoId,
+                        new List<string> { "ImagenProductos" });
 
                     if (prodRes.Data == null) continue;
 
@@ -277,6 +285,15 @@ namespace Tienda.LogicaNegocio.Implementaciones
                         resultado.Error = resDetalle.Error;
                         return resultado;
                     }
+
+                    // Nombre + primera imagen del producto, para la factura por correo
+                    itemsFactura.Add(new TItemFactura
+                    {
+                        Nombre = prodRes.Data.Nombre,
+                        Cantidad = item.Cantidad,
+                        PrecioUnitario = precio,
+                        ImagenUrl = prodRes.Data.ImagenProductos.FirstOrDefault()?.RutaImagen
+                    });
                 }
 
                 // 4. Actualizar total con IVA (13%)
@@ -316,6 +333,22 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 }
 
                 resultado.Data = _mapper.Map<TPedido>(resPedido.Data);
+
+                // Traer el correo/nombre del cliente para la factura
+                var resCliente = await _unidadDeTrabajo.TCliente.ObtenerEntidadAsync(
+                    c => c.ClienteId == datos.ClienteId,
+                    new List<string> { "Persona" });
+
+                if (resCliente.Data?.Persona != null)
+                {
+                    resultado.Data.CorreoCliente = resCliente.Data.Persona.Email;
+                    resultado.Data.NombreCliente =
+                        $"{resCliente.Data.Persona.Nombre} {resCliente.Data.Persona.Apellido}";
+                }
+
+                // Adjunto la lista de productos comprados (con imagen) al resultado,
+                // para que el controller se la pase al servicio de correo
+                resultado.Data.ItemsFactura = itemsFactura;
             }
             catch (Exception ex)
             {

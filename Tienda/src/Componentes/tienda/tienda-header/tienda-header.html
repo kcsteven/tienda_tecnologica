@@ -32,7 +32,12 @@
         } @else {
         <a routerLink="/iniciar-sesion" class="link-acceso">ACCESO / REGISTRO</a>
         }
-        <a routerLink="/favoritos" class="icono-accion">♡</a>
+        <a routerLink="/favoritos" class="icono-accion favoritos">
+          ♡
+          @if (favoritosService.cantidadTotal() > 0) {
+          <span class="badge-carrito">{{ favoritosService.cantidadTotal() }}</span>
+          }
+        </a>
         <a routerLink="/carrito" class="icono-accion carrito">
           🛒 ₡{{ carritoService.total() | number:'1.0-0' }}
           <!-- Muestra la cantidad de items solo si hay algo en el carrito -->

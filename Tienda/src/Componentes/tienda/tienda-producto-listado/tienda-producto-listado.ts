@@ -17,6 +17,7 @@ import { IMarca } from '../../../app/model/IMarca';
 import { IDescuento } from '../../../app/model/IDescuento';
 import { IEtiqueta } from '../../../app/model/IEtiqueta';
 import { urlImagen } from '../../../app/Utilitarios/ImagenUtils';
+import { FavoritosService } from '../../../app/services/favoritos';
 
 // Producto con los datos ya calculados para mostrar en la tarjeta
 interface ProductoTarjeta extends IProducto {
@@ -50,6 +51,8 @@ export class TiendaProductoListadoComponent implements OnInit {
   private etiquetaService = inject(EtiquetaService);
   private productoEtiquetaService = inject(ProductoEtiquetaService);
   private imagenProductoService = inject(ImagenProductoService);
+
+  favoritosService = inject(FavoritosService);
 
   // Nombre mostrado como título (categoría, subcategoría o término buscado)
   categoriaNombre = signal('');
@@ -116,6 +119,16 @@ export class TiendaProductoListadoComponent implements OnInit {
     });
   }
 
+  toggleFavorito(event: Event, prod: ProductoTarjeta): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.favoritosService.toggle({
+      productoId: prod.productoId,
+      nombre: prod.nombre,
+      precioUnitario: prod.precioFinal,
+      imagenUrl: prod.imagenUrl
+    });
+  }
   // Cambia cuántos productos se muestran por página y reinicia a la página 1
   cambiarCantidad(cantidad: number): void {
     this.cantidadPorPagina.set(cantidad);

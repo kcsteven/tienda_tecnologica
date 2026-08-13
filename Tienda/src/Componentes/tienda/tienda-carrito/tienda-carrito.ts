@@ -8,6 +8,7 @@ import { IMetodoPago } from '../../../app/model/IMetodoPago';
 import { IPedidoCrear } from '../../../app/model/IPedido';
 import { PedidoService } from '../../../app/services/pedido';
 import { AccesoUsuarioService } from '../../../app/services/Usuarios/acceso-usuario.service';
+import { UltimaCompraService } from '../../../app/services/ultima-compra';
 
 @Component({
   selector: 'app-tienda-carrito',
@@ -25,6 +26,7 @@ export class TiendaCarritoComponent implements OnInit {
   private pedidoService = inject(PedidoService);
   private router = inject(Router);
   private accesoUsuarioService = inject(AccesoUsuarioService);
+  private ultimaCompraService = inject(UltimaCompraService);
 
   clienteId: number | null = null;
   direccionId: number | null = null;
@@ -130,10 +132,19 @@ export class TiendaCarritoComponent implements OnInit {
     // UNA SOLA petición que procesa Pedido + Detalle + Pago en el Backend
     this.pedidoService.crearCompra(pedido).subscribe({
       next: (respuesta: any) => {
+        const compra = respuesta.data;
+
+        this.ultimaCompraService.guardar({
+          pedidoId: compra.pedidoId,
+          items: this.carritoService.items(),
+          subtotal: this.subtotal,
+          iva: this.iva,
+          total: this.totalConIva
+        });
+
         this.carritoService.vaciar();
         this.procesandoPago = false;
 
-        const compra = respuesta.data;
         alert(`¡Compra realizada con éxito! Pedido #${compra.pedidoId}`);
 
         this.router.navigate(['/pedido', compra.pedidoId]);

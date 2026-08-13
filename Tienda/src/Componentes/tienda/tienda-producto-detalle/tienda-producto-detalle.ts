@@ -24,6 +24,7 @@ import { ResenaService } from '../../../app/services/resena';
 import { IResena } from '../../../app/model/IResena';
 import { CarritoService } from '../../../app/services/carrito';
 import { IItemCarrito } from '../../../app/model/IItemCarrito';
+import { FavoritosService } from '../../../app/services/favoritos';
 
 @Component({
   selector: 'app-tienda-producto-detalle',
@@ -48,6 +49,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
   private productoGarantiaService = inject(ProductoGarantiaService);
   private resenaService = inject(ResenaService);
   private carritoService = inject(CarritoService);
+
+  favoritosService = inject(FavoritosService);
 
   // Especificaciones técnicas del producto
   especificaciones = signal<IEspecificacionProducto[]>([]);
@@ -245,6 +248,18 @@ export class TiendaProductoDetalleComponent implements OnInit {
     };
 
     this.carritoService.agregar(item);
+  }
+
+  toggleFavorito(): void {
+    const prod = this.producto();
+    if (!prod) return;
+
+    this.favoritosService.toggle({
+      productoId: prod.productoId,
+      nombre: prod.nombre,
+      precioUnitario: this.precioFinal(),
+      imagenUrl: this.imagenActiva()
+    });
   }
 
   // Convierte la calificación numérica en estrellas para mostrar

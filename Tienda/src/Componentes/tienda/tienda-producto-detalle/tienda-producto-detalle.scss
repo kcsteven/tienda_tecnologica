@@ -194,7 +194,7 @@
       white-space: nowrap;
     }
   }
-  // Selector de cantidad y botón de agregar al carrito
+  // Selector de cantidad, botón de agregar al carrito y botón de favoritos
   .acciones-compra {
     display: flex;
     gap: 1rem;
@@ -231,6 +231,32 @@
 
       &:hover {
         background: #a80d26;
+      }
+    }
+    // Botón circular/cuadrado de favoritos junto al botón de agregar al carrito.
+    // No usa "flex: 1" para no estirarse: se queda con ancho fijo (3rem).
+    .btn-favorito-detalle {
+      width: 3rem;
+      height: 3rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 1.3rem;
+      cursor: pointer;
+
+      &:hover {
+        color: #c8102e;
+        border-color: #c8102e;
+      }
+      // Estado activo: el producto ya está en la lista de deseos (corazón lleno ♥)
+      &.activo {
+        color: #c8102e;
+        border-color: #c8102e;
       }
     }
   }

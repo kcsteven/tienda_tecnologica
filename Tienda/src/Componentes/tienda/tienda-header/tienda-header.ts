@@ -7,6 +7,7 @@ import { ICategoria } from '../../../app/model/ICategoria';
 import { ISubcategoria } from '../../../app/model/ISubcategoria';
 import { CarritoService } from '../../../app/services/carrito';
 import { AccesoUsuarioService } from '../../../app/services/Usuarios/acceso-usuario.service';
+import { FavoritosService } from '../../../app/services/favoritos';
 
 interface CategoriaConSubs extends ICategoria {
   subcategorias: ISubcategoria[];
@@ -23,6 +24,7 @@ export class TiendaHeaderComponent implements OnInit {
   private categoriaService = inject(CategoriaService);
   private subcategoriaService = inject(SubcategoriaService);
   carritoService = inject(CarritoService);
+  favoritosService = inject(FavoritosService);
   private accesoUsuarioService = inject(AccesoUsuarioService);
   private router = inject(Router);
 

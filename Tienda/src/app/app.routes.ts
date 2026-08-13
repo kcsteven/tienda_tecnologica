@@ -14,6 +14,8 @@ import { InicioSesionComponent } from '../Componentes/Usuarios/inicio-sesion';
 import { TiendaProductoDetalleComponent } from '../Componentes/tienda/tienda-producto-detalle/tienda-producto-detalle';
 import { TiendaCarritoComponent } from '../Componentes/tienda/tienda-carrito/tienda-carrito';
 import { empleadoGuard } from './seguridad/empleado.guard';
+import { TiendaPedidoConfirmacionComponent } from '../Componentes/tienda/tienda-pedido-confirmacion/tienda-pedido-confirmacion';
+import { TiendaFavoritosComponent } from '../Componentes/tienda/tienda-favoritos/tienda-favoritos';
 
 export const routes: Routes = [
 
@@ -27,8 +29,11 @@ export const routes: Routes = [
       { path: 'subcategoria/:id', component: TiendaProductoListadoComponent, data: { tipo: 'subcategoria' } },
       { path: 'producto/:id', component: TiendaProductoDetalleComponent },
       { path: 'carrito', component: TiendaCarritoComponent },
+      { path: 'pedido/:id', component: TiendaPedidoConfirmacionComponent },
       { path: 'registro', component: RegistroClienteComponent },
+      { path: 'favoritos', component: TiendaFavoritosComponent },
       { path: 'iniciar-sesion', component: InicioSesionComponent }
+
     ]
   },
 

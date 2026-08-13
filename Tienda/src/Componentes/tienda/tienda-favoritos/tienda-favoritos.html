@@ -1,0 +1,74 @@
+<div class="container py-4 pagina-favoritos">
+
+  <h1 class="titulo-favoritos mb-4">
+    Mi lista de deseos
+  </h1>
+
+  @if (favoritosService.items().length > 0) {
+
+  <div class="lista-favoritos">
+
+    @for (
+    item of favoritosService.items();
+    track item.productoId
+    ) {
+
+    <div class="fila-item">
+
+      <a [routerLink]="['/producto', item.productoId]" class="enlace-imagen">
+        @if (item.imagenUrl) {
+        <img [src]="item.imagenUrl"
+             [alt]="item.nombre"
+             class="imagen-item" />
+        } @else {
+        <!-- Usamos <span>, no <div>: un <div> (bloque) no es válido dentro de <a> -->
+        <span class="imagen-placeholder">
+          Sin imagen
+        </span>
+        }
+      </a>
+
+      <div class="info-item">
+        <a [routerLink]="['/producto', item.productoId]" class="nombre-item">
+          {{ item.nombre }}
+        </a>
+        <span class="precio-item">
+          ₡{{ item.precioUnitario | number:'1.0-0' }}
+        </span>
+      </div>
+
+      <button class="btn-agregar-carrito"
+              (click)="agregarAlCarrito(item)">
+        AÑADIR AL CARRITO
+      </button>
+
+      <button class="btn-quitar"
+              (click)="quitar(item.productoId)"
+              title="Quitar de favoritos">
+        ✕
+      </button>
+
+    </div>
+
+    }
+
+  </div>
+
+  } @else {
+
+  <div class="favoritos-vacio">
+
+    <p>
+      Todavía no has agregado productos a tu lista de deseos.
+    </p>
+
+    <!-- Se corrigió la etiqueta de apertura <a> que faltaba aquí -->
+    <a routerLink="/" class="btn-seguir-comprando">
+      Seguir comprando
+    </a>
+
+  </div>
+
+  }
+
+</div>

@@ -1,0 +1,46 @@
+<div class="confirmacion" *ngIf="resumen; else sinResumen">
+  <h2 class="titulo-exito">¡Compra realizada con éxito!</h2>
+  <p class="subtexto">Te enviamos la factura a tu correo.</p>
+
+  <div class="tabla-resumen">
+    <div class="fila-encabezado">
+      <span>Producto</span>
+      <span class="col-derecha">Subtotal</span>
+    </div>
+
+    <div class="fila-producto" *ngFor="let item of resumen.items">
+      <div class="col-producto">
+        <img *ngIf="item.imagenUrl" [src]="item.imagenUrl" class="imagen-producto" />
+        <div class="datos-producto">
+          <span class="nombre-producto">{{ item.nombre }}</span>
+          <span class="cantidad-producto">Cantidad: {{ item.cantidad }}</span>
+        </div>
+      </div>
+      <span class="col-derecha precio-producto">
+        ₡{{ item.precioUnitario * item.cantidad | number:'1.2-2' }}
+      </span>
+    </div>
+
+    <div class="fila-total fila-secundaria">
+      <span>Subtotal</span>
+      <span class="col-derecha">₡{{ resumen.subtotal | number:'1.2-2' }}</span>
+    </div>
+
+    <div class="fila-total fila-secundaria">
+      <span>IVA (13%)</span>
+      <span class="col-derecha">₡{{ resumen.iva | number:'1.2-2' }}</span>
+    </div>
+
+    <div class="fila-total fila-principal">
+      <span>Total</span>
+      <span class="col-derecha">₡{{ resumen.total | number:'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <a routerLink="/" class="volver">Volver a la tienda</a>
+</div>
+
+<ng-template #sinResumen>
+  <p>Compra confirmada. Revisa tu correo para ver la factura.</p>
+  <a routerLink="/" class="volver">Volver a la tienda</a>
+</ng-template>

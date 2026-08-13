@@ -47,6 +47,13 @@
     <a [routerLink]="['/producto', prod.productoId]" class="tarjeta-producto">
 
       <div class="imagen-wrapper">
+        <button type="button"
+                class="btn-favorito"
+                [class.activo]="favoritosService.esFavorito(prod.productoId)"
+                (click)="toggleFavorito($event, prod)"
+                title="Agregar a favoritos">
+          {{ favoritosService.esFavorito(prod.productoId) ? '♥' : '♡' }}
+        </button>
         <!-- Cinta de descuento si aplica -->
         @if (prod.porcentajeDescuento > 0) {
         <span class="cinta-descuento">-{{ prod.porcentajeDescuento }}%</span>

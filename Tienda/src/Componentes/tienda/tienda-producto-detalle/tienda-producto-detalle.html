@@ -106,7 +106,7 @@
         </div>
       </div>
 
-      <!-- Selector de cantidad y botón de agregar al carrito -->
+      <!-- Selector de cantidad, botón de agregar al carrito y botón de favoritos -->
       <div class="acciones-compra">
         <div class="selector-cantidad">
           <button (click)="restarCantidad()">-</button>
@@ -114,6 +114,15 @@
           <button (click)="sumarCantidad()">+</button>
         </div>
         <button class="btn-agregar-carrito" (click)="agregarAlCarrito()">AÑADIR AL CARRITO</button>
+
+        <!-- Botón para agregar/quitar este producto de la lista de deseos.
+             Cambia de ícono (♡ / ♥) y de clase "activo" según el estado actual -->
+        <button class="btn-favorito-detalle"
+                [class.activo]="favoritosService.esFavorito(prod.productoId)"
+                (click)="toggleFavorito()"
+                title="Agregar a favoritos">
+          {{ favoritosService.esFavorito(prod.productoId) ? '♥' : '♡' }}
+        </button>
       </div>
     </div>
   </div>

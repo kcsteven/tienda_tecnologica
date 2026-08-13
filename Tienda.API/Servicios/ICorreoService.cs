@@ -1,4 +1,7 @@
-﻿namespace Tienda.API.Servicios.Correo;
+﻿using System.Collections.Generic;
+using Tienda.Dominio.EntidadesTipadas;
+
+namespace Tienda.API.Servicios.Correo;
 
 public interface ICorreoService
 {
@@ -8,5 +11,6 @@ public interface ICorreoService
         int pedidoId,
         decimal subtotal,
         decimal iva,
-        decimal total);
+        decimal total,
+        List<TItemFactura> items);
 }

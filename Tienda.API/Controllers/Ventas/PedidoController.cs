@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Tienda.API.Servicios.Correo;
 using Tienda.Dominio.EntidadesTipadas;
@@ -105,7 +106,6 @@ namespace Tienda.API.Controllers
         }
 
         // POST: api/Pedido/CrearCompra
-        // POST: api/Pedido/CrearCompra
         [HttpPost("CrearCompra")]
         public async Task<IActionResult> CrearCompra([FromBody] TPedidoCrear datos)
         {
@@ -123,15 +123,16 @@ namespace Tienda.API.Controllers
             {
                 var pedidoGuardado = resultado.Data;
 
-                // Intentamos obtener el correo y el nombre desde las propiedades de 'datos'
-                // Usa reflexiones para leer Correo/Nombre dinámicamente si no están explícitos
-                string correoCliente = datos.GetType().GetProperty("Correo")?.GetValue(datos)?.ToString()
-                                    ?? datos.GetType().GetProperty("CorreoCliente")?.GetValue(datos)?.ToString()
-                                    ?? "";
+                // Antes intentaba leer Correo/Nombre por reflexión desde 'datos' (TPedidoCrear),
+                // pero ese DTO nunca trae esos campos (solo clienteId, direccionId, metodoPagoId, detalles),
+                // por eso el correo nunca se enviaba.
+                // Ahora CrearCompraAsync ya busca el cliente en la BD y devuelve CorreoCliente/NombreCliente
+                // dentro del propio 'resultado.Data' (TPedido), así que los tomo directo de ahí.
+                string correoCliente = pedidoGuardado?.CorreoCliente ?? "";
+                string nombreCliente = pedidoGuardado?.NombreCliente ?? "Cliente";
 
-                string nombreCliente = datos.GetType().GetProperty("Nombre")?.GetValue(datos)?.ToString()
-                                    ?? datos.GetType().GetProperty("NombreCliente")?.GetValue(datos)?.ToString()
-                                    ?? "Cliente";
+                // (Ya quité el Console.WriteLine "[DEBUG]" que tenía aquí, era solo
+                // para diagnosticar por qué no llegaba el correo. Ya se confirmó que funciona.)
 
                 if (pedidoGuardado != null && !string.IsNullOrEmpty(correoCliente))
                 {
@@ -139,13 +140,21 @@ namespace Tienda.API.Controllers
                     decimal subtotal = Math.Round(total / 1.13m, 2);
                     decimal iva = Math.Round(total - subtotal, 2);
 
+                    // Lista de productos comprados (nombre, cantidad, precio, imagen) que
+                    // CrearCompraAsync ya armó y dejó en resultado.Data.ItemsFactura.
+                    // Ya NO convierto ImagenUrl a URL absoluta aquí: ahora CorreoService
+                    // incrusta la imagen directo desde el archivo físico en wwwroot (cid:),
+                    // así que necesita la ruta relativa tal cual viene, no una URL.
+                    var items = pedidoGuardado.ItemsFactura ?? new List<TItemFactura>();
+
                     await _correoService.EnviarFacturaAsync(
                         correoCliente,
                         nombreCliente,
                         pedidoGuardado.PedidoId,
                         subtotal,
                         iva,
-                        total
+                        total,
+                        items
                     );
                 }
             }
