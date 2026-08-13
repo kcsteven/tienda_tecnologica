@@ -3,12 +3,14 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { IBodega } from '../../app/model/IBodega';
+import { ICategoria } from '../../app/model/ICategoria';
 import { IInventario } from '../../app/model/IInventario';
 import { IMarca } from '../../app/model/IMarca';
 import { IProducto } from '../../app/model/IProducto';
 import { IProveedor } from '../../app/model/IProveedor';
 import { ISubcategoria } from '../../app/model/ISubcategoria';
 import { BodegaService } from '../../app/services/bodega';
+import { CategoriaService } from '../../app/services/categoria';
 import { InventarioService } from '../../app/services/inventario';
 import { MarcaService } from '../../app/services/marca';
 import { ProductoService } from '../../app/services/producto';
@@ -31,6 +33,7 @@ export class ProductoComponent implements OnInit {
   private readonly marcaService = inject(MarcaService);
   private readonly proveedorService = inject(ProveedorService);
   private readonly bodegaService = inject(BodegaService);
+  private readonly categoriaService = inject(CategoriaService);
 
   productos: IProducto[] = [];
   inventarios: IInventario[] = [];
@@ -38,6 +41,7 @@ export class ProductoComponent implements OnInit {
   marcas: IMarca[] = [];
   proveedores: IProveedor[] = [];
   bodegas: IBodega[] = [];
+  categorias: ICategoria[] = [];
   inventariosProductoSeleccionado: IInventario[] = [];
   ajustesInventario: Record<number, number> = {};
   productoSeleccionado: IProducto | null = null;
@@ -60,6 +64,13 @@ export class ProductoComponent implements OnInit {
     cantidadInicial: [0, [Validators.required, Validators.min(0)]],
   });
 
+  filtros = this.formBuilder.group({
+    nombre: [''],
+    marcaId: [0],
+    categoriaId: [0],
+    subcategoriaId: [0],
+  });
+
   ngOnInit(): void {
     this.cargarDatosIniciales();
   }
@@ -76,6 +87,7 @@ export class ProductoComponent implements OnInit {
       marcas: this.marcaService.listar(),
       proveedores: this.proveedorService.listar(),
       bodegas: this.bodegaService.listar(),
+      categorias: this.categoriaService.listar(),
     }).subscribe({
       next: (respuestas) => {
         if (Object.values(respuestas).some((respuesta: any) => !!respuesta?.error)) {
@@ -91,6 +103,7 @@ export class ProductoComponent implements OnInit {
         this.marcas = respuestas.marcas.data ?? [];
         this.proveedores = respuestas.proveedores.data ?? [];
         this.bodegas = respuestas.bodegas.data ?? [];
+        this.categorias = respuestas.categorias.data ?? [];
         this.actualizarInventariosSeleccionados();
         this.cargando = false;
 
@@ -292,6 +305,54 @@ export class ProductoComponent implements OnInit {
     return this.totalInventario(productoId) <= 5 ? 'text-danger fw-semibold' : 'text-success';
   }
 
+  get productosFiltrados(): IProducto[] {
+    const filtros = this.filtros.getRawValue();
+    const nombre = this.normalizarTexto(filtros.nombre ?? '');
+    const marcaId = Number(filtros.marcaId);
+    const categoriaId = Number(filtros.categoriaId);
+    const subcategoriaId = Number(filtros.subcategoriaId);
+
+    return this.productos.filter((producto) => {
+      const subcategoria = this.subcategorias.find(
+        (item) => item.subcategoriaId === producto.subcategoriaId,
+      );
+
+      return (!nombre || this.normalizarTexto(producto.nombre).includes(nombre))
+        && (!marcaId || producto.marcaId === marcaId)
+        && (!categoriaId || subcategoria?.categoriaId === categoriaId)
+        && (!subcategoriaId || producto.subcategoriaId === subcategoriaId);
+    });
+  }
+
+  get subcategoriasFiltro(): ISubcategoria[] {
+    const categoriaId = Number(this.filtros.controls.categoriaId.value);
+    return categoriaId
+      ? this.subcategorias.filter((subcategoria) => subcategoria.categoriaId === categoriaId)
+      : this.subcategorias;
+  }
+
+  alCambiarCategoria(): void {
+    const categoriaId = Number(this.filtros.controls.categoriaId.value);
+    const subcategoriaId = Number(this.filtros.controls.subcategoriaId.value);
+    const subcategoriaEsValida = this.subcategorias.some(
+      (subcategoria) => subcategoria.subcategoriaId === subcategoriaId
+        && (!categoriaId || subcategoria.categoriaId === categoriaId),
+    );
+
+    if (subcategoriaId && !subcategoriaEsValida) {
+      this.filtros.patchValue({ subcategoriaId: 0 });
+    }
+  }
+
+  restablecerFiltros(): void {
+    this.filtros.reset({
+      nombre: '',
+      marcaId: 0,
+      categoriaId: 0,
+      subcategoriaId: 0,
+    });
+  }
+
   nombreBodega(bodegaId: number): string {
     return this.bodegas.find((bodega) => bodega.bodegaId === bodegaId)?.nombre ?? 'Bodega no disponible';
   }
@@ -354,5 +415,9 @@ export class ProductoComponent implements OnInit {
       bodegaId: 0,
       cantidadInicial: 0,
     });
+  }
+
+  private normalizarTexto(valor: string): string {
+    return valor.trim().toLocaleLowerCase();
   }
 }

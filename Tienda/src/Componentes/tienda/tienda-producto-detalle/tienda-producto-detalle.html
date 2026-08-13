@@ -42,15 +42,22 @@
 
       <div class="disponibilidad-tienda">
         <button class="btn-disponibilidad" (click)="toggleDisponibilidad()">
-          🏬 Ver disponibilidad en tiendas
+          🏬 Ver disponibilidad por bodega
         </button>
 
         @if (mostrarDisponibilidad()) {
         <div class="lista-disponibilidad">
-          @if (disponibilidad().length > 0) {
-          @for (d of disponibilidad(); track d.bodegaNombre) {
+          @if (errorDisponibilidad()) {
+          <p class="text-muted mb-0">No fue posible consultar la disponibilidad.</p>
+          } @else if (disponibilidad().length > 0) {
+          @for (d of disponibilidad(); track d.nombreBodega) {
           <div class="fila-disponibilidad">
-            <span>{{ d.bodegaNombre }}</span>
+            <span>
+              {{ d.nombreBodega }}
+              @if (d.ubicacion) {
+              <span class="text-muted"> · {{ d.ubicacion }}</span>
+              }
+            </span>
             <span class="cantidad-stock">{{ d.cantidad }} unidades</span>
           </div>
           }

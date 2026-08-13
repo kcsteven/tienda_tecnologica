@@ -34,6 +34,16 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
+        [HttpGet("DisponibilidadPublica/{productoId}")]
+        [AllowAnonymous]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> DisponibilidadPublica(int productoId)
+        {
+            var resultado = await _inventarioLN.ListarDisponibilidadPublicaAsync(productoId);
+            if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
+            return Ok(resultado);
+        }
+
         [HttpGet("Obtener/{id}")]
         public async Task<IActionResult> Obtener(int id)
         {

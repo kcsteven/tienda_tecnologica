@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
@@ -156,6 +157,60 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 _logger.LogError(ex, "Error al listar inventario del producto {ProductoId}", productoId);
                 resultado.Error = ex.Message;
             }
+            return resultado;
+        }
+
+        public async Task<Respuesta<IEnumerable<TDisponibilidadBodega>>> ListarDisponibilidadPublicaAsync(int productoId)
+        {
+            var resultado = new Respuesta<IEnumerable<TDisponibilidadBodega>>();
+            try
+            {
+                if (productoId <= 0)
+                {
+                    resultado.Data = Array.Empty<TDisponibilidadBodega>();
+                    return resultado;
+                }
+
+                var producto = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
+                    x => x.ProductoId == productoId && x.Activo);
+                if (!string.IsNullOrEmpty(producto.Error))
+                {
+                    resultado.Error = "No fue posible consultar la disponibilidad.";
+                    return resultado;
+                }
+
+                if (producto.Data == null)
+                {
+                    resultado.Data = Array.Empty<TDisponibilidadBodega>();
+                    return resultado;
+                }
+
+                // La inclusión evita consultar una bodega adicional por cada inventario.
+                var inventarios = await _unidadDeTrabajo.TInventario.BuscarAsync(
+                    x => x.ProductoId == productoId && x.Cantidad > 0,
+                    new List<string> { nameof(Inventario.Bodega) });
+                if (!string.IsNullOrEmpty(inventarios.Error))
+                {
+                    resultado.Error = "No fue posible consultar la disponibilidad.";
+                    return resultado;
+                }
+
+                resultado.Data = (inventarios.Data ?? Enumerable.Empty<Inventario>())
+                    .Where(inventario => inventario.Bodega != null && inventario.Bodega.Activo)
+                    .Select(inventario => new TDisponibilidadBodega
+                    {
+                        NombreBodega = inventario.Bodega.Nombre,
+                        Ubicacion = inventario.Bodega.Ubicacion,
+                        Cantidad = inventario.Cantidad
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al consultar disponibilidad pública para ProductoId {ProductoId}", productoId);
+                resultado.Error = "No fue posible consultar la disponibilidad.";
+            }
+
             return resultado;
         }
 
