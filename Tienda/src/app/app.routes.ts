@@ -9,8 +9,11 @@ import { CategoriaComponent } from '../Componentes/categoria/categoria';
 import { TiendaLayoutComponent } from '../Componentes/tienda/tienda-layout/tienda-layout';
 import { TiendaHomeComponent } from '../Componentes/tienda/tienda-home/tienda-home';
 import { TiendaProductoListadoComponent } from '../Componentes/tienda/tienda-producto-listado/tienda-producto-listado';
+import { RegistroClienteComponent } from '../Componentes/Usuarios/registro-cliente';
+import { InicioSesionComponent } from '../Componentes/Usuarios/inicio-sesion';
 import { TiendaProductoDetalleComponent } from '../Componentes/tienda/tienda-producto-detalle/tienda-producto-detalle';
 import { TiendaCarritoComponent } from '../Componentes/tienda/tienda-carrito/tienda-carrito';
+import { empleadoGuard } from './seguridad/empleado.guard';
 
 export const routes: Routes = [
 
@@ -23,13 +26,16 @@ export const routes: Routes = [
       { path: 'buscar', component: TiendaProductoListadoComponent, data: { tipo: 'busqueda' } },
       { path: 'subcategoria/:id', component: TiendaProductoListadoComponent, data: { tipo: 'subcategoria' } },
       { path: 'producto/:id', component: TiendaProductoDetalleComponent },
-      { path: 'carrito', component: TiendaCarritoComponent }
+      { path: 'carrito', component: TiendaCarritoComponent },
+      { path: 'registro', component: RegistroClienteComponent },
+      { path: 'iniciar-sesion', component: InicioSesionComponent }
     ]
   },
 
   {
     path: 'admin',
     component: DashboardPrincipal,
+    canActivate: [empleadoGuard],
     children: [
       { path: '', component: PrincipalComponent },
       { path: 'cliente', component: ClienteComponent },

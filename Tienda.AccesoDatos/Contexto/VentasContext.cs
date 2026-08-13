@@ -16,7 +16,7 @@ public partial class VentasContext : DbContext
     {
     }
 
-    // ===== Catálogo (tu módulo) =====
+    // ===== Catálogo =====
     public virtual DbSet<Categoria> Categorias { get; set; }
     public virtual DbSet<Subcategoria> Subcategorias { get; set; }
     public virtual DbSet<Producto> Productos { get; set; }
@@ -33,7 +33,7 @@ public partial class VentasContext : DbContext
     public virtual DbSet<ProductoEtiqueta> ProductoEtiquetas { get; set; }
     public virtual DbSet<EspecificacionProducto> EspecificacionProductos { get; set; }
 
-    // ===== Módulo de Personas/Usuarios/Clientes/Pedidos (le toca a tu compañero) =====
+    // ===== Módulo de Personas/Usuarios/Clientes/Pedidos =====
     // Temporalmente IGNORADO en OnModelCreating hasta que su módulo esté completo y correcto.
     // NO borrar estas líneas de DbSet: cuando su parte esté lista, solo hay que quitar
     // los modelBuilder.Ignore<...>() de abajo.
@@ -50,6 +50,11 @@ public partial class VentasContext : DbContext
     public virtual DbSet<Resena> Resenas { get; set; }
     public virtual DbSet<ListaDeseos> ListaDeseos { get; set; }
     public virtual DbSet<Devolucion> Devoluciones { get; set; }
+    public virtual DbSet<Persona> Personas { get; set; }
+    public virtual DbSet<TipoDocumento> TipoDocumentos { get; set; }
+    public virtual DbSet<Rol> Roles { get; set; }
+    public virtual DbSet<Usuario> Usuarios { get; set; }
+    public virtual DbSet<DireccionCliente> DireccionClientes { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -66,7 +71,6 @@ public partial class VentasContext : DbContext
         // tiene una colección mal tipada que rompe el modelo completo de EF).
         // Cuando esté listo y corregido, borrar estas líneas de Ignore<>().
         // =====================================================================
-        modelBuilder.Ignore<Cliente>();
         modelBuilder.Ignore<DetallesPedido>();
         modelBuilder.Ignore<Pedido>();
         modelBuilder.Ignore<SegPantalla>();
@@ -79,6 +83,92 @@ public partial class VentasContext : DbContext
         modelBuilder.Ignore<Resena>();
         modelBuilder.Ignore<ListaDeseos>();
         modelBuilder.Ignore<Devolucion>();
+
+        modelBuilder.Entity<TipoDocumento>(entity =>
+        {
+            entity.HasKey(e => e.TipoDocumentoId);
+            entity.ToTable("TipoDocumento");
+            entity.HasIndex(e => e.Nombre, "UX_TipoDocumento_Nombre").IsUnique();
+            entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Persona>(entity =>
+        {
+            entity.HasKey(e => e.PersonaId);
+            entity.ToTable("Persona");
+            entity.HasIndex(e => new { e.TipoDocumentoId, e.NumeroDocumento }, "UQ_Persona_Documento").IsUnique();
+            entity.HasIndex(e => e.Email, "UX_Persona_Email").IsUnique().HasFilter("[Email] IS NOT NULL");
+
+            entity.Property(e => e.NumeroDocumento).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.Nombre).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Apellido).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.FechaNacimiento).HasColumnType("date");
+            entity.Property(e => e.Telefono).HasMaxLength(20).IsUnicode(false);
+            entity.Property(e => e.Email).HasMaxLength(100).IsUnicode(false);
+
+            entity.HasOne(d => d.TipoDocumento).WithMany(p => p.Personas)
+                .HasForeignKey(d => d.TipoDocumentoId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<Rol>(entity =>
+        {
+            entity.HasKey(e => e.RolId);
+            entity.ToTable("Rol");
+            entity.HasIndex(e => e.Nombre, "UX_Rol_Nombre").IsUnique();
+            entity.Property(e => e.Nombre).HasMaxLength(50).IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.HasKey(e => e.UsuarioId);
+            entity.ToTable("Usuario");
+            entity.HasIndex(e => e.NombreUsuario, "UX_Usuario_NombreUsuario").IsUnique();
+            entity.HasIndex(e => e.PersonaId, "UX_Usuario_PersonaId").IsUnique();
+            entity.Property(e => e.NombreUsuario).HasMaxLength(50).IsUnicode(false);
+            entity.Property(e => e.Contrasena).HasMaxLength(255).IsUnicode(false);
+            entity.Property(e => e.FechaRegistro).HasColumnType("date");
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+
+            entity.HasOne(d => d.Persona).WithMany(p => p.Usuarios)
+                .HasForeignKey(d => d.PersonaId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Rol).WithMany(p => p.Usuarios)
+                .HasForeignKey(d => d.RolId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<Cliente>(entity =>
+        {
+            entity.HasKey(e => e.ClienteId);
+            entity.ToTable("Cliente");
+            entity.HasIndex(e => e.Cedula, "UQ_Cliente_Cedula").IsUnique();
+            entity.HasIndex(e => e.PersonaId, "UX_Cliente_PersonaId").IsUnique();
+            entity.Property(e => e.Cedula).HasMaxLength(30).IsUnicode(false);
+            entity.Property(e => e.FechaRegistro).HasColumnType("date");
+
+            entity.HasOne(d => d.Persona).WithMany(p => p.Clientes)
+                .HasForeignKey(d => d.PersonaId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<DireccionCliente>(entity =>
+        {
+            entity.HasKey(e => e.DireccionId);
+            entity.ToTable("DireccionCliente");
+            entity.HasIndex(e => e.ClienteId, "UX_DireccionCliente_Principal")
+                .IsUnique()
+                .HasFilter("[EsPrincipal] = 1");
+            entity.Property(e => e.Provincia).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Canton).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.Distrito).HasMaxLength(100).IsUnicode(false);
+            entity.Property(e => e.SenaExacta).HasMaxLength(255).IsUnicode(false);
+            entity.Property(e => e.EsPrincipal).HasDefaultValue(false);
+
+            entity.HasOne(d => d.Cliente).WithMany(p => p.DireccionClientes)
+                .HasForeignKey(d => d.ClienteId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
 
         modelBuilder.Entity<Categoria>(entity =>
         {
@@ -242,6 +332,7 @@ public partial class VentasContext : DbContext
         {
             entity.HasKey(e => e.InventarioId);
             entity.ToTable("Inventario");
+            entity.HasIndex(e => new { e.ProductoId, e.BodegaId }, "UX_Inventario_Producto_Bodega").IsUnique();
             entity.HasOne(d => d.Producto).WithMany(p => p.Inventarios)
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

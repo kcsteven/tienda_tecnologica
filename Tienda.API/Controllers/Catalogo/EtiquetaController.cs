@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
@@ -63,6 +64,7 @@ namespace Tienda.API.Controllers
         // POST: api/Etiqueta/Insertar
         // Crea una nueva etiqueta a partir de los datos enviados en el cuerpo de la petición
         [HttpPost("Insertar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TEtiqueta etiqueta)
         {
             // Valida el modelo recibido según las anotaciones de datos (DataAnnotations) definidas en TEtiqueta
@@ -76,6 +78,7 @@ namespace Tienda.API.Controllers
         // PUT: api/Etiqueta/Modificar
         // Actualiza una etiqueta existente con los datos enviados en el cuerpo de la petición
         [HttpPut("Modificar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Modificar([FromBody] TEtiqueta etiqueta)
         {
             // Valida el modelo antes de procesar la modificación
@@ -89,6 +92,7 @@ namespace Tienda.API.Controllers
         // DELETE: api/Etiqueta/Eliminar/{id}
         // Elimina una etiqueta existente según su Id
         [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Eliminar(int id)
         {
             // Se construye un objeto TEtiqueta solo con el Id para indicar cuál eliminar

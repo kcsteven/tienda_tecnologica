@@ -18,6 +18,11 @@ namespace Tienda.Dominio.InterfacesAD
         IRepositorioAD<SegUsuario> TSegUsuario { get; }
         IRepositorioAD<TipoCedula> TTipoCedula { get; }
         IRepositorioAD<Cliente> TCliente { get; }
+        IClienteAdministracionAD ClienteAdministracion { get; }
+        IRepositorioAD<Persona> TPersona { get; }
+        IRepositorioAD<TipoDocumento> TTipoDocumento { get; }
+        IRepositorioAD<Rol> TRol { get; }
+        IRepositorioAD<Usuario> TUsuario { get; }
         IRepositorioAD<Marca> TMarca { get; }
         IRepositorioAD<Proveedor> TProveedor { get; }
         IRepositorioAD<Bodega> TBodega { get; }

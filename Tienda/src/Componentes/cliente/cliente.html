@@ -1,1 +1,94 @@
-<p>cliente works!</p>
+<!-- Pantalla para administrar el acceso de los clientes -->
+<section class="administracion-clientes">
+
+  <div class="clientes-encabezado">
+    <h1>Administración de clientes</h1>
+    <p>Consulte los clientes registrados y controle su acceso al sistema.</p>
+  </div>
+
+  <!-- Mensajes de las operaciones -->
+  @if (mensajeExito) {
+  <div class="alert alert-success" role="alert">
+    {{ mensajeExito }}
+  </div>
+  }
+
+  @if (mensajeError) {
+  <div class="alert alert-danger" role="alert">
+    {{ mensajeError }}
+  </div>
+  }
+
+  <div class="clientes-contenedor">
+
+    @if (cargando) {
+    <div class="clientes-cargando">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando clientes...</span>
+      </div>
+
+      <p>Cargando clientes...</p>
+    </div>
+    } @else if (clientes.length === 0) {
+    <div class="clientes-vacio">
+      No hay clientes registrados.
+    </div>
+    } @else {
+
+    <!-- Listado de clientes activos e inactivos -->
+    <table class="table table-hover align-middle tabla-clientes">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Documento</th>
+          <th>Correo</th>
+          <th>Usuario</th>
+          <th>Fecha de registro</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (cliente of clientes; track cliente.clienteId) {
+        <tr>
+          <td>{{ cliente.nombreCompleto }}</td>
+          <td>{{ cliente.numeroDocumento }}</td>
+          <td>{{ cliente.email || 'Sin correo' }}</td>
+          <td>{{ cliente.nombreUsuario }}</td>
+          <td>{{ cliente.fechaRegistro | date:'dd/MM/yyyy' }}</td>
+
+          <td>
+            @if (cliente.activo) {
+            <span class="badge text-bg-success">Activo</span>
+            } @else {
+            <span class="badge text-bg-secondary">Inactivo</span>
+            }
+          </td>
+
+          <td>
+            <button type="button"
+                    class="btn btn-sm"
+                    [class.btn-outline-danger]="cliente.activo"
+                    [class.btn-outline-success]="!cliente.activo"
+                    [disabled]="clienteProcesandoId !== null"
+                    (click)="cambiarEstado(cliente)">
+
+              @if (estaProcesando(cliente.clienteId)) {
+              <span class="spinner-border spinner-border-sm me-1"
+                    aria-hidden="true">
+              </span>
+              Procesando...
+              } @else {
+              {{ cliente.activo ? 'Desactivar' : 'Activar' }}
+              }
+            </button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    }
+
+  </div>
+</section>

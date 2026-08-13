@@ -9,7 +9,23 @@ const baseUrl = environment.baseUrl;
 export class ImagenProductoService {
   private http = inject(HttpClient);
 
+
+  //Obtiene las imagenes guardadas para el producto
   listarPorProducto(productoId: number): Observable<any> {
     return this.http.get<any>(`${baseUrl}/ImagenProducto/ListarPorProducto/${productoId}`);
   }
+
+
+//Envia la imagen para que la API la guarde
+subir(productoId: number, archivo: File): Observable<any> {
+ const datos = new FormData();
+
+ datos.append('archivo', archivo);
+
+ return this.http.post<any>(
+
+   baseUrl + '/ImagenProducto/Subir/' + productoId,
+   datos
+ );
+}
 }

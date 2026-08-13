@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
 
@@ -37,6 +38,7 @@ namespace Tienda.API.Controllers
         // Crea una nueva garantía de producto a partir de los datos enviados en el cuerpo de la petición
         // Nota: a diferencia de otros controladores, aquí no se valida ModelState.IsValid antes de insertar
         [HttpPost("Insertar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TProductoGarantia datos)
         {
             // Envía la entidad a la capa de negocio para su inserción
@@ -48,6 +50,7 @@ namespace Tienda.API.Controllers
         // DELETE: api/ProductoGarantia/Eliminar/{id}
         // Elimina una garantía de producto existente según su Id
         [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Eliminar(int id)
         {
             // Se construye un objeto TProductoGarantia solo con el Id para indicar cuál eliminar

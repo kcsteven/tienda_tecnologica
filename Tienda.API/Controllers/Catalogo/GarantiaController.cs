@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
@@ -64,6 +65,7 @@ namespace Tienda.API.Controllers
         // POST: api/Garantia/Insertar
         // Crea una nueva garantía a partir de los datos enviados en el cuerpo de la petición
         [HttpPost("Insertar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TGarantia garantia)
         {
             // Valida el modelo recibido según las anotaciones de datos (DataAnnotations) definidas en TGarantia
@@ -77,6 +79,7 @@ namespace Tienda.API.Controllers
         // PUT: api/Garantia/Modificar
         // Actualiza una garantía existente con los datos enviados en el cuerpo de la petición
         [HttpPut("Modificar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Modificar([FromBody] TGarantia garantia)
         {
             // Valida el modelo antes de procesar la modificación
@@ -90,6 +93,7 @@ namespace Tienda.API.Controllers
         // DELETE: api/Garantia/Eliminar/{id}
         // Elimina una garantía existente según su Id
         [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Eliminar(int id)
         {
             // Se construye un objeto TGarantia solo con el Id para indicar cuál eliminar

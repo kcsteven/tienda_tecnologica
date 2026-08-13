@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using System.Security.Claims;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
+using Tienda.Utilidades;
 
 namespace Tienda.API.Controllers
 {
@@ -57,8 +61,18 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
-        // GET: api/Producto/Buscar?nombreProducto=...
-        // Busca productos cuyo nombre coincida (parcial o total) con el parámetro recibido
+        [HttpGet("ListarAdministracion")]
+        [Authorize(Roles = "Empleado")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ListarAdministracion()
+        {
+            var resultado = await _productoLN.ListarAdministracionAsync();
+            if (!string.IsNullOrEmpty(resultado.Error))
+                return BadRequest(resultado);
+
+            return Ok(resultado);
+        }
+
         [HttpGet("Buscar")]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Buscar(string nombreProducto)
@@ -79,14 +93,16 @@ namespace Tienda.API.Controllers
         // POST: api/Producto/Insertar
         // Crea un nuevo producto a partir de los datos enviados en el cuerpo de la petición
         [HttpPost("Insertar")]
-        public async Task<IActionResult> Insertar([FromBody] TProducto producto)
+        [Authorize(Roles = "Empleado")]
+        public async Task<IActionResult> Insertar([FromBody] TCrearProductoConInventario producto)
         {
-            // Valida el modelo recibido según las anotaciones de datos (DataAnnotations) definidas en TProducto
+            if (!TryObtenerUsuarioId(out var usuarioId))
+                return Unauthorized();
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Envía la entidad a la capa de negocio para su inserción
-            var resultado = await _productoLN.InsertarAsync(producto);
+            var resultado = await _productoLN.InsertarAsync(producto, usuarioId);
 
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
@@ -97,14 +113,16 @@ namespace Tienda.API.Controllers
         // PUT: api/Producto/Modificar
         // Actualiza un producto existente con los datos enviados en el cuerpo de la petición
         [HttpPut("Modificar")]
-        public async Task<IActionResult> Modificar([FromBody] TProducto producto)
+        [Authorize(Roles = "Empleado")]
+        public async Task<IActionResult> Modificar([FromBody] TActualizarProducto producto)
         {
-            // Valida el modelo antes de procesar la modificación
+            if (!TryObtenerUsuarioId(out var usuarioId))
+                return Unauthorized();
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Envía la entidad a la capa de negocio para actualizarla
-            var resultado = await _productoLN.ModificarAsync(producto);
+            var resultado = await _productoLN.ModificarAsync(producto, usuarioId);
 
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
@@ -112,22 +130,44 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
-        // DELETE: api/Producto/Eliminar/{id}
-        // Elimina un producto existente según su Id
-        [HttpDelete("Eliminar/{id}")]
-        public async Task<IActionResult> Eliminar(int id)
+        [HttpPut("CambiarEstado")]
+        [Authorize(Roles = "Empleado")]
+        public async Task<IActionResult> CambiarEstado([FromBody] TCambiarEstadoProducto producto)
         {
-            // Se construye un objeto TProducto solo con el Id para indicar cuál eliminar
-            var resultado = await _productoLN.EliminarAsync(
-                new TProducto
-                {
-                    ProductoId = id
-                });
+            if (!TryObtenerUsuarioId(out var usuarioId))
+                return Unauthorized();
 
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var resultado = await _productoLN.CambiarEstadoAsync(producto, usuarioId);
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
 
             return Ok(resultado);
+        }
+
+        [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            return Conflict(new Respuesta<bool>
+            {
+                Error = "No se permite eliminar productos físicamente. Utilice la desactivación."
+            });
+        }
+
+        private bool TryObtenerUsuarioId(out int usuarioId)
+        {
+            usuarioId = 0;
+            var valor = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            return int.TryParse(
+                valor,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out usuarioId)
+                && usuarioId > 0;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
@@ -9,6 +10,7 @@ namespace Tienda.API.Controllers
     [Route("api/[controller]")]
     // Indica que es un controlador de API REST (habilita validación automática del modelo, inferencia de binding, etc.)
     [ApiController]
+    [Authorize(Roles = "Empleado")]
     public class BodegaController : ControllerBase
     {
         // Dependencia hacia la capa de lógica de negocio (LN) de Bodega, inyectada por constructor

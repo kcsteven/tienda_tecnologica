@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
@@ -34,7 +35,12 @@ namespace Tienda.LogicaNegocio.Implementaciones
             var resultado = new Respuesta<TInventario>();
             try
             {
-                // Verifica que el producto indicado exista
+                if (datos.Cantidad < 0)
+                {
+                    resultado.Error = "La cantidad de inventario no puede ser negativa.";
+                    return resultado;
+                }
+
                 var producto = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(x => x.ProductoId == datos.ProductoId);
                 if (producto.Data == null)
                 {
@@ -69,14 +75,17 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
-        // Modifica un registro de inventario existente, validando primero que exista
-        // Nota: a diferencia de otros LN, aquí no se asignan fechas CreadoEn/ActualizadoEn
-        public async Task<Respuesta<TInventario>> ModificarAsync(TInventario datos)
+        public async Task<Respuesta<TInventario>> ModificarAsync(TAjustarInventario datos)
         {
             var resultado = new Respuesta<TInventario>();
             try
             {
-                // Busca el registro de inventario actual en base de datos por su Id
+                if (datos.InventarioId <= 0 || datos.Cantidad < 0)
+                {
+                    resultado.Error = "El ajuste de inventario no es válido.";
+                    return resultado;
+                }
+
                 var actual = await _unidadDeTrabajo.TInventario.ObtenerEntidadAsync(x => x.InventarioId == datos.InventarioId);
                 if (actual.Data == null)
                 {
@@ -84,12 +93,17 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
-                // Copia los valores del DTO recibido sobre la entidad existente rastreada por EF
-                _mapper.Map(datos, actual.Data);
+                // El ajuste administrativo modifica solamente la cantidad existente.
+                actual.Data.Cantidad = datos.Cantidad;
 
                 // Guarda los cambios en el repositorio
                 var respuesta = await _unidadDeTrabajo.TInventario.ModificarAsync(actual.Data);
-                // Confirma (commit) los cambios en la unidad de trabajo
+                if (!string.IsNullOrEmpty(respuesta.Error) || respuesta.Data == null)
+                {
+                    resultado.Error = "No fue posible actualizar el inventario.";
+                    return resultado;
+                }
+
                 _unidadDeTrabajo.Completar();
 
                 // Convierte la entidad modificada de vuelta a DTO tipado para la respuesta
@@ -98,7 +112,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al modificar InventarioId {InventarioId}", datos.InventarioId);
-                resultado.Error = ex.Message;
+                resultado.Error = "No fue posible actualizar el inventario.";
             }
             return resultado;
         }
@@ -169,7 +183,60 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
-        // Obtiene un registro de inventario puntual según su Id
+        public async Task<Respuesta<IEnumerable<TDisponibilidadBodega>>> ListarDisponibilidadPublicaAsync(int productoId)
+        {
+            var resultado = new Respuesta<IEnumerable<TDisponibilidadBodega>>();
+            try
+            {
+                if (productoId <= 0)
+                {
+                    resultado.Data = Array.Empty<TDisponibilidadBodega>();
+                    return resultado;
+                }
+
+                var producto = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
+                    x => x.ProductoId == productoId && x.Activo);
+                if (!string.IsNullOrEmpty(producto.Error))
+                {
+                    resultado.Error = "No fue posible consultar la disponibilidad.";
+                    return resultado;
+                }
+
+                if (producto.Data == null)
+                {
+                    resultado.Data = Array.Empty<TDisponibilidadBodega>();
+                    return resultado;
+                }
+
+                // La inclusión evita consultar una bodega adicional por cada inventario.
+                var inventarios = await _unidadDeTrabajo.TInventario.BuscarAsync(
+                    x => x.ProductoId == productoId && x.Cantidad > 0,
+                    new List<string> { nameof(Inventario.Bodega) });
+                if (!string.IsNullOrEmpty(inventarios.Error))
+                {
+                    resultado.Error = "No fue posible consultar la disponibilidad.";
+                    return resultado;
+                }
+
+                resultado.Data = (inventarios.Data ?? Enumerable.Empty<Inventario>())
+                    .Where(inventario => inventario.Bodega != null && inventario.Bodega.Activo)
+                    .Select(inventario => new TDisponibilidadBodega
+                    {
+                        NombreBodega = inventario.Bodega.Nombre,
+                        Ubicacion = inventario.Bodega.Ubicacion,
+                        Cantidad = inventario.Cantidad
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al consultar disponibilidad pública para ProductoId {ProductoId}", productoId);
+                resultado.Error = "No fue posible consultar la disponibilidad.";
+            }
+
+            return resultado;
+        }
+
         public async Task<Respuesta<TInventario>> ObtenerAsync(TInventario datos)
         {
             var resultado = new Respuesta<TInventario>();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
@@ -75,6 +76,7 @@ namespace Tienda.API.Controllers
         // POST: api/Subcategoria/Insertar
         // Crea una nueva subcategoría a partir de los datos enviados en el cuerpo de la petición
         [HttpPost("Insertar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TSubcategoria subcategoria)
         {
             // Valida el modelo recibido según las anotaciones de datos (DataAnnotations) definidas en TSubcategoria
@@ -88,6 +90,7 @@ namespace Tienda.API.Controllers
         // PUT: api/Subcategoria/Modificar
         // Actualiza una subcategoría existente con los datos enviados en el cuerpo de la petición
         [HttpPut("Modificar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Modificar([FromBody] TSubcategoria subcategoria)
         {
             // Valida el modelo antes de procesar la modificación
@@ -101,6 +104,7 @@ namespace Tienda.API.Controllers
         // DELETE: api/Subcategoria/Eliminar/{id}
         // Elimina una subcategoría existente según su Id
         [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Eliminar(int id)
         {
             // Se construye un objeto TSubcategoria solo con el Id para indicar cuál eliminar

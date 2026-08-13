@@ -7,4 +7,5 @@ export interface IProducto {
   subcategoriaId: number;
   marcaId: number;
   proveedorId: number;
+  activo: boolean;
 }

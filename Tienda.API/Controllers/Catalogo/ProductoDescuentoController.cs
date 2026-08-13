@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
 
@@ -37,6 +38,7 @@ namespace Tienda.API.Controllers
         // Crea una nueva asociación producto-descuento a partir de los datos enviados en el cuerpo de la petición
         // Nota: aquí no se valida ModelState.IsValid antes de insertar
         [HttpPost("Insertar")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TProductoDescuento datos)
         {
             // Envía la entidad a la capa de negocio para su inserción
@@ -48,6 +50,7 @@ namespace Tienda.API.Controllers
         // DELETE: api/ProductoDescuento/Eliminar/{id}
         // Elimina una asociación producto-descuento existente según su Id
         [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Eliminar(int id)
         {
             // Se construye un objeto TProductoDescuento solo con el Id para indicar cuál eliminar

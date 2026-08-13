@@ -11,12 +11,10 @@ import { ImagenProductoService } from '../../../app/services/imagen-producto';
 import { DescuentoService } from '../../../app/services/descuento';
 import { ProductoDescuentoService } from '../../../app/services/producto-descuento';
 import { InventarioService } from '../../../app/services/inventario';
-import { BodegaService } from '../../../app/services/bodega';
 import { IProducto } from '../../../app/model/IProducto';
 import { IImagenProducto } from '../../../app/model/IImagenProducto';
 import { IDescuento } from '../../../app/model/IDescuento';
-import { IInventario } from '../../../app/model/IInventario';
-import { IBodega } from '../../../app/model/IBodega';
+import { IDisponibilidadBodega } from '../../../app/model/IDisponibilidadBodega';
 import { urlImagen } from '../../../app/Utilitarios/ImagenUtils';
 import { EspecificacionProductoService } from '../../../app/services/especificacion-producto';
 import { GarantiaService } from '../../../app/services/garantia';
@@ -26,12 +24,6 @@ import { ResenaService } from '../../../app/services/resena';
 import { IResena } from '../../../app/model/IResena';
 import { CarritoService } from '../../../app/services/carrito';
 import { IItemCarrito } from '../../../app/model/IItemCarrito';
-
-// Datos de stock de una bodega/tienda para mostrar en "disponibilidad"
-interface DisponibilidadTienda {
-  bodegaNombre: string;
-  cantidad: number;
-}
 
 @Component({
   selector: 'app-tienda-producto-detalle',
@@ -51,7 +43,6 @@ export class TiendaProductoDetalleComponent implements OnInit {
   private descuentoService = inject(DescuentoService);
   private productoDescuentoService = inject(ProductoDescuentoService);
   private inventarioService = inject(InventarioService);
-  private bodegaService = inject(BodegaService);
   private especificacionService = inject(EspecificacionProductoService);
   private garantiaService = inject(GarantiaService);
   private productoGarantiaService = inject(ProductoGarantiaService);
@@ -81,8 +72,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
   precioFinal = signal(0);
   porcentajeDescuento = signal(0);
 
-  // Disponibilidad en tiendas/bodegas
-  disponibilidad = signal<DisponibilidadTienda[]>([]);
+  disponibilidad = signal<IDisponibilidadBodega[]>([]);
+  errorDisponibilidad = signal(false);
   mostrarDisponibilidad = signal(false);
 
   // Cantidad a agregar al carrito
@@ -104,6 +95,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
 
   private cargarProducto(productoId: number): void {
     this.cargando.set(true);
+    this.disponibilidad.set([]);
+    this.errorDisponibilidad.set(false);
 
     // Primero obtiene el producto base
     this.productoService.obtener(productoId).subscribe({
@@ -133,10 +126,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
             .pipe(catchError(() => of({ data: [] }))),
           descuentosProducto: this.productoDescuentoService.listarPorProducto(productoId)
             .pipe(catchError(() => of({ data: [] }))),
-          inventario: this.inventarioService.listarPorProducto(productoId)
-            .pipe(catchError(() => of({ data: [] }))),
-          bodegas: this.bodegaService.listar()
-            .pipe(catchError(() => of({ data: [] }))),
+          disponibilidad: this.inventarioService.listarDisponibilidadPublica(productoId)
+            .pipe(catchError(() => of({ data: [], error: true }))),
           especificaciones: this.especificacionService.listarPorProducto(productoId)
             .pipe(catchError(() => of({ data: [] }))),
           garantiasProducto: this.productoGarantiaService.listarPorProducto(productoId)
@@ -144,7 +135,7 @@ export class TiendaProductoDetalleComponent implements OnInit {
           resenasProducto: this.resenaService.listarPorProducto(productoId)
             .pipe(catchError(() => of({ data: [] })))
         }).subscribe({
-          next: ({ marca, subcategoria, imagenes, descuentos, descuentosProducto, inventario, bodegas, especificaciones, garantiasProducto, resenasProducto }) => {
+          next: ({ marca, subcategoria, imagenes, descuentos, descuentosProducto, disponibilidad, especificaciones, garantiasProducto, resenasProducto }) => {
 
             this.marcaNombre.set(marca.data?.nombre ?? '');
             this.subcategoriaNombre.set(subcategoria.data?.nombre ?? '');
@@ -193,17 +184,8 @@ export class TiendaProductoDetalleComponent implements OnInit {
               this.precioFinal.set(Math.round(prod.precio * (1 - porcentaje / 100)));
             }
 
-            // Arma la disponibilidad por bodega, solo con las que tienen stock
-            const inventarioData: IInventario[] = inventario.data ?? [];
-            const bodegasData: IBodega[] = bodegas.data ?? [];
-            this.disponibilidad.set(
-              inventarioData
-                .filter(i => i.cantidad > 0)
-                .map(i => ({
-                  bodegaNombre: bodegasData.find(b => b.bodegaId === i.bodegaId)?.nombre ?? 'Bodega',
-                  cantidad: i.cantidad
-                }))
-            );
+            this.errorDisponibilidad.set('error' in disponibilidad && disponibilidad.error === true);
+            this.disponibilidad.set(disponibilidad.data ?? []);
 
             // Guarda las reseñas y calcula el promedio de calificación
             const listaResenas: IResena[] = resenasProducto.data ?? [];

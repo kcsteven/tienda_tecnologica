@@ -45,6 +45,11 @@ namespace Tienda.AccesoDatos.Implementaciones
         private RepositorioAD<Marca> _TMarca;
         private RepositorioAD<Proveedor> _TProveedor;
         private RepositorioAD<Cliente> _TCliente;
+        private IClienteAdministracionAD? _clienteAdministracionAD;
+        private RepositorioAD<Persona> _TPersona;
+        private RepositorioAD<TipoDocumento> _TTipoDocumento;
+        private RepositorioAD<Rol> _TRol;
+        private RepositorioAD<Usuario> _TUsuario;
         private RepositorioAD<Bodega> _TBodega;
         private RepositorioAD<Descuento> _TDescuento;
         private RepositorioAD<Garantia> _TGarantia;
@@ -97,6 +102,55 @@ namespace Tienda.AccesoDatos.Implementaciones
                 if (this._TCliente == null)
                     this._TCliente = new RepositorioAD<Cliente>(_Contexto);
                 return _TCliente;
+            }
+        }
+
+        public IClienteAdministracionAD ClienteAdministracion
+        {
+            get
+            {
+                _clienteAdministracionAD ??= new ClienteAdministracionAD(_Contexto);
+                return _clienteAdministracionAD;
+            }
+        }
+
+        public IRepositorioAD<Persona> TPersona
+        {
+            get
+            {
+                if (this._TPersona == null)
+                    this._TPersona = new RepositorioAD<Persona>(_Contexto);
+                return _TPersona;
+            }
+        }
+
+        public IRepositorioAD<TipoDocumento> TTipoDocumento
+        {
+            get
+            {
+                if (this._TTipoDocumento == null)
+                    this._TTipoDocumento = new RepositorioAD<TipoDocumento>(_Contexto);
+                return _TTipoDocumento;
+            }
+        }
+
+        public IRepositorioAD<Rol> TRol
+        {
+            get
+            {
+                if (this._TRol == null)
+                    this._TRol = new RepositorioAD<Rol>(_Contexto);
+                return _TRol;
+            }
+        }
+
+        public IRepositorioAD<Usuario> TUsuario
+        {
+            get
+            {
+                if (this._TUsuario == null)
+                    this._TUsuario = new RepositorioAD<Usuario>(_Contexto);
+                return _TUsuario;
             }
         }
 

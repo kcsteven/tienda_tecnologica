@@ -1,1 +1,390 @@
-<p>producto works!</p>
+<main class="producto-admin">
+  <div class="container-fluid py-4">
+    <section class="mb-4" aria-labelledby="titulo-productos">
+      <h1 id="titulo-productos" class="h3 mb-1">Administración de productos</h1>
+      <p class="text-muted mb-0">Registre, actualice y controle la disponibilidad de los productos.</p>
+    </section>
+
+    @if (mensajeError) {
+      <div class="alert alert-danger" role="alert" aria-live="assertive">{{ mensajeError }}</div>
+    }
+
+    @if (mensajeExito) {
+      <div class="alert alert-success" role="status" aria-live="polite">{{ mensajeExito }}</div>
+    }
+
+    <!-- Formulario comercial e inventario inicial -->
+    <section class="card shadow-sm border-0 mb-4" aria-labelledby="titulo-formulario">
+      <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+          <h2 id="titulo-formulario" class="h5 mb-0">
+            {{ editando ? 'Editar producto' : 'Nuevo producto' }}
+          </h2>
+          @if (editando) {
+          <span class="badge text-bg-primary">Edición comercial</span>
+          }
+        </div>
+
+        <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="nombre">Nombre</label>
+              <input id="nombre"
+                     class="form-control"
+                     [class.is-invalid]="campoInvalido('nombre')"
+                     type="text"
+                     formControlName="nombre"
+                     maxlength="150"
+                     aria-describedby="nombre-error">
+              @if (campoInvalido('nombre')) {
+              <div id="nombre-error" class="invalid-feedback">
+                El nombre es obligatorio y puede tener hasta 150 caracteres.
+              </div>
+              }
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="precio">Precio de venta</label>
+              <input id="precio"
+                     class="form-control"
+                     [class.is-invalid]="campoInvalido('precio')"
+                     type="number"
+                     formControlName="precio"
+                     min="0.01"
+                     step="0.01"
+                     aria-describedby="precio-error">
+              @if (campoInvalido('precio')) {
+              <div id="precio-error" class="invalid-feedback">Ingrese un precio mayor que cero.</div>
+              }
+            </div>
+
+            <div class="col-12">
+              <label class="form-label" for="descripcion">Descripción <span class="text-muted">(opcional)</span></label>
+              <textarea id="descripcion"
+                        class="form-control"
+                        [class.is-invalid]="campoInvalido('descripcion')"
+                        formControlName="descripcion"
+                        rows="3"
+                        maxlength="500"
+                        aria-describedby="descripcion-error"></textarea>
+              @if (campoInvalido('descripcion')) {
+              <div id="descripcion-error" class="invalid-feedback">La descripción puede tener hasta 500 caracteres.</div>
+              }
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="costoCompra">Costo de compra <span class="text-muted">(opcional)</span></label>
+              <input id="costoCompra"
+                     class="form-control"
+                     [class.is-invalid]="campoInvalido('costoCompra')"
+                     type="number"
+                     formControlName="costoCompra"
+                     min="0"
+                     step="0.01"
+                     aria-describedby="costoCompra-error">
+              @if (campoInvalido('costoCompra')) {
+              <div id="costoCompra-error" class="invalid-feedback">El costo no puede ser negativo.</div>
+              }
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="subcategoriaId">Subcategoría</label>
+              <select id="subcategoriaId" class="form-select" [class.is-invalid]="campoInvalido('subcategoriaId')" formControlName="subcategoriaId" aria-describedby="subcategoria-error">
+                <option [ngValue]="0">Seleccione una subcategoría</option>
+                @for (subcategoria of subcategorias; track subcategoria.subcategoriaId) {
+                <option [ngValue]="subcategoria.subcategoriaId">{{ subcategoria.nombre }}</option>
+                }
+              </select>
+              @if (campoInvalido('subcategoriaId')) {
+              <div id="subcategoria-error" class="invalid-feedback">Seleccione una subcategoría.</div>
+              }
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="marcaId">Marca</label>
+              <select id="marcaId" class="form-select" [class.is-invalid]="campoInvalido('marcaId')" formControlName="marcaId" aria-describedby="marca-error">
+                <option [ngValue]="0">Seleccione una marca</option>
+                @for (marca of marcas; track marca.marcaId) {
+                <option [ngValue]="marca.marcaId">{{ marca.nombre }}</option>
+                }
+              </select>
+              @if (campoInvalido('marcaId')) {
+              <div id="marca-error" class="invalid-feedback">Seleccione una marca.</div>
+              }
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="proveedorId">Proveedor</label>
+              <select id="proveedorId" class="form-select" [class.is-invalid]="campoInvalido('proveedorId')" formControlName="proveedorId" aria-describedby="proveedor-error">
+                <option [ngValue]="0">Seleccione un proveedor</option>
+                @for (proveedor of proveedores; track proveedor.proveedorId) {
+                <option [ngValue]="proveedor.proveedorId">{{ proveedor.nombre }}</option>
+                }
+              </select>
+              @if (campoInvalido('proveedorId')) {
+              <div id="proveedor-error" class="invalid-feedback">Seleccione un proveedor.</div>
+              }
+            </div>
+            @if (!editando) {
+            <div class="col-12">
+              <hr class="my-1">
+            </div>
+
+            <div class="col-12">
+              <h3 class="h6 mb-0">Inventario inicial</h3>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="bodegaId">Bodega</label>
+
+              <select id="bodegaId"
+                      class="form-select"
+                      [class.is-invalid]="campoInvalido('bodegaId')"
+                      formControlName="bodegaId"
+                      aria-describedby="bodega-error">
+
+                <option [ngValue]="0">Seleccione una bodega</option>
+
+                @for (bodega of bodegas; track bodega.bodegaId) {
+                <option [ngValue]="bodega.bodegaId">
+                  {{ bodega.nombre }}
+                </option>
+                }
+              </select>
+
+              @if (campoInvalido('bodegaId')) {
+              <div id="bodega-error" class="invalid-feedback">
+                Seleccione una bodega.
+              </div>
+              }
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="cantidadInicial">
+                Cantidad inicial
+              </label>
+
+              <input id="cantidadInicial"
+                     class="form-control"
+                     [class.is-invalid]="campoInvalido('cantidadInicial')"
+                     type="number"
+                     formControlName="cantidadInicial"
+                     min="0"
+                     step="1"
+                     aria-describedby="cantidadInicial-error">
+
+              @if (campoInvalido('cantidadInicial')) {
+              <div id="cantidadInicial-error" class="invalid-feedback">
+                Ingrese una cantidad entera igual o mayor que cero.
+              </div>
+              }
+            </div>
+
+            <!-- Imagen principal opcional -->
+            <div class="col-12">
+              <hr class="my-1">
+            </div>
+
+            <div class="col-12">
+              <h3 class="h6 mb-0">Imagen del producto</h3>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="imagenProducto">
+                Imagen principal
+                <span class="text-muted">(opcional)</span>
+              </label>
+
+              <input #entradaImagen
+                     id="imagenProducto"
+                     class="form-control"
+                     type="file"
+                     accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                     [disabled]="procesando"
+                     (change)="seleccionarImagen($event)">
+
+              <div class="form-text">
+                Formatos permitidos: JPG, JPEG, PNG o WEBP. Tamaño máximo: 5 MB.
+              </div>
+
+              @if (imagenSeleccionada) {
+              <div class="mt-2">
+                Archivo seleccionado:
+                <strong>{{ imagenSeleccionada.name }}</strong>
+              </div>
+              }
+            </div>
+
+            @if (vistaPreviaImagen) {
+            <div class="col-12 col-md-6">
+              <div class="vista-previa-imagen">
+                <span class="form-label d-block">Vista previa</span>
+
+                <img [src]="vistaPreviaImagen"
+                     alt="Vista previa de la imagen seleccionada">
+              </div>
+            </div>
+            }
+            }
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button class="btn btn-primary"
+                    type="submit"
+                    [disabled]="procesando || cargando">
+
+              {{
+ procesando
+      ? 'Guardando...'
+      : (editando ? 'Guardar cambios' : 'Registrar producto')
+              }}
+            </button>
+
+            @if (editando) {
+            <button class="btn btn-outline-secondary"
+                    type="button"
+                    [disabled]="procesando"
+                    (click)="cancelarEdicion()">
+
+              Cancelar
+            </button>
+            }
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Ajuste por bodega sin solicitudes adicionales por producto -->
+    @if (productoSeleccionado) {
+      <section class="card shadow-sm border-0 mb-4" aria-labelledby="titulo-inventario">
+        <div class="card-body p-4">
+          <h2 id="titulo-inventario" class="h5 mb-1">Inventario por bodega</h2>
+          <p class="text-muted mb-3">{{ productoSeleccionado.nombre }}</p>
+
+          @if (inventariosProductoSeleccionado.length === 0) {
+            <p class="text-muted mb-0">Este producto no tiene inventario registrado.</p>
+          } @else {
+            <div>
+              <table class="table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Bodega</th>
+                    <th scope="col">Cantidad</th>
+                    <th scope="col" class="text-end">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (inventario of inventariosProductoSeleccionado; track inventario.inventarioId) {
+                    <tr>
+                      <td>{{ nombreBodega(inventario.bodegaId) }}</td>
+                      <td>
+                        <label class="visually-hidden" [for]="'cantidad-' + inventario.inventarioId">Cantidad para {{ nombreBodega(inventario.bodegaId) }}</label>
+                        <input class="form-control cantidad-inventario" [id]="'cantidad-' + inventario.inventarioId" type="number" min="0" step="1" [value]="ajustesInventario[inventario.inventarioId]" [disabled]="procesando" (input)="actualizarCantidadAjuste(inventario.inventarioId, $any($event.target).value)">
+                      </td>
+                      <td class="text-end">
+                        <button class="btn btn-sm btn-primary" type="button" [disabled]="procesando" (click)="guardarAjuste(inventario)">Actualizar</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Filtros y listado administrativo -->
+    <section class="card shadow-sm border-0 mb-4" aria-labelledby="titulo-listado">
+      <div class="card-body p-4">
+        <h2 id="titulo-listado" class="h5 mb-3">Productos registrados</h2>
+
+        <form class="row g-3 align-items-end mb-4" [formGroup]="filtros" aria-label="Filtros de productos">
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label" for="filtro-nombre">Nombre</label>
+            <input id="filtro-nombre" class="form-control" type="search" formControlName="nombre" placeholder="Buscar por nombre">
+          </div>
+          <div class="col-12 col-md-6 col-xl-2">
+            <label class="form-label" for="filtro-marca">Marca</label>
+            <select id="filtro-marca" class="form-select" formControlName="marcaId">
+              <option [ngValue]="0">Todas las marcas</option>
+              @for (marca of marcas; track marca.marcaId) {
+                <option [ngValue]="marca.marcaId">{{ marca.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-xl-2">
+            <label class="form-label" for="filtro-categoria">Categoría</label>
+            <select id="filtro-categoria" class="form-select" formControlName="categoriaId" (change)="alCambiarCategoria()">
+              <option [ngValue]="0">Todas las categorías</option>
+              @for (categoria of categorias; track categoria.categoriaId) {
+                <option [ngValue]="categoria.categoriaId">{{ categoria.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label" for="filtro-subcategoria">Subcategoría</label>
+            <select id="filtro-subcategoria" class="form-select" formControlName="subcategoriaId">
+              <option [ngValue]="0">Todas las subcategorías</option>
+              @for (subcategoria of subcategoriasFiltro; track subcategoria.subcategoriaId) {
+                <option [ngValue]="subcategoria.subcategoriaId">{{ subcategoria.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12 col-xl-2">
+            <button class="btn btn-outline-secondary w-100" type="button" (click)="restablecerFiltros()">Restablecer filtros</button>
+          </div>
+        </form>
+
+        @if (cargando) {
+          <p class="text-muted mb-0">Cargando productos...</p>
+        } @else if (productos.length === 0) {
+          <p class="text-muted mb-0">No hay productos registrados.</p>
+        } @else if (productosFiltrados.length === 0) {
+          <p class="text-muted mb-0">No hay productos que coincidan con los filtros seleccionados.</p>
+        } @else {
+          <div class="tabla-productos-scroll">
+            <div>
+              <table class="table align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Precio</th>
+                    <th scope="col">Inventario total</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col" class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (producto of productosFiltrados; track producto.productoId) {
+                    <tr [class.table-light]="productoSeleccionado?.productoId === producto.productoId">
+                      <td class="fw-semibold">{{ producto.nombre }}</td>
+                      <td>{{ producto.precio | number:'1.2-2' }}</td>
+                      <td>
+                        <span [class]="claseStock(producto.productoId)">
+                          {{ etiquetaStock(producto.productoId) }} ({{ totalInventario(producto.productoId) }})
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge" [class.text-bg-success]="producto.activo" [class.text-bg-secondary]="!producto.activo">
+                          {{ producto.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </td>
+                      <td class="text-end text-nowrap">
+                        <button class="btn btn-sm btn-outline-secondary me-2" type="button" [disabled]="procesando" (click)="seleccionarProducto(producto)">Inventario</button>
+                        <button class="btn btn-sm btn-outline-primary me-2" type="button" [disabled]="procesando" (click)="editar(producto)">Editar</button>
+                        <button class="btn btn-sm" [class.btn-outline-danger]="producto.activo" [class.btn-outline-success]="!producto.activo" type="button" [disabled]="procesando" (click)="cambiarEstado(producto)">
+                          {{ producto.activo ? 'Desactivar' : 'Activar' }}
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</main>

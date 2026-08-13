@@ -1,0 +1,301 @@
+<!--pantalla para registrar un cliente-->
+<section class="registro-cliente py-5">
+  <div class="container">
+    <div class="registro-card mx-auto">
+      <h1>Crear cuenta</h1>
+      <p class="text-muted">Completa tus datos para registrarte como cliente.</p>
+
+
+      @if (mensajeError) {
+      <div class="alert alert-danger" role="alert">{{ mensajeError }}</div>
+      }
+
+      @if (mensajeExito) {
+      <div class="alert alert-success" role="alert">{{ mensajeExito }}</div>
+      }
+
+      @if (cargandoTipos) {
+      <!-- Esqueleto visual de carga-->
+      <div class="registro-esqueleto" role="status" aria-live="polite">
+        <div class="registro-esqueleto__contenido" aria-hidden="true">
+          <div class="registro-esqueleto__elemento registro-esqueleto__titulo"></div>
+
+          <div class="row g-3">
+            <div class="col-md-5">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-7">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="registro-esqueleto__elemento registro-esqueleto__etiqueta"></div>
+              <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
+            </div>
+          </div>
+        </div>
+
+        <span class="visually-hidden">Cargando formulario de registro.....</span>
+      </div>
+
+      } @else {
+      <!-- Documento y datos personales -->
+      <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
+        <h2>Datos personales</h2>
+        <div class="row g-3">
+          <div class="col-md-5">
+            <label for="tipoDocumentoId" class="form-label">Tipo de documento</label>
+            <!--Tipo de documento-->
+            <select id="tipoDocumentoId"
+                    class="form-select"
+                    formControlName="tipoDocumentoId">
+              <option [ngValue]="null">Selecciona una opción</option>
+              @for (tipo of tiposDocumento; track tipo.tipoDocumentoId) {
+              <option [ngValue]="tipo.tipoDocumentoId">{{ tipo.nombre }}</option>
+              }
+            </select>
+            @if (campoInvalido('tipoDocumentoId')) {
+            <small class="text-danger">{{ mensajeCampo('tipoDocumentoId') }}</small>
+            }
+          </div>
+
+          <div class="col-md-7">
+            <label for="numeroDocumento" class="form-label">Número de documento</label>
+
+            <input id="numeroDocumento"
+                   type="text"
+                   class="form-control"
+                   formControlName="numeroDocumento"
+                   [attr.inputmode]="modoEntradaNumeroDocumento"
+                   [attr.maxlength]="longitudMaximaNumeroDocumento"
+                   [attr.placeholder]="ayudaNumeroDocumento"
+                   (input)="normalizarPasaporte()" />
+            @if (campoInvalido('numeroDocumento')) {
+            <small class="text-danger">{{ mensajeCampo('numeroDocumento') }}</small>
+            }
+          </div>
+
+          <div class="col-md-6">
+            <label for="nombre" class="form-label">Nombre</label>
+
+            <input id="nombre"
+                   type="text"
+                   class="form-control"
+                   formControlName="nombre"
+                   maxlength="100" />
+            @if (campoInvalido('nombre')) {
+            <small class="text-danger">{{ mensajeCampo('nombre') }}</small>
+            }
+          </div>
+
+          <div class="col-md-6">
+            <label for="apellido" class="form-label">Apellido</label>
+
+            <input id="apellido"
+                   type="text"
+                   class="form-control"
+                   formControlName="apellido"
+                   maxlength="100" />
+            @if (campoInvalido('apellido')) {
+            <small class="text-danger">{{ mensajeCampo('apellido') }}</small>
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+
+            <input id="fechaNacimiento"
+                   type="date"
+                   class="form-control"
+                   formControlName="fechaNacimiento"
+                   [max]="fechaMaximaNacimiento" />
+            @if (campoInvalido('fechaNacimiento')) {
+            <small class="text-danger">{{ mensajeCampo('fechaNacimiento') }}</small>
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label for="telefono" class="form-label">Teléfono</label>
+
+            <input id="telefono"
+                   type="tel"
+                   class="form-control"
+                   formControlName="telefono"
+                   maxlength="20" />
+            @if (campoInvalido('telefono')) {
+            <small class="text-danger">{{ mensajeCampo('telefono') }}</small>
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label for="email" class="form-label">Correo electrónico</label>
+
+            <input id="email"
+                   type="email"
+                   class="form-control"
+                   formControlName="email"
+                   maxlength="100" />
+            @if (campoInvalido('email')) {
+            <small class="text-danger">{{ mensajeCampo('email') }}</small>
+            }
+          </div>
+        </div>
+
+        <!--credenciales usados para iniciar sesión-->
+        <h2 class="mt-4">Credenciales</h2>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="nombreUsuario" class="form-label">Nombre de usuario</label>
+
+            <input id="nombreUsuario"
+                   type="text"
+                   class="form-control"
+                   formControlName="nombreUsuario"
+                   maxlength="50" autocomplete="username" />
+            @if (campoInvalido('nombreUsuario')) {
+            <small class="text-danger">{{ mensajeCampo('nombreUsuario') }}</small>
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label for="contrasena" class="form-label">Contraseña</label>
+
+            <input id="contrasena"
+                   type="password"
+                   class="form-control"
+                   formControlName="contrasena"
+                   maxlength="128"
+                   autocomplete="new-password" />
+            @if (campoInvalido('contrasena')) {
+            <small class="text-danger">{{ mensajeCampo('contrasena') }}</small>
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label for="confirmacionContrasena" class="form-label">Confirmar contraseña</label>
+
+            <input id="confirmacionContrasena"
+                   type="password"
+                   class="form-control"
+                   formControlName="confirmacionContrasena"
+                   maxlength="128"
+                   autocomplete="new-password" />
+            @if (campoInvalido('confirmacionContrasena') || contrasenasNoCoinciden()) {
+            <small class="text-danger">{{ mensajeCampo('confirmacionContrasena') || 'Las contraseñas no coinciden.' }}</small>
+            }
+          </div>
+        </div>
+
+        <!--Direccion fisica-->
+        <h2 class="mt-4">Dirección</h2>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="provincia" class="form-label">Provincia</label>
+
+            <select id="provincia"
+                    class="form-select"
+                    formControlName="provincia">
+              <option value="">Seleccione una provincia</option>
+              @for (provincia of provincias; track provincia) {
+              <option [value]="provincia">{{ provincia }}</option>
+              }
+            </select>
+            @if (campoInvalido('provincia')) {
+            <small class="text-danger">{{ mensajeCampo('provincia') }}</small>
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label for="canton" class="form-label">Cantón</label>
+
+            <select id="canton"
+                    class="form-select"
+                    formControlName="canton">
+              <option value="">
+                {{ formulario.controls.provincia.value ? 'Seleccione un cantón' : 'Seleccione una provincia primero' }}
+              </option>
+              @for (canton of cantonesDisponibles; track canton) {
+              <option [value]="canton">{{ canton }}</option>
+              }
+            </select>
+            @if (campoInvalido('canton')) {
+            <small class="text-danger">{{ mensajeCampo('canton') }}</small>
+            }
+          </div>
+
+          <div class="col-md-4">
+            <label for="distrito" class="form-label">Distrito</label>
+
+            <input id="distrito"
+                   type="text"
+                   class="form-control"
+                   formControlName="distrito"
+                   maxlength="100" />
+            @if (campoInvalido('distrito')) {
+            <small class="text-danger">{{ mensajeCampo('distrito') }}</small>
+            }
+          </div>
+
+          <div class="col-12">
+            <label for="senaExacta" class="form-label">
+              Dirección exacta (opcional)
+            </label>
+
+            <textarea id="senaExacta"
+                      class="form-control"
+                      formControlName="senaExacta"
+                      rows="3"
+                      aria-describedby="senaExactaContador"
+                      [class.is-invalid]="formulario.controls.senaExacta.hasError('maxlength')"
+                      [class.text-danger]="formulario.controls.senaExacta.hasError('maxlength')"></textarea>
+
+            <!-- Mensajes de validación y contador de caracteres para la direccion fisica -->
+            <div class="d-flex justify-content-between align-items-start">
+              @if (campoInvalido('senaExacta')) {
+              <small class="text-danger">
+                {{ mensajeCampo('senaExacta') }}
+              </small>
+              }
+
+              <small id="senaExactaContador"
+                     class="ms-auto"
+                     [class.text-danger]="formulario.controls.senaExacta.hasError('maxlength')"
+                     [class.text-muted]="!formulario.controls.senaExacta.hasError('maxlength')">
+                {{ formulario.controls.senaExacta.value?.length ?? 0 }} / 255 caracteres
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!--Envia el formulario y evita solicitudes repetidas mientras procesa-->
+        <button type="submit" class="btn btn-primary mt-4" [disabled]="enviando || tiposDocumento.length === 0">
+          {{ enviando ? 'Registrando...' : 'Registrarme' }}
+        </button>
+      </form>
+      }
+    </div>
+  </div>
+</section>

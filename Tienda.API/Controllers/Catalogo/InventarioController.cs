@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
@@ -9,6 +10,7 @@ namespace Tienda.API.Controllers
     [Route("api/[controller]")]
     // Indica que es un controlador de API REST (habilita validación automática del modelo, inferencia de binding, etc.)
     [ApiController]
+    [Authorize(Roles = "Empleado")]
     public class InventarioController : ControllerBase
     {
         // Dependencia hacia la capa de lógica de negocio (LN) de Inventario, inyectada por constructor
@@ -45,8 +47,16 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
-        // GET: api/Inventario/Obtener/{id}
-        // Obtiene un registro de inventario puntual según su Id
+        [HttpGet("DisponibilidadPublica/{productoId}")]
+        [AllowAnonymous]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> DisponibilidadPublica(int productoId)
+        {
+            var resultado = await _inventarioLN.ListarDisponibilidadPublicaAsync(productoId);
+            if (!string.IsNullOrEmpty(resultado.Error)) return BadRequest(resultado);
+            return Ok(resultado);
+        }
+
         [HttpGet("Obtener/{id}")]
         public async Task<IActionResult> Obtener(int id)
         {
@@ -73,7 +83,7 @@ namespace Tienda.API.Controllers
         // PUT: api/Inventario/Modificar
         // Actualiza un registro de inventario existente con los datos enviados en el cuerpo de la petición
         [HttpPut("Modificar")]
-        public async Task<IActionResult> Modificar([FromBody] TInventario inventario)
+        public async Task<IActionResult> Modificar([FromBody] TAjustarInventario inventario)
         {
             // Valida el modelo antes de procesar la modificación
             if (!ModelState.IsValid) return BadRequest(ModelState);

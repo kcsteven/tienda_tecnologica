@@ -1,9 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+using System.Globalization;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
@@ -15,476 +12,463 @@ namespace Tienda.LogicaNegocio.Implementaciones
     // Implementación de la lógica de negocio (LN) para la entidad Producto
     public class ProductoLN : IProductoLN
     {
-        // Unidad de trabajo (Entity Framework) para acceder a los repositorios de datos
-        private IUnidadTrabajoEF _unidadDeTrabajo { get; set; }
-
-
-        // Logger para registrar errores y eventos de esta clase
-        private ILogger<ProductoLN> _logger { get; }
-
-
-        // AutoMapper para convertir entre entidades de dominio (Producto) y entidades tipadas (TProducto)
+        private readonly IUnidadTrabajoEF _unidadDeTrabajo;
+        private readonly ILogger<ProductoLN> _logger;
         private readonly IMapper _mapper;
 
-
-        // Constructor: recibe las dependencias mediante inyección de dependencias
-        public ProductoLN(
-
-            IUnidadTrabajoEF unidadTrabajo,
-
-            ILogger<ProductoLN> logger,
-
-            IMapper mapper)
-
+        public ProductoLN(IUnidadTrabajoEF unidadTrabajo, ILogger<ProductoLN> logger, IMapper mapper)
         {
-
             _unidadDeTrabajo = unidadTrabajo;
-
             _logger = logger;
-
             _mapper = mapper;
-
         }
 
-
-        // Inserta un nuevo producto, validando que no exista ya uno con el mismo nombre
-        // y que la subcategoría, marca y proveedor indicados realmente existan
-        public async Task<Respuesta<TProducto>> InsertarAsync(TProducto datos)
-
+        public async Task<Respuesta<TProducto>> InsertarAsync(TCrearProductoConInventario datos, int usuarioId)
         {
-
             var resultado = new Respuesta<TProducto>();
-
+            var transaccionActiva = false;
 
             try
             {
+                if (usuarioId <= 0)
+                {
+                    resultado.Error = "El usuario autenticado no es válido.";
+                    return resultado;
+                }
 
-                // Verifica si ya existe un producto registrado con el mismo nombre
-                var productoExistente =
+                var nombre = datos.Nombre?.Trim() ?? string.Empty;
+                var descripcion = NormalizarDescripcion(datos.Descripcion);
+                var errorValidacion = ValidarDatosComerciales(nombre, descripcion, datos.Precio, datos.CostoCompra);
+                if (errorValidacion != null)
+                {
+                    resultado.Error = errorValidacion;
+                    return resultado;
+                }
 
-                    await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
+                if (datos.CantidadInicial < 0)
+                {
+                    resultado.Error = "La cantidad inicial no puede ser negativa.";
+                    return resultado;
+                }
 
-                        x => x.Nombre == datos.Nombre);
+                var errorRelaciones = await ValidarRelacionesAsync(
+                    datos.SubcategoriaId,
+                    datos.MarcaId,
+                    datos.ProveedorId,
+                    datos.BodegaId);
+                if (errorRelaciones != null)
+                {
+                    resultado.Error = errorRelaciones;
+                    return resultado;
+                }
 
+                var productoExistente = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(x => x.Nombre == nombre);
+                if (!string.IsNullOrEmpty(productoExistente.Error))
+                {
+                    resultado.Error = "No fue posible validar el nombre del producto.";
+                    return resultado;
+                }
 
                 if (productoExistente.Data != null)
-
                 {
-
-                    // Nota: a diferencia de otras validaciones de duplicado, aquí sí se devuelve
-                    // el producto existente en Data, además del mensaje de error
-                    resultado.Data =
-
-                        _mapper.Map<TProducto>(productoExistente.Data);
-
-
-                    resultado.Error =
-
-                        "Ya existe un producto registrado con ese nombre.";
-
-
-                    return resultado;
-
-                }
-
-                // Verifica que la subcategoría indicada exista
-                var subcategoria =
-                    await _unidadDeTrabajo.TSubcategoria.ObtenerEntidadAsync(
-                        x => x.SubcategoriaId == datos.SubcategoriaId);
-
-                if (subcategoria.Data == null)
-                {
-                    resultado.Error = "La subcategoría indicada no existe.";
+                    resultado.Error = "Ya existe un producto registrado con ese nombre.";
                     return resultado;
                 }
 
-                // Verifica que la marca indicada exista
-                var marca =
-                    await _unidadDeTrabajo.TMarca.ObtenerEntidadAsync(
-                        x => x.MarcaId == datos.MarcaId);
+                _unidadDeTrabajo.EmpezarTransaccion();
+                transaccionActiva = true;
 
-                if (marca.Data == null)
+                var ahoraUtc = DateTime.UtcNow;
+                var producto = new Producto
                 {
-                    resultado.Error = "La marca indicada no existe.";
+                    Nombre = nombre,
+                    Descripcion = descripcion,
+                    Precio = datos.Precio,
+                    CostoCompra = datos.CostoCompra,
+                    SubcategoriaId = datos.SubcategoriaId,
+                    MarcaId = datos.MarcaId,
+                    ProveedorId = datos.ProveedorId,
+                    Activo = true,
+                    CreadoEn = ahoraUtc,
+                    CreadoPor = usuarioId.ToString(CultureInfo.InvariantCulture),
+                    ActualizadoEn = null,
+                    ActualizadoPor = null
+                };
+
+                var respuestaProducto = await _unidadDeTrabajo.TProducto.InsertarAsync(producto);
+                if (!string.IsNullOrEmpty(respuestaProducto.Error) || respuestaProducto.Data == null)
+                {
+                    RevertirTransaccion(ref transaccionActiva);
+                    resultado.Error = "No fue posible crear el producto.";
                     return resultado;
                 }
 
-                // Verifica que el proveedor indicado exista
-                var proveedor =
-                    await _unidadDeTrabajo.TProveedor.ObtenerEntidadAsync(
-                        x => x.ProveedorId == datos.ProveedorId);
-
-                if (proveedor.Data == null)
+                var inventario = new Inventario
                 {
-                    resultado.Error = "El proveedor indicado no existe.";
+                    ProductoId = respuestaProducto.Data.ProductoId,
+                    BodegaId = datos.BodegaId,
+                    Cantidad = datos.CantidadInicial
+                };
+
+                var respuestaInventario = await _unidadDeTrabajo.TInventario.InsertarAsync(inventario);
+                if (!string.IsNullOrEmpty(respuestaInventario.Error) || respuestaInventario.Data == null)
+                {
+                    RevertirTransaccion(ref transaccionActiva);
+                    resultado.Error = "No fue posible crear el inventario inicial del producto.";
                     return resultado;
                 }
 
+                // CompletarTran confirma ambos registros como una sola operación.
+                transaccionActiva = false;
+                _unidadDeTrabajo.CompletarTran();
 
-
-
-
-                // Convierte el DTO tipado a la entidad de dominio
-                var entidad = _mapper.Map<Producto>(datos);
-
-
-                // Inserta la entidad en el repositorio
-                var respuestaRepositorio =
-
-                    await _unidadDeTrabajo.TProducto.InsertarAsync(entidad);
-
-
-                // Confirma (commit) los cambios en la unidad de trabajo
-                _unidadDeTrabajo.Completar();
-
-
-                // Convierte la entidad insertada de vuelta a DTO tipado para la respuesta
-                resultado.Data =
-
-                    _mapper.Map<TProducto>(respuestaRepositorio.Data);
-
+                resultado.Data = _mapper.Map<TProducto>(respuestaProducto.Data);
             }
-
             catch (Exception ex)
-
             {
-
-                // Registra el error y lo devuelve en la respuesta
-                _logger.LogError(ex,
-
-                    "Error al insertar producto {NombreProducto}",
-
-                    datos.Nombre);
-
-
-                resultado.Error = ex.Message;
-
+                RevertirTransaccion(ref transaccionActiva);
+                _logger.LogError(ex, "Error al crear producto e inventario inicial.");
+                resultado.Error = "No fue posible registrar el producto.";
             }
-
 
             return resultado;
-
         }
 
-
-        // Lista todos los productos existentes
         public async Task<Respuesta<IEnumerable<TProducto>>> ListarAsync()
-
         {
-
-            var resultado =
-
-                new Respuesta<IEnumerable<TProducto>>();
-
+            var resultado = new Respuesta<IEnumerable<TProducto>>();
 
             try
             {
+                var respuesta = await _unidadDeTrabajo.TProducto.BuscarAsync(x => x.Activo);
+                if (!string.IsNullOrEmpty(respuesta.Error))
+                {
+                    resultado.Error = "No fue posible listar los productos.";
+                    return resultado;
+                }
 
-                // Obtiene todos los productos desde el repositorio
-                var resp =
-
-                    await _unidadDeTrabajo.TProducto.ListarAsync();
-
-
-                // Convierte la lista de entidades de dominio a DTOs tipados
-                resultado.Data =
-
-                    _mapper.Map<IEnumerable<TProducto>>(resp.Data);
-
+                resultado.Data = _mapper.Map<IEnumerable<TProducto>>(respuesta.Data);
             }
-
             catch (Exception ex)
-
             {
-
-                _logger.LogError(ex,
-
-                    "Error al listar productos.");
-
-
-                resultado.Error = ex.Message;
-
+                _logger.LogError(ex, "Error al listar productos activos.");
+                resultado.Error = "No fue posible listar los productos.";
             }
-
 
             return resultado;
-
         }
 
-
-        // Modifica un producto existente, validando primero que exista
-        public async Task<Respuesta<TProducto>> ModificarAsync(TProducto datos)
-
+        public async Task<Respuesta<IEnumerable<TProducto>>> ListarAdministracionAsync()
         {
-
-            var resultado =
-
-                new Respuesta<TProducto>();
-
+            var resultado = new Respuesta<IEnumerable<TProducto>>();
 
             try
             {
+                var respuesta = await _unidadDeTrabajo.TProducto.ListarAsync();
+                if (!string.IsNullOrEmpty(respuesta.Error))
+                {
+                    resultado.Error = "No fue posible listar los productos.";
+                    return resultado;
+                }
 
-                // Busca el producto actual en base de datos por su Id
-                var productoActual =
+                resultado.Data = _mapper.Map<IEnumerable<TProducto>>(respuesta.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al listar productos para administración.");
+                resultado.Error = "No fue posible listar los productos.";
+            }
 
-                    await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
+            return resultado;
+        }
 
-                        x => x.ProductoId == datos.ProductoId);
+        public async Task<Respuesta<TProducto>> ModificarAsync(TActualizarProducto datos, int usuarioId)
+        {
+            var resultado = new Respuesta<TProducto>();
 
+            try
+            {
+                if (usuarioId <= 0)
+                {
+                    resultado.Error = "El usuario autenticado no es válido.";
+                    return resultado;
+                }
 
+                if (datos.ProductoId <= 0)
+                {
+                    resultado.Error = "El producto indicado no es válido.";
+                    return resultado;
+                }
+
+                var nombre = datos.Nombre?.Trim() ?? string.Empty;
+                var descripcion = NormalizarDescripcion(datos.Descripcion);
+                var errorValidacion = ValidarDatosComerciales(nombre, descripcion, datos.Precio, datos.CostoCompra);
+                if (errorValidacion != null)
+                {
+                    resultado.Error = errorValidacion;
+                    return resultado;
+                }
+
+                var productoActual = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(x => x.ProductoId == datos.ProductoId);
                 if (productoActual.Data == null)
-
                 {
-
-                    resultado.Error =
-
-                        "No existe el producto a modificar.";
-
-
+                    resultado.Error = "No existe el producto a modificar.";
                     return resultado;
-
                 }
 
+                var errorRelaciones = await ValidarRelacionesAsync(
+                    datos.SubcategoriaId,
+                    datos.MarcaId,
+                    datos.ProveedorId);
+                if (errorRelaciones != null)
+                {
+                    resultado.Error = errorRelaciones;
+                    return resultado;
+                }
 
+                var productoConMismoNombre = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
+                    x => x.Nombre == nombre && x.ProductoId != datos.ProductoId);
+                if (!string.IsNullOrEmpty(productoConMismoNombre.Error))
+                {
+                    resultado.Error = "No fue posible validar el nombre del producto.";
+                    return resultado;
+                }
 
+                if (productoConMismoNombre.Data != null)
+                {
+                    resultado.Error = "Ya existe un producto registrado con ese nombre.";
+                    return resultado;
+                }
 
+                productoActual.Data.Nombre = nombre;
+                productoActual.Data.Descripcion = descripcion;
+                productoActual.Data.Precio = datos.Precio;
+                productoActual.Data.CostoCompra = datos.CostoCompra;
+                productoActual.Data.SubcategoriaId = datos.SubcategoriaId;
+                productoActual.Data.MarcaId = datos.MarcaId;
+                productoActual.Data.ProveedorId = datos.ProveedorId;
+                productoActual.Data.ActualizadoEn = DateTime.UtcNow;
+                productoActual.Data.ActualizadoPor = usuarioId.ToString(CultureInfo.InvariantCulture);
 
-                // Copia los valores del DTO recibido sobre la entidad existente rastreada por EF
-                _mapper.Map(datos, productoActual.Data);
-
-
-                // Guarda los cambios en el repositorio
-                var respuestaRepositorio =
-
-                    await _unidadDeTrabajo.TProducto.ModificarAsync(
-
-                        productoActual.Data);
-
+                var respuesta = await _unidadDeTrabajo.TProducto.ModificarAsync(productoActual.Data);
+                if (!string.IsNullOrEmpty(respuesta.Error) || respuesta.Data == null)
+                {
+                    resultado.Error = "No fue posible actualizar el producto.";
+                    return resultado;
+                }
 
                 // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
-
-
-                // Convierte la entidad modificada de vuelta a DTO tipado para la respuesta
-                resultado.Data =
-
-                    _mapper.Map<TProducto>(respuestaRepositorio.Data);
-
+                resultado.Data = _mapper.Map<TProducto>(respuesta.Data);
             }
-
             catch (Exception ex)
-
             {
-
-                _logger.LogError(ex,
-
-                    "Error al modificar ProductoId {ProductoId}",
-
-                    datos.ProductoId);
-
-
-                resultado.Error = ex.Message;
-
+                _logger.LogError(ex, "Error al modificar ProductoId {ProductoId}", datos.ProductoId);
+                resultado.Error = "No fue posible actualizar el producto.";
             }
-
 
             return resultado;
-
         }
 
-
-        // Elimina un producto existente, validando primero que exista
-        public async Task<Respuesta<bool>> EliminarAsync(TProducto datos)
-
+        public async Task<Respuesta<TProducto>> CambiarEstadoAsync(TCambiarEstadoProducto datos, int usuarioId)
         {
-
-            var resultado =
-
-                new Respuesta<bool>();
-
+            var resultado = new Respuesta<TProducto>();
 
             try
             {
+                if (usuarioId <= 0)
+                {
+                    resultado.Error = "El usuario autenticado no es válido.";
+                    return resultado;
+                }
 
-                // Busca el producto a eliminar por su Id
-                var producto =
+                if (datos.ProductoId <= 0)
+                {
+                    resultado.Error = "El producto indicado no es válido.";
+                    return resultado;
+                }
 
-                    await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
-
-                        x => x.ProductoId == datos.ProductoId);
-
-
+                var producto = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(x => x.ProductoId == datos.ProductoId);
                 if (producto.Data == null)
-
                 {
-
-                    resultado.Error =
-
-                        "No existe el producto a eliminar.";
-
-
+                    resultado.Error = "No existe el producto a actualizar.";
                     return resultado;
-
                 }
 
-
-                // Elimina la entidad del repositorio
-                var respuestaRepositorio =
-
-                    await _unidadDeTrabajo.TProducto.EliminarAsync(
-
-                        producto.Data);
-
+                producto.Data.Activo = datos.Activo;
+                producto.Data.ActualizadoEn = DateTime.UtcNow;
+                producto.Data.ActualizadoPor = usuarioId.ToString(CultureInfo.InvariantCulture);
+                var respuesta = await _unidadDeTrabajo.TProducto.ModificarAsync(producto.Data);
+                if (!string.IsNullOrEmpty(respuesta.Error) || respuesta.Data == null)
+                {
+                    resultado.Error = "No fue posible actualizar el estado del producto.";
+                    return resultado;
+                }
 
                 // Confirma (commit) los cambios en la unidad de trabajo
                 _unidadDeTrabajo.Completar();
-
-
-                resultado.Data =
-
-                    respuestaRepositorio.Data;
-
+                resultado.Data = _mapper.Map<TProducto>(respuesta.Data);
             }
-
             catch (Exception ex)
-
             {
-
-                _logger.LogError(ex,
-
-                    "Error al eliminar ProductoId {ProductoId}",
-
-                    datos.ProductoId);
-
-
-                resultado.Error = ex.Message;
-
+                _logger.LogError(ex, "Error al cambiar estado de ProductoId {ProductoId}", datos.ProductoId);
+                resultado.Error = "No fue posible actualizar el estado del producto.";
             }
-
 
             return resultado;
-
         }
 
-
-        // Busca productos cuyo nombre contenga el texto recibido
-        public async Task<Respuesta<IEnumerable<TProducto>>> BuscarAsync(
-
-            TProducto datos)
-
+        public Task<Respuesta<bool>> EliminarAsync(TProducto datos)
         {
+            return Task.FromResult(new Respuesta<bool>
+            {
+                Error = "No se permite eliminar productos físicamente. Utilice la desactivación."
+            });
+        }
 
-            var resultado =
-
-                new Respuesta<IEnumerable<TProducto>>();
-
+        public async Task<Respuesta<IEnumerable<TProducto>>> BuscarAsync(TProducto datos)
+        {
+            var resultado = new Respuesta<IEnumerable<TProducto>>();
 
             try
             {
-
-                // Filtra los productos cuyo nombre contenga el texto de búsqueda
-                var respuestaRepositorio =
-
-                    await _unidadDeTrabajo.TProducto.BuscarAsync(
-
-                        x => x.Nombre.Contains(
-
-                            datos.Nombre));
-
-
-                resultado.Data =
-
-                    _mapper.Map<IEnumerable<TProducto>>(
-
-                        respuestaRepositorio.Data);
-
-            }
-
-            catch (Exception ex)
-
-            {
-
-                _logger.LogError(ex,
-
-                    "Error al buscar productos.");
-
-
-                resultado.Error = ex.Message;
-
-            }
-
-
-            return resultado;
-
-        }
-
-
-        // Obtiene un producto puntual según su Id
-        public async Task<Respuesta<TProducto>> ObtenerAsync(
-
-            TProducto datos)
-
-        {
-
-            var resultado =
-
-                new Respuesta<TProducto>();
-
-
-            try
-            {
-
-                // Busca el producto por su Id
-                var respuestaRepositorio =
-
-                    await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
-
-                        x => x.ProductoId == datos.ProductoId);
-
-
-                if (respuestaRepositorio.Data == null)
-
+                var nombre = datos.Nombre?.Trim() ?? string.Empty;
+                var respuesta = await _unidadDeTrabajo.TProducto.BuscarAsync(
+                    x => x.Activo && x.Nombre.Contains(nombre));
+                if (!string.IsNullOrEmpty(respuesta.Error))
                 {
-
-                    resultado.Error =
-
-                        "Producto no encontrado.";
-
-
+                    resultado.Error = "No fue posible buscar los productos.";
                     return resultado;
-
                 }
 
-
-                resultado.Data =
-
-                    _mapper.Map<TProducto>(
-
-                        respuestaRepositorio.Data);
-
+                resultado.Data = _mapper.Map<IEnumerable<TProducto>>(respuesta.Data);
             }
-
             catch (Exception ex)
-
             {
-
-                _logger.LogError(ex,
-
-                    "Error al obtener ProductoId {ProductoId}",
-
-                    datos.ProductoId);
-
-
-                resultado.Error = ex.Message;
-
+                _logger.LogError(ex, "Error al buscar productos activos.");
+                resultado.Error = "No fue posible buscar los productos.";
             }
-
 
             return resultado;
-
         }
 
-    }
+        public async Task<Respuesta<TProducto>> ObtenerAsync(TProducto datos)
+        {
+            var resultado = new Respuesta<TProducto>();
 
+            try
+            {
+                var respuesta = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
+                    x => x.ProductoId == datos.ProductoId && x.Activo);
+                if (respuesta.Data == null)
+                {
+                    resultado.Error = "Producto no encontrado.";
+                    return resultado;
+                }
+
+                resultado.Data = _mapper.Map<TProducto>(respuesta.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener ProductoId {ProductoId}", datos.ProductoId);
+                resultado.Error = "Producto no encontrado.";
+            }
+
+            return resultado;
+        }
+
+        private async Task<string?> ValidarRelacionesAsync(
+            int subcategoriaId,
+            int marcaId,
+            int proveedorId,
+            int? bodegaId = null)
+        {
+            if (subcategoriaId <= 0 || marcaId <= 0 || proveedorId <= 0 || (bodegaId.HasValue && bodegaId <= 0))
+            {
+                return "Las relaciones del producto no son válidas.";
+            }
+
+            var subcategoria = await _unidadDeTrabajo.TSubcategoria.ObtenerEntidadAsync(x => x.SubcategoriaId == subcategoriaId);
+            if (!string.IsNullOrEmpty(subcategoria.Error) || subcategoria.Data == null)
+            {
+                return "La subcategoría indicada no existe.";
+            }
+
+            var marca = await _unidadDeTrabajo.TMarca.ObtenerEntidadAsync(x => x.MarcaId == marcaId);
+            if (!string.IsNullOrEmpty(marca.Error) || marca.Data == null)
+            {
+                return "La marca indicada no existe.";
+            }
+
+            var proveedor = await _unidadDeTrabajo.TProveedor.ObtenerEntidadAsync(x => x.ProveedorId == proveedorId);
+            if (!string.IsNullOrEmpty(proveedor.Error) || proveedor.Data == null)
+            {
+                return "El proveedor indicado no existe.";
+            }
+
+            if (bodegaId.HasValue)
+            {
+                var bodega = await _unidadDeTrabajo.TBodega.ObtenerEntidadAsync(x => x.BodegaId == bodegaId.Value);
+                if (!string.IsNullOrEmpty(bodega.Error) || bodega.Data == null)
+                {
+                    return "La bodega indicada no existe.";
+                }
+            }
+
+            return null;
+        }
+
+        private static string? ValidarDatosComerciales(string nombre, string? descripcion, decimal precio, decimal? costoCompra)
+        {
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                return "El nombre del producto es obligatorio.";
+            }
+
+            if (nombre.Length > 150)
+            {
+                return "El nombre del producto no puede superar los 150 caracteres.";
+            }
+
+            if (descripcion != null && descripcion.Length > 500)
+            {
+                return "La descripción no puede superar los 500 caracteres.";
+            }
+
+            if (precio <= 0)
+            {
+                return "El precio debe ser mayor que cero.";
+            }
+
+            if (costoCompra.HasValue && costoCompra.Value < 0)
+            {
+                return "El costo de compra no puede ser negativo.";
+            }
+
+            return null;
+        }
+
+        private static string? NormalizarDescripcion(string? descripcion)
+        {
+            var descripcionNormalizada = descripcion?.Trim();
+            return string.IsNullOrWhiteSpace(descripcionNormalizada) ? null : descripcionNormalizada;
+        }
+
+        private void RevertirTransaccion(ref bool transaccionActiva)
+        {
+            if (!transaccionActiva)
+            {
+                return;
+            }
+
+            try
+            {
+                _unidadDeTrabajo.Rollback();
+            }
+            finally
+            {
+                transaccionActiva = false;
+            }
+        }
+    }
 }

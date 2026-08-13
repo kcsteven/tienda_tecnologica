@@ -26,7 +26,12 @@
 
       <!-- Acciones del usuario: acceso, favoritos y carrito -->
       <div class="acciones-usuario d-flex align-items-center gap-3">
-        <a routerLink="/acceso" class="link-acceso">ACCESO / REGISTRO</a>
+        @if (sesion(); as usuario) {
+        <span class="identidad-usuario">{{ usuario.nombreCompleto || usuario.nombreUsuario }}</span>
+        <button type="button" class="link-acceso boton-cerrar-sesion" (click)="cerrarSesion()">CERRAR SESIÓN</button>
+        } @else {
+        <a routerLink="/iniciar-sesion" class="link-acceso">ACCESO / REGISTRO</a>
+        }
         <a routerLink="/favoritos" class="icono-accion">♡</a>
         <a routerLink="/carrito" class="icono-accion carrito">
           🛒 ₡{{ carritoService.total() | number:'1.0-0' }}

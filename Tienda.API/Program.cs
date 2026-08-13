@@ -1,94 +1,61 @@
 ﻿using AspNetCore.Localizer.Json.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
+using System.Globalization;
+using System.Text;
 using System.Text.Json.Serialization;
 using Tienda.AccesoDatos.Contexto;
 using Tienda.AccesoDatos.Implementaciones;
+using Tienda.API.Servicios.Usuarios;
 using Tienda.Dominio.DTO;
 using Tienda.Dominio.InterfacesAD;
 using Tienda.Dominio.InterfazLN;
+using Tienda.Dominio.InterfazLN.Usuarios;
 using Tienda.LogicaNegocio.Implementaciones;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DIAGNOSTICO TEMPORAL - borrar despues de resolver el problema
-string rutaDiagnostico = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "diagnostico.txt");
-string cadenaConexion = builder.Configuration.GetConnectionString("DefaultConnection");
-string resultadoDiagnostico =
-    "ENTORNO: " + builder.Environment.EnvironmentName + Environment.NewLine +
-    "CONEXION USADA: " + cadenaConexion + Environment.NewLine;
+// la API revisa la misma configuración JWT que usará el emisor del token
+var jwtClave = builder.Configuration["Jwt:Clave"];
 
-try
+if (string.IsNullOrWhiteSpace(jwtClave) || jwtClave.Length < 32)
 {
-    using (var conexion = new Microsoft.Data.SqlClient.SqlConnection(cadenaConexion))
-    {
-        conexion.Open();
-        using (var cmd = new Microsoft.Data.SqlClient.SqlCommand(
-            "SELECT DB_NAME(), @@SERVERNAME, (SELECT COUNT(*) FROM Subcategoria)", conexion))
-        {
-            using (var reader = cmd.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    resultadoDiagnostico += "BASE DE DATOS REAL (ADO.NET directo): " + reader.GetString(0) + Environment.NewLine;
-                    resultadoDiagnostico += "SERVIDOR REAL (ADO.NET directo): " + reader.GetString(1) + Environment.NewLine;
-                    resultadoDiagnostico += "CONTEO SUBCATEGORIA (ADO.NET directo): " + reader.GetInt32(2) + Environment.NewLine;
-                }
-            }
-        }
-    }
-}
-catch (Exception ex)
-{
-    resultadoDiagnostico += "ERROR AL CONECTAR: " + ex.Message + Environment.NewLine;
+    throw new InvalidOperationException("La configuración Jwt:Clave es obligatoria y debe tener al menos 32 caracteres.");
 }
 
-File.WriteAllText(rutaDiagnostico, resultadoDiagnostico);
-// FIN DIAGNOSTICO TEMPORAL
+var jwtEmisor = string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Emisor"])
+    ? "Tienda.API"
+    : builder.Configuration["Jwt:Emisor"]!;
 
-// DIAGNOSTICO 2 - ImagenProducto
-string rutaDiagnostico2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "diagnostico2.txt");
-string resultado2 = "";
-try
+var jwtAudiencia = string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Audiencia"])
+    ? "Tienda.Angular"
+    : builder.Configuration["Jwt:Audiencia"]!;
+
+var jwtDuracionConfigurada = builder.Configuration["Jwt:DuracionMinutos"];
+
+if (!string.IsNullOrWhiteSpace(jwtDuracionConfigurada) &&
+    (!int.TryParse(jwtDuracionConfigurada, NumberStyles.None, CultureInfo.InvariantCulture, out var jwtDuracionMinutos) ||
+     jwtDuracionMinutos < 5 || jwtDuracionMinutos > 1440))
 {
-    using (var conexion2 = new Microsoft.Data.SqlClient.SqlConnection(cadenaConexion))
-    {
-        conexion2.Open();
-        using (var cmd2 = new Microsoft.Data.SqlClient.SqlCommand(
-            "SELECT COUNT(*) FROM ImagenProducto WHERE ProductoId = 1", conexion2))
-        {
-            var conteo = cmd2.ExecuteScalar();
-            resultado2 += "CONTEO IMAGENPRODUCTO ProductoId=1 (ADO.NET directo): " + conteo + Environment.NewLine;
-        }
-        using (var cmd3 = new Microsoft.Data.SqlClient.SqlCommand(
-            "SELECT DB_NAME()", conexion2))
-        {
-            resultado2 += "BASE DE DATOS de esta segunda conexion: " + cmd3.ExecuteScalar() + Environment.NewLine;
-        }
-    }
+    throw new InvalidOperationException("La configuración Jwt:DuracionMinutos debe estar entre 5 y 1440.");
 }
-catch (Exception ex)
-{
-    resultado2 += "ERROR: " + ex.Message + Environment.NewLine;
-}
-File.WriteAllText(rutaDiagnostico2, resultado2);
-// FIN DIAGNOSTICO 2
 
 // Configuración de logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// Opcional: configurar niveles
+// configurar niveles
 builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Information);
 
-// Add services to the container
-//builder.Services.AddControllers();
 
-IdentityModelEventSource.ShowPII = true;
-//NUEVO
+
+IdentityModelEventSource.ShowPII = false;
+
 builder.Services.AddCors(options =>
 {
 
@@ -107,7 +74,7 @@ builder.Services.AddCors(options =>
 
 });
 
-//NUEVO
+
 builder.Services.AddResponseCaching();
 
 
@@ -130,10 +97,35 @@ builder.Services.AddControllers().AddNewtonsoftJson(options =>
 
 );
 
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtClave)),
+            ValidateIssuer = true,
+            ValidIssuer = jwtEmisor,
+            ValidateAudience = true,
+            ValidAudience = jwtAudiencia,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+
 builder.Services.AddScoped<IUnidadTrabajoEF, UnidadTrabajoEF>();
+builder.Services.AddScoped<IRegistroClienteLN, RegistroClienteLN>();
+builder.Services.AddScoped<IHashContrasena, HashContrasena>();
+builder.Services.AddScoped<ITokenSesion, TokenSesion>();
+builder.Services.AddScoped<IAccesoUsuarioLN, AccesoUsuarioLN>();
+builder.Services.AddScoped<IClienteLN, ClienteLN>();
 builder.Services.AddScoped<ICategoriaLN, CategoriaLN>();
 builder.Services.AddScoped<ISubcategoriaLN, SubcategoriaLN>();
-builder.Services.AddScoped<IClienteLN, ClienteLN>();
 builder.Services.AddScoped<IProductoLN, ProductoLN>();
 builder.Services.AddScoped<IPedidoLN, PedidoLN>();
 builder.Services.AddScoped<IMarcaLN, MarcaLN>();
@@ -172,7 +164,10 @@ var app = builder.Build();
 app.UseCors("cors");
 app.UseStaticFiles();
 
-app.UseAuthentication(); app.UseAuthorization(); if (app.Environment.IsDevelopment())
+app.UseAuthentication();
+app.UseAuthorization();
+
+if (app.Environment.IsDevelopment())
 
 {
 
@@ -183,7 +178,5 @@ app.UseAuthentication(); app.UseAuthorization(); if (app.Environment.IsDevelopme
 }
 
 app.MapControllers();
-
-
 
 app.Run();

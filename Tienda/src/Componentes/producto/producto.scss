@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.producto-admin {
+  min-height: 100%;
+  background: #f5f7fa;
+}
+
+.card {
+  border-radius: 0.75rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #5b8def;
+  box-shadow: 0 0 0 0.2rem rgb(13 110 253 / 15%);
+}
+
+
+.cantidad-inventario {
+  min-width: 7rem;
+}
+
+
+.tabla-productos-scroll {
+  max-height: 34rem;
+  overflow-y: auto;
+}
+
+.tabla-productos-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #fff;
+  box-shadow: inset 0 -1px 0 #dee2e6;
+}
+
+// Presenta la imagen elegida antes de registrar el producto
+.vista-previa-imagen {
+  max-width: 20rem;
+  padding: 0.75rem;
+  background-color: #f8fafc;
+  border: 1px solid #dbe3ec;
+  border-radius: 0.6rem;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 12rem;
+    object-fit: contain;
+    background-color: #ffffff;
+    border-radius: 0.4rem;
+  }
+}

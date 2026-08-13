@@ -37,12 +37,12 @@ export const navItems: INavData[] = [
   },
   {
     name: 'Cliente',
-    url: '/cliente',
+    url: '/admin/cliente',
     iconComponent: { name: 'cil-user' }
   },
   {
     name: 'Producto',
-    url: '/producto',
+    url: '/admin/producto',
     iconComponent: { name: 'cil-cart' }
   },
   {
