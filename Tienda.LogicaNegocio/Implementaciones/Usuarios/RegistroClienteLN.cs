@@ -30,6 +30,7 @@ public class RegistroClienteLN : IRegistroClienteLN
             ["Limón"] = new[] { "Limón", "Pococí", "Siquirres", "Talamanca", "Matina", "Guácimo" }
         };
 
+    //Formato permitido para las cuentas
     private static readonly Regex CorreoGmailRegex = new(
         "^[a-z0-9._+\\-]+@gmail\\.com$",
         RegexOptions.CultureInvariant);
@@ -43,7 +44,7 @@ public class RegistroClienteLN : IRegistroClienteLN
         _hashContrasena = hashContrasena;
         _logger = logger;
     }
-
+    //obtiene los documentos disponibles para el registro
     public async Task<Respuesta<IEnumerable<TTipoDocumento>>> ListarTiposDocumentoAsync()
     {
         var resultado = new Respuesta<IEnumerable<TTipoDocumento>>();
@@ -75,6 +76,7 @@ public class RegistroClienteLN : IRegistroClienteLN
         return resultado;
     }
 
+    //valida los datos en una sola transacción
     public async Task<Respuesta<bool>> RegistrarAsync(TRegistroCliente datos)
     {
         var resultado = new Respuesta<bool> { Data = false };
@@ -263,6 +265,7 @@ public class RegistroClienteLN : IRegistroClienteLN
         return resultado;
     }
 
+    //Valida los datos antes de consultar con la base de datos
     private static bool TryNormalizarDatos(TRegistroCliente datos, out DatosNormalizados normalizados, out string error)
     {
         normalizados = new DatosNormalizados(
@@ -319,7 +322,7 @@ public class RegistroClienteLN : IRegistroClienteLN
             return false;
         }
 
-        // El registro público admite únicamente direcciones Gmail con formato controlado.
+
         if (!CorreoGmailRegex.IsMatch(normalizados.Email))
         {
             error = "Ingrese un correo valido";
@@ -362,7 +365,7 @@ public class RegistroClienteLN : IRegistroClienteLN
             Canton = cantonCanonico
         };
 
-        // La fecha se valida contra la fecha local del servidor, no contra el cliente.
+
         if (!datos.FechaNacimiento.HasValue || !EsMayorDeEdad(datos.FechaNacimiento.Value.Date))
         {
             error = "Necesitas ser mayor de 18 años";
@@ -395,11 +398,12 @@ public class RegistroClienteLN : IRegistroClienteLN
         return true;
     }
 
+    //Aplica reglas segun el documento
     private static bool EsDocumentoValido(string nombreTipoDocumento, string numeroDocumento, out string error)
     {
         var tipoNormalizado = nombreTipoDocumento.Trim().ToUpperInvariant();
 
-        // Las reglas se determinan por el nombre del tipo, no por un identificador fijo.
+        // Las reglas se determinan por el nombre del documento
         switch (tipoNormalizado)
         {
             case "CÉDULA DE IDENTIDAD COSTARRICENSE":
@@ -458,16 +462,20 @@ public class RegistroClienteLN : IRegistroClienteLN
         }
     }
 
+    //Elimina espacios y devuelve seguro para las validaciones
     private static string NormalizarTexto(string? valor) => valor?.Trim() ?? string.Empty;
 
+    //Normaliza campos opcionales y devulve nulo si no tienen informacion
     private static string? NormalizarTextoOpcional(string? valor) => string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
 
+    //Normaliza el correo para comparar con el mismo formato
     private static string NormalizarEmail(string? valor) => valor?.Trim().ToLowerInvariant() ?? string.Empty;
 
+    //compruba que el texto tenga letras y espacios
     private static bool EsTextoSoloLetrasYEspacios(string valor) =>
         valor.All(x => char.IsLetter(x) || x == ' ');
 
-    // Calcula la edad por año, mes y día para permitir el registro al cumplir 18 años.
+    // Calcula la edad por año, mes y día para permitir el registro al cumplir 18 años
     private static bool EsMayorDeEdad(DateTime fechaNacimiento)
     {
         var hoy = DateTime.Today;
@@ -485,12 +493,14 @@ public class RegistroClienteLN : IRegistroClienteLN
         return edad >= 18;
     }
 
+    //verifica los requisitos de seguridad de la contraseña
     private static bool EsContrasenaValida(string? contrasena) =>
         contrasena is { Length: >= 8 and <= 128 } &&
         contrasena.Any(x => x is >= 'A' and <= 'Z') &&
         contrasena.Any(x => x is >= 'a' and <= 'z') &&
         contrasena.Any(x => x is >= '0' and <= '9');
 
+    //Normaliza el documento segun las reglas del documento seleccionado
     private static string NormalizarNumeroDocumento(string nombreTipoDocumento, string numeroDocumento)
     {
         var tipoNormalizado = nombreTipoDocumento.Trim().ToUpperInvariant();
@@ -502,10 +512,12 @@ public class RegistroClienteLN : IRegistroClienteLN
         return numeroDocumento;
     }
 
+    //Impide guardar caracteres de control
     private static bool ContieneCaracterControl(params string?[] valores) => valores
         .Where(x => !string.IsNullOrEmpty(x))
         .Any(x => x!.Any(char.IsControl));
 
+    //Agrupa los datos ya normalizados para usar
     private sealed record DatosNormalizados(
         string NumeroDocumento,
         string Nombre,

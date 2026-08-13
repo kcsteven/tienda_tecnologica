@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Tienda.Dominio.Entidades;
-
+//Datos personales de usuarios, clientes y empleados
 public partial class Persona
 {
     public int PersonaId { get; set; }

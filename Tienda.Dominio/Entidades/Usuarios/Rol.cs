@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace Tienda.Dominio.Entidades;
-
+//Define que nivel de acceso tiene el usuario
 public partial class Rol
 {
     public int RolId { get; set; }

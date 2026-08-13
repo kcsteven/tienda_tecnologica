@@ -1,8 +1,10 @@
+<!--pantalla para registrar un cliente-->
 <section class="registro-cliente py-5">
   <div class="container">
     <div class="registro-card mx-auto">
       <h1>Crear cuenta</h1>
       <p class="text-muted">Completa tus datos para registrarte como cliente.</p>
+
 
       @if (mensajeError) {
       <div class="alert alert-danger" role="alert">{{ mensajeError }}</div>
@@ -54,19 +56,19 @@
               <div class="registro-esqueleto__elemento registro-esqueleto__control"></div>
             </div>
           </div>
-         </div>
-
-        <span class="visually-hidden">Cargando formulario de registro.....</span>
         </div>
 
-        } @else {
+        <span class="visually-hidden">Cargando formulario de registro.....</span>
+      </div>
+
+      } @else {
+      <!-- Documento y datos personales -->
       <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
         <h2>Datos personales</h2>
-        <!-- Documento y datos personales -->
         <div class="row g-3">
           <div class="col-md-5">
             <label for="tipoDocumentoId" class="form-label">Tipo de documento</label>
-
+            <!--Tipo de documento-->
             <select id="tipoDocumentoId"
                     class="form-select"
                     formControlName="tipoDocumentoId">
@@ -162,6 +164,7 @@
           </div>
         </div>
 
+        <!--credenciales usados para iniciar sesión-->
         <h2 class="mt-4">Credenciales</h2>
         <div class="row g-3">
           <div class="col-md-4">
@@ -206,9 +209,9 @@
           </div>
         </div>
 
+        <!--Direccion fisica-->
         <h2 class="mt-4">Dirección</h2>
         <div class="row g-3">
-          <!-- Provincia y cantón -->
           <div class="col-md-4">
             <label for="provincia" class="form-label">Provincia</label>
 
@@ -269,7 +272,7 @@
                       [class.is-invalid]="formulario.controls.senaExacta.hasError('maxlength')"
                       [class.text-danger]="formulario.controls.senaExacta.hasError('maxlength')"></textarea>
 
-            <!-- Mensajes de validación y contador de caracteres -->
+            <!-- Mensajes de validación y contador de caracteres para la direccion fisica -->
             <div class="d-flex justify-content-between align-items-start">
               @if (campoInvalido('senaExacta')) {
               <small class="text-danger">
@@ -287,6 +290,7 @@
           </div>
         </div>
 
+        <!--Envia el formulario y evita solicitudes repetidas mientras procesa-->
         <button type="submit" class="btn btn-primary mt-4" [disabled]="enviando || tiposDocumento.length === 0">
           {{ enviando ? 'Registrando...' : 'Registrarme' }}
         </button>

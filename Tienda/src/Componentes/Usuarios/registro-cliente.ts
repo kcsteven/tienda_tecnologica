@@ -19,10 +19,14 @@ import { RegistroClienteService } from '../../app/services/Usuarios/registro-cli
   templateUrl: './registro-cliente.html',
   styleUrl: './registro-cliente.scss'
 })
+
+
 export class RegistroClienteComponent implements OnInit {
   private fb = inject(FormBuilder);
   private registroClienteService = inject(RegistroClienteService);
   private changeDetectorRef = inject(ChangeDetectorRef);
+
+
 
   tiposDocumento: ITipoDocumento[] = [];
   cargandoTipos = true;
@@ -31,9 +35,12 @@ export class RegistroClienteComponent implements OnInit {
   mensajeExito = '';
   mensajeError = '';
 
-  // Catálogo local para limitar las provincias y sus cantones válidos.
+
+
+  // Catalogo de provincias validas
   readonly provincias = ['San José', 'Alajuela', 'Cartago', 'Heredia', 'Guanacaste', 'Puntarenas', 'Limón'];
 
+  //Catalogo de cantones validos
   readonly cantonesPorProvincia: Record<string, string[]> = {
     'San José': ['San José', 'Escazú', 'Desamparados', 'Puriscal', 'Tarrazú', 'Aserrí', 'Mora', 'Goicoechea', 'Santa Ana', 'Alajuelita', 'Vázquez de Coronado', 'Acosta', 'Tibás', 'Moravia', 'Montes de Oca', 'Turrubares', 'Dota', 'Curridabat', 'Pérez Zeledón', 'León Cortés Castro'],
 
@@ -50,8 +57,10 @@ export class RegistroClienteComponent implements OnInit {
     Limón: ['Limón', 'Pococí', 'Siquirres', 'Talamanca', 'Matina', 'Guácimo']
   };
 
+
   readonly fechaMaximaNacimiento = this.obtenerFechaMaximaNacimiento();
 
+  //Verifica que las contraseñas coincidan
   private contrasenasCoinciden: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
 
     const contrasena = control.get('contrasena')?.value;
@@ -86,26 +95,31 @@ export class RegistroClienteComponent implements OnInit {
     { validators: this.contrasenasCoinciden }
   );
 
+
+  //Carga los tipos de documentos y configura las validaciones
   ngOnInit(): void {
     this.cargarTiposDocumento();
 
-    // Recalcula las reglas cuando cambia el tipo de documento.
+
+
     this.formulario.controls.tipoDocumentoId.valueChanges.subscribe(() => {
 
       this.actualizarValidacionesDocumento();
     });
 
-    // Al cambiar la provincia, limpia el cantón previo y habilita únicamente los correspondientes.
-    this.formulario.controls.provincia.valueChanges.subscribe(() => {
+   this.formulario.controls.provincia.valueChanges.subscribe(() => {
 
       this.actualizarCantones();
     });
   }
 
+
+  //Envia los datos del formulario al Back-End
   registrar(): void {
     this.enviado = true;
     this.mensajeExito = '';
     this.mensajeError = '';
+
 
     if (this.formulario.invalid || this.enviando) {
       this.formulario.markAllAsTouched();
@@ -131,8 +145,11 @@ export class RegistroClienteComponent implements OnInit {
       senaExacta: this.normalizarTexto(valor.senaExacta) || null
     };
 
+
     this.enviando = true;
     this.registroClienteService.registrar(registro).subscribe({
+
+
       next: respuesta => {
         this.enviando = false;
 
@@ -144,10 +161,10 @@ export class RegistroClienteComponent implements OnInit {
           return;
         }
 
-
         this.mensajeError = respuesta.error || 'No fue posible completar el registro.';
         this.changeDetectorRef.markForCheck();
       },
+
       error: error => {
         this.enviando = false;
         this.mensajeError = error?.error?.error || 'No fue posible completar el registro.';
@@ -156,74 +173,98 @@ export class RegistroClienteComponent implements OnInit {
     });
   }
 
+  //Indica si un campo debe mostrar un error
   campoInvalido(nombre: string): boolean {
 
     const campo = this.formulario.get(nombre);
     return !!campo && campo.invalid && (campo.touched || campo.dirty || this.enviado);
   }
 
-  mensajeCampo(nombre: string): string {
 
+  //Muestra los errores en el campo/espacio correspondiente
+  mensajeCampo(nombre: string): string {
     const campo = this.formulario.get(nombre);
+
+
     if (!campo?.errors) {
       return '';
     }
 
     if (campo.errors['required']) {
-
       return 'Este campo es obligatorio.';
     }
+
+
     if (campo.errors['soloLetras']) {
+
       if (nombre === 'nombre') {
         return 'El nombre solo puede contener letras';
+
       }
       if (nombre === 'apellido') {
         return 'El apellido solo puede contener letras';
+
       }
       return 'El distrito solo puede contener letras';
+
     }
+
     if (campo.errors['correoGmail'] || campo.errors['email']) {
       return 'Ingrese un correo valido';
+
     }
     if (campo.errors['documento']) {
       return campo.errors['documento'];
+
     }
     if (campo.errors['mayorEdad']) {
       return 'Necesitas ser mayor de 18 años';
+
     }
     if (campo.errors['provinciaInvalida']) {
       return 'Seleccione una provincia válida.';
+
     }
     if (campo.errors['cantonInvalido']) {
       return 'Seleccione un cantón válido para la provincia.';
+
     }
     if (campo.errors['email']) {
       return 'Ingresa un correo electrónico válido.';
+
     }
     if (campo.errors['minlength']) {
       return `Debe tener al menos ${campo.errors['minlength'].requiredLength} caracteres.`;
+
     }
     if (campo.errors['maxlength']) {
       return `No puede superar ${campo.errors['maxlength'].requiredLength} caracteres.`;
+
     }
     if (campo.errors['pattern']) {
       return 'Debe incluir al menos una mayúscula, una minúscula y un dígito.';
+
     }
     if (campo.errors['documento']) {
       return campo.errors['documento'];
+
     }
     if (campo.errors['contrasenasNoCoinciden']) {
      return 'Las contraseñas no coinciden.';
+
     }
+
 
     return 'Verifica el valor ingresado.';
   }
 
+  //Avisa si las contraseñas no coinciden
   contrasenasNoCoinciden(): boolean {
     return this.formulario.hasError('contrasenasNoCoinciden') &&
       (this.formulario.controls.confirmacionContrasena.touched || this.enviado);
   }
 
+  //carga los tipos de documentos
   private cargarTiposDocumento(): void {
     this.registroClienteService.listarTiposDocumento().subscribe({
       next: respuesta => {
@@ -242,7 +283,7 @@ export class RegistroClienteComponent implements OnInit {
       }
     });
   }
-
+  //Valida los datos del documento
   private validadorDocumento(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const numeroDocumento = String(control.value ?? '');
@@ -283,7 +324,7 @@ export class RegistroClienteComponent implements OnInit {
     };
   }
 
-  // Aplica las validaciones específicas de Cédula, DIMEX o Pasaporte.
+  // cambia las validaciones según se selecciona Cédula, DIMEX o pasaporte
   private actualizarValidacionesDocumento(): void {
     const control = this.formulario.controls.numeroDocumento;
     control.setValidators([
@@ -294,6 +335,7 @@ export class RegistroClienteComponent implements OnInit {
     control.updateValueAndValidity();
   }
 
+  //hace las letras se pongan en mayuscula cuando el documento es pasaporte
   normalizarPasaporte(): void {
     if (this.tipoDocumentoSeleccionado() !== 'PASAPORTE') {
       return;
@@ -306,10 +348,13 @@ export class RegistroClienteComponent implements OnInit {
     }
   }
 
+  //Agarra los cantones disponibles segun la provincia
   get cantonesDisponibles(): readonly string[] {
     return this.cantonesPorProvincia[this.formulario.controls.provincia.value ?? ''] ?? [];
   }
 
+
+  //define la cantidad maxima segun el documento
   get longitudMaximaNumeroDocumento(): number {
     const tipoDocumento = this.tipoDocumentoSeleccionado();
     if (this.esCedula(tipoDocumento)) {
@@ -324,11 +369,13 @@ export class RegistroClienteComponent implements OnInit {
     return 30;
   }
 
+  //Cambia el tipo de entrada según el documento
   get modoEntradaNumeroDocumento(): 'numeric' | 'text' {
     const tipoDocumento = this.tipoDocumentoSeleccionado();
     return this.esCedula(tipoDocumento) || tipoDocumento === 'DIMEX' ? 'numeric' : 'text';
   }
 
+  //proporciona ayuda segun el tipo de documento seleccionado
   get ayudaNumeroDocumento(): string {
     const tipoDocumento = this.tipoDocumentoSeleccionado();
     if (this.esCedula(tipoDocumento)) {
@@ -343,6 +390,7 @@ export class RegistroClienteComponent implements OnInit {
     return '';
   }
 
+  //Actualiza los cantones cuando cambia de provincia
   private actualizarCantones(): void {
     const control = this.formulario.controls.canton;
     control.reset('', { emitEvent: false });
@@ -356,6 +404,8 @@ export class RegistroClienteComponent implements OnInit {
     control.updateValueAndValidity({ emitEvent: false });
   }
 
+
+  //valida que solamente se puedan poner letras
   private validadorSoloLetras(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const valor = String(control.value ?? '');
@@ -363,6 +413,8 @@ export class RegistroClienteComponent implements OnInit {
     };
   }
 
+
+  //Valida que el correo termine en @gmail.com
   private validadorCorreoGmail(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const correo = String(control.value ?? '');
@@ -370,7 +422,7 @@ export class RegistroClienteComponent implements OnInit {
     };
   }
 
-  // Valida la mayoría de edad con fecha local para evitar desfases de UTC.
+  // Valida que sea mayor de edad
   private validadorMayorEdad(): ValidatorFn {
 
 
@@ -389,6 +441,7 @@ export class RegistroClienteComponent implements OnInit {
     };
   }
 
+  //Valida que la provincia sea valida
   private validadorProvincia(): ValidatorFn {
 
     return (control: AbstractControl): ValidationErrors | null => {
@@ -396,7 +449,7 @@ export class RegistroClienteComponent implements OnInit {
       return !provincia || this.provincias.includes(provincia) ? null : { provinciaInvalida: true };
     };
   }
-
+  //Valida que el canton sea valido
   private validadorCanton(): ValidatorFn {
 
     return (control: AbstractControl): ValidationErrors | null => {
@@ -405,6 +458,7 @@ export class RegistroClienteComponent implements OnInit {
     };
   }
 
+  //Verifica que tipo de documento se selecciono
   private tipoDocumentoSeleccionado(): string {
 
     const tipoDocumentoId = this.formulario?.controls.tipoDocumentoId.value;
@@ -429,6 +483,7 @@ export class RegistroClienteComponent implements OnInit {
     return String(valor ?? '').trim();
   }
 
+  //Calcula que sea mayor de edad segun la fecha actual
   private fechaDeMayoriaEdad(): Date {
 
 
@@ -436,6 +491,7 @@ export class RegistroClienteComponent implements OnInit {
     return new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
   }
 
+  //Calcula la fecha maxima en la que pudo nacer el cliente
   private obtenerFechaMaximaNacimiento(): string {
 
 

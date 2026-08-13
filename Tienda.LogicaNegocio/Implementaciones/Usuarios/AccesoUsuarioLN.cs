@@ -31,6 +31,7 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
         _logger = logger;
     }
 
+    //Valida credenciales para generar la sesion
     public async Task<Respuesta<TSesionUsuario>> IniciarSesionAsync(TInicioSesion datos)
     {
         var resultado = new Respuesta<TSesionUsuario>();
@@ -106,6 +107,7 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
         return resultado;
     }
 
+    //Convierte el rol almacenado al valor permitido por la autorización
     private static string? ObtenerRolCanonico(string? rol)
     {
 

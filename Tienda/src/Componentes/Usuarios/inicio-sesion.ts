@@ -25,6 +25,8 @@ export class InicioSesionComponent {
     contrasena: ['', [Validators.required, Validators.maxLength(128)]]
   });
 
+
+  //valida las credenciales, inicia sesion y redirige segun el rol
   iniciarSesion(): void {
     this.enviado = true;
     this.mensajeError = '';
@@ -46,7 +48,6 @@ export class InicioSesionComponent {
           return;
         }
 
-
         this.router.navigate([respuesta.data.rol === 'Empleado' ? '/admin' : '/']);
       },
       error: error => {
@@ -58,11 +59,14 @@ export class InicioSesionComponent {
     });
   }
 
+  //muestra si es campo es invalido
   campoInvalido(nombre: 'email' | 'contrasena'): boolean {
     const campo = this.formulario.controls[nombre];
     return campo.invalid && (campo.touched || this.enviado);
   }
 
+
+  //Muestra el mensaje en el campo especifico
   mensajeCampo(nombre: 'email' | 'contrasena'): string {
     const campo = this.formulario.controls[nombre];
     if (campo.hasError('required')) {

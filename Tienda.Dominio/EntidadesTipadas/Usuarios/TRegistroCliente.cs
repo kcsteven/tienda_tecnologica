@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Tienda.Dominio.EntidadesTipadas;
-
+//contiene los datos recibidos para registra un cliente
 public class TRegistroCliente
 {
     [Range(1, int.MaxValue)]

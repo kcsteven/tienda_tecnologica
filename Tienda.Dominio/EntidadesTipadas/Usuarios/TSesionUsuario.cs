@@ -1,5 +1,5 @@
 namespace Tienda.Dominio.EntidadesTipadas;
-
+//Contiene los datos seguros de la sesion
 public class TSesionUsuario
 {
     public int UsuarioId { get; set; }

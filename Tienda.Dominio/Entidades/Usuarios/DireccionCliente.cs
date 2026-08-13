@@ -1,5 +1,5 @@
 namespace Tienda.Dominio.Entidades;
-
+//representa una direccion registrada por el cliente
 public partial class DireccionCliente
 {
     public int DireccionId { get; set; }

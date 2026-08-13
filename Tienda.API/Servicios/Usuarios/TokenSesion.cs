@@ -20,6 +20,7 @@ public class TokenSesion : ITokenSesion
         _configuracion = configuracion;
     }
 
+    //crea el JWT con la informacion de la sesión
     public TSesionUsuario CrearSesion(
         int usuarioId,
         int personaId,
@@ -34,7 +35,6 @@ public class TokenSesion : ITokenSesion
         var emisionUtc = DateTime.UtcNow;
         var expiraEnUtc = emisionUtc.AddMinutes(ObtenerDuracionMinutos());
 
-        // Claims para identificar al usuario y autorizar su rol sin exponer datos
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, usuarioId.ToString(CultureInfo.InvariantCulture)),
@@ -70,6 +70,7 @@ public class TokenSesion : ITokenSesion
         };
     }
 
+    //Obtiene la clave y verifica que tenga una longitud segura
     private string ObtenerClave()
     {
         var clave = _configuracion["Jwt:Clave"];
@@ -81,6 +82,7 @@ public class TokenSesion : ITokenSesion
         return clave;
     }
 
+    //obtiene y valida la duración configurada para el token
     private int ObtenerDuracionMinutos()
     {
         var valorConfigurado = _configuracion["Jwt:DuracionMinutos"];
@@ -98,6 +100,7 @@ public class TokenSesion : ITokenSesion
         return duracion;
     }
 
+    //Utiliza el valor predeterminado cuando esta vacio
     private string ObtenerTextoConfiguracion(string clave, string valorPredeterminado)
     {
         var valor = _configuracion[clave];

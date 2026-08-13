@@ -1,8 +1,10 @@
+//Fondo de la pantalla
 .registro-cliente {
   background: #f3f4f6;
   min-height: calc(100vh - 100px);
 }
 
+//Tarjeta principal del formulario
 .registro-card {
   background: #fff;
   border-radius: 0.75rem;
@@ -11,6 +13,7 @@
   padding: 2rem;
 }
 
+//Tamaño de los titulos
 h1 {
   font-size: 2rem;
 }
@@ -19,11 +22,13 @@ h2 {
   font-size: 1.2rem;
 }
 
+//distribucion del esuqeleto de carga
 .registro-esqueleto__contenido {
     display: grid;
     gap: 1rem;
 }
 
+//forma la base de los elementos simulados
 .registro-esqueleto__elemento {
     position: relative;
     overflow: hidden;
@@ -31,6 +36,7 @@ h2 {
     border-radius: 0.375rem;
 }
 
+//efecto de brillo
 .registro-esqueleto__elemento::after {
     position: absolute;
     inset: 0;
@@ -44,6 +50,7 @@ h2 {
     animation: movimiento-esqueleto 1.3s infinite;
 }
 
+//Tamaño de titulos, etiquetas y campos simulados
 .registro-esqueleto__titulo {
     width: 13rem;
     height: 1.75rem;
@@ -60,6 +67,7 @@ h2 {
     height: 2.4rem;
 }
 
+//Mueve el brillo de izquierda a derecha
 @keyframes movimiento-esqueleto {
     100% {
         transform: translateX(100%);

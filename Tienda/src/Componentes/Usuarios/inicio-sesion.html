@@ -1,17 +1,22 @@
+<!--contenedor principal del inicio de sesión-->
 <section class="inicio-sesion">
   <div class="container">
     <div class="inicio-sesion__card mx-auto">
+      <!--Encabezado del formulario-->
       <div class="inicio-sesion__encabezado">
         <h1>Iniciar sesión</h1>
         <p class="text-muted mb-0">Ingresa con tus credenciales para continuar.</p>
       </div>
 
+      <!--muestra el error devuelto al intentar iniciar sesion-->
       @if (mensajeError) {
       <div class="alert alert-danger inicio-sesion__alerta" role="alert" aria-live="assertive">{{ mensajeError }}</div>
       }
 
+      <!--formuralio de registro-->
       <form [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
         <div class="mb-3">
+          <!--Correo electronico-->
           <label for="email" class="form-label">Correo electrónico</label>
           <input id="email"
                  type="email"
@@ -27,6 +32,7 @@
           }
         </div>
         <div class="mb-3">
+          <!--Contraseña-->
           <label for="contrasena" class="form-label">Contraseña</label>
           <input id="contrasena"
                  type="password"
@@ -42,6 +48,7 @@
           }
         </div>
 
+        <!--boton de acceso-->
         <button type="submit" class="btn btn-primary w-100 inicio-sesion__boton" [disabled]="enviando" [attr.aria-busy]="enviando">
           @if (enviando) {
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-label="Ingresando"></span>
@@ -52,6 +59,7 @@
         </button>
       </form>
 
+      <!--Enlace para los que no tienen cuenta-->
       <p class="inicio-sesion__registro text-center text-muted mb-0">
         ¿No tienes una cuenta? <a routerLink="/registro">Regístrate</a>
       </p>

@@ -17,6 +17,7 @@ public class RegistroClienteController : ControllerBase
 
     [HttpGet("TiposDocumento")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    //Expone los documentos para el registro
     public async Task<IActionResult> TiposDocumento()
     {
         var resultado = await _registroClienteLN.ListarTiposDocumentoAsync();
@@ -29,6 +30,7 @@ public class RegistroClienteController : ControllerBase
     }
 
     [HttpPost("Registrar")]
+    // //recibe la solucitud y delega el trabajo a la logica de negocio
     public async Task<IActionResult> Registrar([FromBody] TRegistroCliente registro)
     {
         if (!ModelState.IsValid)

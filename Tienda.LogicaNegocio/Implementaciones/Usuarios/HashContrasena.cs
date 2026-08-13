@@ -5,6 +5,7 @@ using Tienda.Dominio.InterfazLN;
 
 namespace Tienda.LogicaNegocio.Implementaciones;
 
+
 public class HashContrasena : IHashContrasena
 {
     private const string Version = "v1";
@@ -13,6 +14,7 @@ public class HashContrasena : IHashContrasena
     private const int TamanoSal = 16;
     private const int TamanoHash = 32;
 
+    //crea una sal aleatoria y crea un hash para almacenar la contraseña
     public string CrearHash(string contrasena)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contrasena);
@@ -34,6 +36,7 @@ public class HashContrasena : IHashContrasena
             Convert.ToBase64String(hash));
     }
 
+    //Compara el hash con el valor almacenado
     public bool VerificarHash(string contrasena, string hashAlmacenado)
     {
         if (string.IsNullOrWhiteSpace(contrasena) || string.IsNullOrWhiteSpace(hashAlmacenado))
@@ -43,7 +46,6 @@ public class HashContrasena : IHashContrasena
 
         try
         {
-            // El formato persistido conserva versión, algoritmo, iteraciones, sal y hash.
             var partes = hashAlmacenado.Split('$');
             if (partes.Length != 5 ||
                 !string.Equals(partes[0], Version, StringComparison.Ordinal) ||
@@ -68,7 +70,6 @@ public class HashContrasena : IHashContrasena
                 HashAlgorithmName.SHA256,
                 TamanoHash);
 
-            // Evita revelar diferencias de tiempo entre hashes coincidentes y no coincidentes.
             return CryptographicOperations.FixedTimeEquals(hashCalculado, hashEsperado);
         }
         catch (FormatException)

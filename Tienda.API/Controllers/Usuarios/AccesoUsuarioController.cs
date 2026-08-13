@@ -18,6 +18,7 @@ public class AccesoUsuarioController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("IniciarSesion")]
+    //Recibe las credenciales y devuelve la sesion cuando sean validos
     public async Task<IActionResult> IniciarSesion([FromBody] TInicioSesion datos)
     {
         if (!ModelState.IsValid)

@@ -16,6 +16,8 @@ export class AccesoUsuarioService {
 
   readonly sesion = this.sesionSignal.asReadonly();
 
+
+  //Envia las credenciales y guarda la sesion
   iniciarSesion(datos: IInicioSesion): Observable<IRespuestaApi<ISesionUsuario>> {
 
 
@@ -36,17 +38,23 @@ export class AccesoUsuarioService {
     );
   }
 
+
+  //guarda la sesion en sessionstorage y actualiza el estado
   guardarSesion(sesion: ISesionUsuario): void {
 
     sessionStorage.setItem(claveSesion, JSON.stringify(sesion));
     this.sesionSignal.set(sesion);
   }
 
+
+  //Devuelve la sesion que se esta utilizando
   obtenerSesion(): ISesionUsuario | null {
 
     return this.sesionSignal();
   }
 
+
+  //Elimina los datos locales y finaliza la sesion
   cerrarSesion(): void {
 
     sessionStorage.clear();
@@ -54,6 +62,8 @@ export class AccesoUsuarioService {
 
   }
 
+
+  //Recupera una sesion almacenada
   private leerSesion(): ISesionUsuario | null {
 
     const sesionAlmacenada = sessionStorage.getItem(claveSesion);

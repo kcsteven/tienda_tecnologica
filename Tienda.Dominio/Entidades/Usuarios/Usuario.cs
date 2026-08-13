@@ -1,7 +1,7 @@
 using System;
 
 namespace Tienda.Dominio.Entidades;
-
+//Muestra credenciales, estado y el rol usado para ingresar al sistema
 public partial class Usuario
 {
     public int UsuarioId { get; set; }

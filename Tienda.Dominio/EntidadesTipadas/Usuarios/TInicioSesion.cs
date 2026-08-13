@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Tienda.Dominio.EntidadesTipadas;
-
+//contiene el correo y la contraseña para iniciar sesion
 public class TInicioSesion
 {
     [Required(ErrorMessage = "El correo electrónico es obligatorio.")]

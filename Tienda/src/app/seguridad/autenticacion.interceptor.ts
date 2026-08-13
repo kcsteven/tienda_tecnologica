@@ -2,7 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { environment } from '../../environments/environment.development';
 import { AccesoUsuarioService } from '../services/Usuarios/acceso-usuario.service';
-
+//Agrega el token bearer solamente a las solicitudes dirigidas a la API
 const apiBaseUrl = environment.baseUrl.replace(/\/$/, '');
 
 export const autenticacionInterceptor: HttpInterceptorFn = (request, next) => {
