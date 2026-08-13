@@ -41,6 +41,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         private RepositorioAD<Marca> _TMarca;
         private RepositorioAD<Proveedor> _TProveedor;
         private RepositorioAD<Cliente> _TCliente;
+        private IClienteAdministracionAD? _clienteAdministracionAD;
         private RepositorioAD<Persona> _TPersona;
         private RepositorioAD<TipoDocumento> _TTipoDocumento;
         private RepositorioAD<Rol> _TRol;
@@ -96,6 +97,15 @@ namespace Tienda.AccesoDatos.Implementaciones
                 if (this._TCliente == null)
                     this._TCliente = new RepositorioAD<Cliente>(_Contexto);
                 return _TCliente;
+            }
+        }
+
+        public IClienteAdministracionAD ClienteAdministracion
+        {
+            get
+            {
+                _clienteAdministracionAD ??= new ClienteAdministracionAD(_Contexto);
+                return _clienteAdministracionAD;
             }
         }
 
