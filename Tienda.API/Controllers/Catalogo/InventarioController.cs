@@ -52,7 +52,7 @@ namespace Tienda.API.Controllers
         }
 
         [HttpPut("Modificar")]
-        public async Task<IActionResult> Modificar([FromBody] TInventario inventario)
+        public async Task<IActionResult> Modificar([FromBody] TAjustarInventario inventario)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var resultado = await _inventarioLN.ModificarAsync(inventario);

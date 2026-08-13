@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
+using Tienda.Utilidades;
 
 namespace Tienda.API.Controllers
 {
@@ -44,6 +45,18 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
+        [HttpGet("ListarAdministracion")]
+        [Authorize(Roles = "Empleado")]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> ListarAdministracion()
+        {
+            var resultado = await _productoLN.ListarAdministracionAsync();
+            if (!string.IsNullOrEmpty(resultado.Error))
+                return BadRequest(resultado);
+
+            return Ok(resultado);
+        }
+
         [HttpGet("Buscar")]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Buscar(string nombreProducto)
@@ -62,7 +75,7 @@ namespace Tienda.API.Controllers
 
         [HttpPost("Insertar")]
         [Authorize(Roles = "Empleado")]
-        public async Task<IActionResult> Insertar([FromBody] TProducto producto)
+        public async Task<IActionResult> Insertar([FromBody] TCrearProductoConInventario producto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -77,7 +90,7 @@ namespace Tienda.API.Controllers
 
         [HttpPut("Modificar")]
         [Authorize(Roles = "Empleado")]
-        public async Task<IActionResult> Modificar([FromBody] TProducto producto)
+        public async Task<IActionResult> Modificar([FromBody] TActualizarProducto producto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -90,20 +103,28 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
-        [HttpDelete("Eliminar/{id}")]
+        [HttpPut("CambiarEstado")]
         [Authorize(Roles = "Empleado")]
-        public async Task<IActionResult> Eliminar(int id)
+        public async Task<IActionResult> CambiarEstado([FromBody] TCambiarEstadoProducto producto)
         {
-            var resultado = await _productoLN.EliminarAsync(
-                new TProducto
-                {
-                    ProductoId = id
-                });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
+            var resultado = await _productoLN.CambiarEstadoAsync(producto);
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
 
             return Ok(resultado);
+        }
+
+        [HttpDelete("Eliminar/{id}")]
+        [Authorize(Roles = "Empleado")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            return Conflict(new Respuesta<bool>
+            {
+                Error = "No se permite eliminar productos físicamente. Utilice la desactivación."
+            });
         }
     }
 }

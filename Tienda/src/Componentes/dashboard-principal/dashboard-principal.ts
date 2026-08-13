@@ -42,7 +42,7 @@ export const navItems: INavData[] = [
   },
   {
     name: 'Producto',
-    url: '/producto',
+    url: '/admin/producto',
     iconComponent: { name: 'cil-cart' }
   },
   {

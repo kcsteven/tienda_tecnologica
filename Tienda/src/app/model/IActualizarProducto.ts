@@ -1,11 +1,10 @@
-export interface IProducto {
+export interface IActualizarProducto {
   productoId: number;
   nombre: string;
-  descripcion?: string;
+  descripcion: string | null;
   precio: number;
-  costoCompra?: number;
+  costoCompra: number | null;
   subcategoriaId: number;
   marcaId: number;
   proveedorId: number;
-  activo: boolean;
 }

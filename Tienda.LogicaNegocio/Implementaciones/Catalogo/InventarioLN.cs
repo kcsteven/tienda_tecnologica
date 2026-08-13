@@ -28,6 +28,12 @@ namespace Tienda.LogicaNegocio.Implementaciones
             var resultado = new Respuesta<TInventario>();
             try
             {
+                if (datos.Cantidad < 0)
+                {
+                    resultado.Error = "La cantidad de inventario no puede ser negativa.";
+                    return resultado;
+                }
+
                 var producto = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(x => x.ProductoId == datos.ProductoId);
                 if (producto.Data == null)
                 {
@@ -56,11 +62,17 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
-        public async Task<Respuesta<TInventario>> ModificarAsync(TInventario datos)
+        public async Task<Respuesta<TInventario>> ModificarAsync(TAjustarInventario datos)
         {
             var resultado = new Respuesta<TInventario>();
             try
             {
+                if (datos.InventarioId <= 0 || datos.Cantidad < 0)
+                {
+                    resultado.Error = "El ajuste de inventario no es válido.";
+                    return resultado;
+                }
+
                 var actual = await _unidadDeTrabajo.TInventario.ObtenerEntidadAsync(x => x.InventarioId == datos.InventarioId);
                 if (actual.Data == null)
                 {
@@ -68,9 +80,16 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     return resultado;
                 }
 
-                _mapper.Map(datos, actual.Data);
+                // El ajuste administrativo modifica solamente la cantidad existente.
+                actual.Data.Cantidad = datos.Cantidad;
 
                 var respuesta = await _unidadDeTrabajo.TInventario.ModificarAsync(actual.Data);
+                if (!string.IsNullOrEmpty(respuesta.Error) || respuesta.Data == null)
+                {
+                    resultado.Error = "No fue posible actualizar el inventario.";
+                    return resultado;
+                }
+
                 _unidadDeTrabajo.Completar();
 
                 resultado.Data = _mapper.Map<TInventario>(respuesta.Data);
@@ -78,7 +97,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al modificar InventarioId {InventarioId}", datos.InventarioId);
-                resultado.Error = ex.Message;
+                resultado.Error = "No fue posible actualizar el inventario.";
             }
             return resultado;
         }
