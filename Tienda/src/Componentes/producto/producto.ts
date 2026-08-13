@@ -1,6 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  inject,
+  viewChild
+} from '@angular/core'
+import { FormBuilder,
+  ReactiveFormsModule,
+Validators
+} from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { IBodega } from '../../app/model/IBodega';
 import { ICategoria } from '../../app/model/ICategoria';
@@ -16,6 +26,8 @@ import { MarcaService } from '../../app/services/marca';
 import { ProductoService } from '../../app/services/producto';
 import { ProveedorService } from '../../app/services/proveedor';
 import { SubcategoriaService } from '../../app/services/subcategoria';
+import { ImagenProductoService } from '../../app/services/imagen-producto';
+
 
 @Component({
   selector: 'app-producto',
@@ -25,6 +37,7 @@ import { SubcategoriaService } from '../../app/services/subcategoria';
   styleUrl: './producto.scss',
 })
 export class ProductoComponent implements OnInit {
+
   private readonly formBuilder = inject(FormBuilder);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly productoService = inject(ProductoService);
@@ -34,6 +47,11 @@ export class ProductoComponent implements OnInit {
   private readonly proveedorService = inject(ProveedorService);
   private readonly bodegaService = inject(BodegaService);
   private readonly categoriaService = inject(CategoriaService);
+  private readonly imagenProductoservice = inject(ImagenProductoService);
+
+  @ViewChild('entradaImagen')
+  private entradaImagen?: ElementRef<HTMLInputElement>;
+
 
   productos: IProducto[] = [];
   inventarios: IInventario[] = [];
@@ -50,6 +68,8 @@ export class ProductoComponent implements OnInit {
   editando = false;
   mensajeError = '';
   mensajeExito = '';
+  imagenSeleccionada: File | null=null;
+  vistaPreviaImagen: string | null = null;
 
   formulario = this.formBuilder.group({
     productoId: [0],
@@ -79,7 +99,7 @@ export class ProductoComponent implements OnInit {
     this.cargando = true;
     this.mensajeError = '';
 
-    // Los catálogos se cargan una sola vez y se reutilizan en el formulario.
+    //Los catálogos se cargan una sola vez y se reutilizan en el formulario
     forkJoin({
       productos: this.productoService.listarAdministracion(),
       inventarios: this.inventarioService.listar(),
@@ -118,65 +138,164 @@ export class ProductoComponent implements OnInit {
     });
   }
 
-  guardar(): void {
+  seleccionarImagen(evento: Event): void {
+    const entrada = evento.target as HTMLInputElement;
+    const archivo = entrada.files?.[0] ?? null;
+
     this.mensajeError = '';
-    this.mensajeExito = '';
-    this.formulario.markAllAsTouched();
 
-    if (this.formulario.invalid || this.procesando) {
-      return;
-    }
 
-    const valor = this.formulario.getRawValue();
-    this.procesando = true;
+   if(!archivo) {
 
-    const solicitud = this.editando
-      ? this.productoService.modificar({
-          productoId: Number(valor.productoId),
-          nombre: valor.nombre?.trim() ?? '',
-          descripcion: valor.descripcion?.trim() || null,
-          precio: Number(valor.precio),
-          costoCompra: valor.costoCompra === null ? null : Number(valor.costoCompra),
-          subcategoriaId: Number(valor.subcategoriaId),
-          marcaId: Number(valor.marcaId),
-          proveedorId: Number(valor.proveedorId),
-        })
-      : this.productoService.insertar({
-          nombre: valor.nombre?.trim() ?? '',
-          descripcion: valor.descripcion?.trim() || null,
-          precio: Number(valor.precio),
-          costoCompra: valor.costoCompra === null ? null : Number(valor.costoCompra),
-          subcategoriaId: Number(valor.subcategoriaId),
-          marcaId: Number(valor.marcaId),
-          proveedorId: Number(valor.proveedorId),
-          bodegaId: Number(valor.bodegaId),
-          cantidadInicial: Number(valor.cantidadInicial),
-        });
+     this.limpiarImagenSeleccionada();
+     return;
+   }
 
-    solicitud.subscribe({
-      next: (respuesta) => {
-        if (respuesta?.error) {
-          this.mensajeError = respuesta.error;
-          this.procesando = false;
-          this.changeDetectorRef.markForCheck();
-          return;
-        }
+   const tipospermitidos = [
 
-        this.mensajeExito = this.editando
-          ? 'Producto actualizado correctamente.'
-          : 'Producto e inventario inicial registrados correctamente.';
-        this.prepararCreacion();
-        this.procesando = false;
-        this.changeDetectorRef.markForCheck();
-        this.cargarProductosEInventario();
-      },
-      error: (error) => {
-        this.mensajeError = error?.error?.error ?? 'No fue posible guardar el producto.';
-        this.procesando = false;
-        this.changeDetectorRef.markForCheck();
-      },
-    });
+     'image/jpeg',
+     'image/png',
+     'image/webp'
+
+   ]
+
+   if (!tipospermitidos.includes(archivo.type)) {
+
+     this.limpiarImagenSeleccionada();
+     this.mensajeError = 'Solo se permiten imagenes JPG, JPEG, PNG O WEBP';
+     return;
+
+
+   }
+
+   if (archivo.size > 5 * 1024 * 1024) {
+
+     this.limpiarImagenSeleccionada();
+     this.mensajeError = 'La imagen no puede superar los 5 mb';
+
+     return;
+
+   }
+
+
+   this.imagenSeleccionada = archivo;
+
+   const lector = new FileReader();
+
+   lector.onload = () => {
+
+     this.vistaPreviaImagen = typeof lector.result === 'string'
+     ? lector.result : null;
+
+     this.changeDetectorRef.markForCheck();
+   };
+
+   lector.onerror = () => {
+
+     this.limpiarImagenSeleccionada();
+     this.mensajeError = 'No fue posible mostrar la vista previa de la imagen';
+     this.changeDetectorRef.markForCheck();
+
+   };
+
+   lector.readAsDataURL(archivo);
+
   }
+
+ guardar(): void {
+  this.mensajeError = '';
+  this.mensajeExito = '';
+  this.formulario.markAllAsTouched();
+
+  if (this.formulario.invalid || this.procesando) {
+    return;
+  }
+
+  const valor = this.formulario.getRawValue();
+  const eraEdicion = this.editando;
+  const imagenPendiente = this.imagenSeleccionada;
+
+  this.procesando = true;
+
+  const solicitud = eraEdicion
+    ? this.productoService.modificar({
+        productoId: Number(valor.productoId),
+        nombre: valor.nombre?.trim() ?? '',
+        descripcion: valor.descripcion?.trim() || null,
+        precio: Number(valor.precio),
+        costoCompra:
+          valor.costoCompra === null
+            ? null
+            : Number(valor.costoCompra),
+        subcategoriaId: Number(valor.subcategoriaId),
+        marcaId: Number(valor.marcaId),
+        proveedorId: Number(valor.proveedorId),
+      })
+    : this.productoService.insertar({
+        nombre: valor.nombre?.trim() ?? '',
+        descripcion: valor.descripcion?.trim() || null,
+        precio: Number(valor.precio),
+        costoCompra:
+          valor.costoCompra === null
+            ? null
+            : Number(valor.costoCompra),
+        subcategoriaId: Number(valor.subcategoriaId),
+        marcaId: Number(valor.marcaId),
+        proveedorId: Number(valor.proveedorId),
+        bodegaId: Number(valor.bodegaId),
+        cantidadInicial: Number(valor.cantidadInicial),
+      });
+
+  solicitud.subscribe({
+    next: (respuesta) => {
+      if (respuesta?.error) {
+        this.mensajeError = respuesta.error;
+        this.procesando = false;
+        this.changeDetectorRef.markForCheck();
+        return;
+      }
+
+      if (eraEdicion) {
+        this.finalizarGuardado(
+          'Producto actualizado correctamente.'
+        );
+        return;
+      }
+
+      if (!imagenPendiente) {
+        this.finalizarGuardado(
+          'Producto e inventario inicial registrados correctamente.'
+        );
+        return;
+      }
+
+      const productoId =
+        Number(respuesta?.data?.productoId);
+
+      if (!Number.isInteger(productoId) ||
+          productoId <= 0) {
+        this.finalizarGuardado(
+          'Producto e inventario inicial registrados correctamente.',
+          'El producto se registró, pero no fue posible identificarlo para subir la imagen.'
+        );
+        return;
+      }
+
+      this.subirImagenProducto(
+        productoId,
+        imagenPendiente
+      );
+    },
+    error: (error) => {
+      this.mensajeError =
+        error?.error?.error ??
+        'No fue posible guardar el producto.';
+
+      this.procesando = false;
+      this.changeDetectorRef.markForCheck();
+    },
+  });
+}
 
   editar(producto: IProducto): void {
     if (this.procesando) {
@@ -185,8 +304,12 @@ export class ProductoComponent implements OnInit {
 
     this.mensajeError = '';
     this.mensajeExito = '';
+    this.limpiarImagenSeleccionada();
     this.editando = true;
+
     this.formulario.patchValue({
+
+
       productoId: producto.productoId,
       nombre: producto.nombre,
       descripcion: producto.descripcion ?? '',
@@ -195,7 +318,10 @@ export class ProductoComponent implements OnInit {
       subcategoriaId: producto.subcategoriaId,
       marcaId: producto.marcaId,
       proveedorId: producto.proveedorId,
+
     });
+
+
     this.formulario.controls.bodegaId.disable({ emitEvent: false });
     this.formulario.controls.cantidadInicial.disable({ emitEvent: false });
     this.formulario.markAsPristine();
@@ -399,7 +525,66 @@ export class ProductoComponent implements OnInit {
     );
   }
 
+  //Sube la imagen después de crear correctamente el producto
+private subirImagenProducto(
+  productoId: number,
+  archivo: File
+): void {
+  this.imagenProductoservice
+    .subir(productoId, archivo)
+    .subscribe({
+      next: (respuesta) => {
+        if (respuesta?.error) {
+          this.finalizarGuardado(
+            'Producto e inventario inicial registrados correctamente.',
+            `La imagen no se guardó: ${respuesta.error}`
+          );
+          return;
+        }
+
+        this.finalizarGuardado(
+          'Producto, inventario e imagen registrados correctamente.'
+        );
+      },
+      error: (error) => {
+        const detalle = error?.error?.error;
+
+        this.finalizarGuardado(
+          'Producto e inventario inicial registrados correctamente.',
+          detalle
+            ? `La imagen no se guardó: ${detalle}`
+            : 'El producto se registró, pero no fue posible guardar la imagen.'
+        );
+      },
+    });
+}
+
+//Finaliza el proceso y actualiza el listado
+private finalizarGuardado(
+  mensajeExito: string,
+  mensajeError = ''
+): void {
+  this.mensajeExito = mensajeExito;
+  this.mensajeError = mensajeError;
+  this.prepararCreacion();
+  this.procesando = false;
+  this.changeDetectorRef.markForCheck();
+  this.cargarProductosEInventario();
+}
+
+//Elimina la selección y la vista previa actual
+private limpiarImagenSeleccionada(): void {
+  this.imagenSeleccionada = null;
+  this.vistaPreviaImagen = null;
+
+  if (this.entradaImagen) {
+    this.entradaImagen.nativeElement.value = '';
+  }
+}
+
   private prepararCreacion(): void {
+
+    this.limpiarImagenSeleccionada();
     this.editando = false;
     this.formulario.controls.bodegaId.enable({ emitEvent: false });
     this.formulario.controls.cantidadInicial.enable({ emitEvent: false });
