@@ -5,6 +5,9 @@ import { CarritoService } from '../../../app/services/carrito';
 import { MetodoPagoService } from '../../../app/services/metodo-pago';
 import { PagoService } from '../../../app/services/pago';
 import { IMetodoPago } from '../../../app/model/IMetodoPago';
+import { IPedidoCrear } from '../../../app/model/IPedido';
+import { PedidoService } from '../../../app/services/pedido';
+import { AccesoUsuarioService } from '../../../app/services/Usuarios/acceso-usuario.service';
 
 @Component({
   selector: 'app-tienda-carrito',
@@ -19,7 +22,12 @@ export class TiendaCarritoComponent implements OnInit {
 
   private metodoPagoService = inject(MetodoPagoService);
   private pagoService = inject(PagoService);
+  private pedidoService = inject(PedidoService);
   private router = inject(Router);
+  private accesoUsuarioService = inject(AccesoUsuarioService);
+
+  clienteId: number | null = null;
+  direccionId: number | null = null;
 
   metodosPago: IMetodoPago[] = [];
   metodoPagoSeleccionado: number | null = null;
@@ -37,6 +45,7 @@ export class TiendaCarritoComponent implements OnInit {
   ngOnInit(): void {
     this.calcularTotales();
     this.cargarMetodosPago();
+    this.clienteId = this.accesoUsuarioService.obtenerSesion()?.clienteId ?? null;
   }
 
   calcularTotales(): void {
@@ -87,24 +96,54 @@ export class TiendaCarritoComponent implements OnInit {
   }
 
   finalizarCompra(): void {
-    this.mensajeError = null;
-    this.mensajeExito = null;
-
     if (this.carritoService.items().length === 0) {
-      this.mensajeError = 'El carrito se encuentra vacío.';
+      alert('El carrito está vacío.');
       return;
     }
 
     if (!this.metodoPagoSeleccionado) {
-      this.mensajeError = 'Por favor, selecciona un método de pago.';
+      alert('Selecciona un método de pago.');
       return;
     }
 
-    /*
-     * Aquí conectaremos la creación del Pedido y posterior Pago
-     */
+    if (!this.clienteId) {
+      alert('No se pudo identificar tu cuenta de cliente. Cierra sesión y vuelve a iniciar sesión.');
+      return;
+    }
+
     this.procesandoPago = true;
 
-    // Lógica para enviar la compra al backend...
+    // Armamos la lista de detalles
+    const detalles = this.carritoService.items().map(item => ({
+      productoId: item.productoId,
+      cantidad: item.cantidad
+    }));
+
+    // Objeto DTO que espera el endpoint /CrearCompra
+    const pedido: IPedidoCrear = {
+      clienteId: this.clienteId,
+      direccionId: this.direccionId ?? null,
+      metodoPagoId: this.metodoPagoSeleccionado,
+      detalles: detalles
+    };
+
+    // UNA SOLA petición que procesa Pedido + Detalle + Pago en el Backend
+    this.pedidoService.crearCompra(pedido).subscribe({
+      next: (respuesta: any) => {
+        this.carritoService.vaciar();
+        this.procesandoPago = false;
+
+        const compra = respuesta.data;
+        alert(`¡Compra realizada con éxito! Pedido #${compra.pedidoId}`);
+
+        this.router.navigate(['/pedido', compra.pedidoId]);
+      },
+      error: (error: any) => {
+        console.error('Error procesando compra:', error);
+        this.procesandoPago = false;
+        const mensaje = error?.error?.error ?? 'No fue posible procesar la compra.';
+        alert(mensaje);
+      }
+    });
   }
 }

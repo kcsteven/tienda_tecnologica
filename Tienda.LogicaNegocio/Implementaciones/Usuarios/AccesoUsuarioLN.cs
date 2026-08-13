@@ -90,13 +90,38 @@ public class AccesoUsuarioLN : IAccesoUsuarioLN
                     .Where(nombre => !string.IsNullOrWhiteSpace(nombre))
                     .Select(nombre => nombre.Trim()));
 
+            // Si el rol es Cliente, resolvemos su ClienteId real para incluirlo en la sesión
+            int? clienteId = null;
+            if (rol == "Cliente")
+            {
+                var respuestaCliente = await _unidadDeTrabajo.TCliente.ObtenerEntidadAsync(
+                    cliente => cliente.PersonaId == usuario.PersonaId);
+
+                if (!string.IsNullOrEmpty(respuestaCliente.Error))
+                {
+                    _logger.LogError("Error técnico al buscar el cliente asociado al usuario para inicio de sesión");
+                    resultado.Error = "No fue posible iniciar sesión";
+                    return resultado;
+                }
+
+                if (respuestaCliente.Data is null)
+                {
+                    _logger.LogError("El usuario con rol Cliente no tiene un registro de Cliente asociado");
+                    resultado.Error = "No fue posible iniciar sesión";
+                    return resultado;
+                }
+
+                clienteId = respuestaCliente.Data.ClienteId;
+            }
+
             resultado.Data = _tokenSesion.CrearSesion(
                 usuario.UsuarioId,
                 usuario.PersonaId,
                 usuario.NombreUsuario.Trim(),
                 nombreCompleto,
                 emailNormalizado,
-                rol);
+                rol,
+                clienteId);
         }
         catch (Exception ex)
         {

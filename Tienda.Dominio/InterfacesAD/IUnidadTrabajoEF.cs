@@ -42,6 +42,7 @@ namespace Tienda.Dominio.InterfacesAD
         IRepositorioAD<Resena> TResena { get; }
         IRepositorioAD<ListaDeseos> TListaDeseos { get; }
         IRepositorioAD<Devolucion> TDevolucion { get; }
+        IRepositorioAD<EstadoPedido> TEstadoPedido { get; }
         int Completar();
         void CompletarTran();
         void EmpezarTransaccion();

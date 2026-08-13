@@ -1,86 +1,74 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
+using Tienda.API.Servicios.Correo;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
 
 namespace Tienda.API.Controllers
 {
-    // Define la ruta base del controlador: api/Pedido
     [Route("api/[controller]")]
-    // Indica que es un controlador de API REST (habilita validación automática del modelo, inferencia de binding, etc.)
     [ApiController]
     public class PedidoController : ControllerBase
     {
-        // Dependencia hacia la capa de lógica de negocio (LN) de Pedido, inyectada por constructor
-        private IPedidoLN _pedidoLN { get; }
+        private readonly IPedidoLN _pedidoLN;
+        private readonly ICorreoService _correoService;
 
-        // Constructor: recibe la implementación de IPedidoLN mediante inyección de dependencias
-        public PedidoController(IPedidoLN pedidoLN)
+        public PedidoController(IPedidoLN pedidoLN, ICorreoService correoService)
         {
             _pedidoLN = pedidoLN;
+            _correoService = correoService;
         }
 
-        // GET: api/Pedido/Listar
-        // Devuelve todos los pedidos existentes
         [HttpGet("Listar")]
-        // Evita que la respuesta se almacene en caché (ni en cliente ni en servidor)
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Listar()
         {
-            // Llama a la capa de negocio para obtener el listado completo de pedidos
             var resultado = await _pedidoLN.ListarAsync();
-            // Si el resultado trae un mensaje de error, responde con 400 Bad Request
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
-            // Caso contrario, responde 200 OK con los datos
+
             return Ok(resultado);
         }
 
-        // GET: api/Pedido/Obtener/{id}
-        // Obtiene un pedido puntual según su Id
         [HttpGet("Obtener/{id}")]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Obtener(int id)
         {
-            // Se construye un objeto TPedido solo con el Id para buscarlo en la capa de negocio
             var resultado = await _pedidoLN.ObtenerAsync(
                 new TPedido
                 {
                     PedidoId = id
                 });
-            // Si hay error (por ejemplo, no se encontró), responde 404 Not Found
+
             if (!string.IsNullOrEmpty(resultado.Error))
                 return NotFound(resultado);
+
             return Ok(resultado);
         }
 
-        // GET: api/Pedido/Buscar?nombrePedido=...
-        // Busca pedidos cuyo nombre coincida (parcial o total) con el parámetro recibido
         [HttpGet("Buscar")]
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> Buscar(string nombrePedido)
         {
-            // Construye el filtro de búsqueda con el nombre de pedido recibido por query string
             var resultado = await _pedidoLN.BuscarAsync(
                 new TPedido
                 {
                     NombrePedido = nombrePedido
                 });
+
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
+
             return Ok(resultado);
         }
 
-        // POST: api/Pedido/Insertar
-        // Crea un nuevo pedido a partir de los datos enviados en el cuerpo de la petición
         [HttpPost("Insertar")]
         public async Task<IActionResult> Insertar([FromBody] TPedido pedido)
         {
-            // Valida el modelo recibido según las anotaciones de datos (DataAnnotations) definidas en TPedido
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Envía la entidad a la capa de negocio para su inserción
             var resultado = await _pedidoLN.InsertarAsync(pedido);
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
@@ -88,16 +76,12 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
-        // PUT: api/Pedido/Modificar
-        // Actualiza un pedido existente con los datos enviados en el cuerpo de la petición
         [HttpPut("Modificar")]
         public async Task<IActionResult> Modificar([FromBody] TPedido pedido)
         {
-            // Valida el modelo antes de procesar la modificación
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Envía la entidad a la capa de negocio para actualizarla
             var resultado = await _pedidoLN.ModificarAsync(pedido);
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
@@ -105,12 +89,9 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
-        // DELETE: api/Pedido/Eliminar/{id}
-        // Elimina un pedido existente según su Id
         [HttpDelete("Eliminar/{id}")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            // Se construye un objeto TPedido solo con el Id para indicar cuál eliminar
             var resultado = await _pedidoLN.EliminarAsync(
                 new TPedido
                 {
@@ -123,5 +104,58 @@ namespace Tienda.API.Controllers
             return Ok(resultado);
         }
 
+        // POST: api/Pedido/CrearCompra
+        // POST: api/Pedido/CrearCompra
+        [HttpPost("CrearCompra")]
+        public async Task<IActionResult> CrearCompra([FromBody] TPedidoCrear datos)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // 1. Le pasamos 'datos' (que es de tipo TPedidoCrear) directamente al método de la capa de negocio
+            var resultado = await _pedidoLN.CrearCompraAsync(datos);
+
+            if (!string.IsNullOrEmpty(resultado.Error))
+                return BadRequest(resultado);
+
+            // 2. Intentar enviar la factura por correo de manera segura
+            try
+            {
+                var pedidoGuardado = resultado.Data;
+
+                // Intentamos obtener el correo y el nombre desde las propiedades de 'datos'
+                // Usa reflexiones para leer Correo/Nombre dinámicamente si no están explícitos
+                string correoCliente = datos.GetType().GetProperty("Correo")?.GetValue(datos)?.ToString()
+                                    ?? datos.GetType().GetProperty("CorreoCliente")?.GetValue(datos)?.ToString()
+                                    ?? "";
+
+                string nombreCliente = datos.GetType().GetProperty("Nombre")?.GetValue(datos)?.ToString()
+                                    ?? datos.GetType().GetProperty("NombreCliente")?.GetValue(datos)?.ToString()
+                                    ?? "Cliente";
+
+                if (pedidoGuardado != null && !string.IsNullOrEmpty(correoCliente))
+                {
+                    decimal total = pedidoGuardado.Total ?? 0m;
+                    decimal subtotal = Math.Round(total / 1.13m, 2);
+                    decimal iva = Math.Round(total - subtotal, 2);
+
+                    await _correoService.EnviarFacturaAsync(
+                        correoCliente,
+                        nombreCliente,
+                        pedidoGuardado.PedidoId,
+                        subtotal,
+                        iva,
+                        total
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Si el envío de correo falla, la transacción en base de datos no se ve afectada
+                Console.WriteLine($"[AVISO] Compra realizada con éxito pero falló el envío de correo: {ex.Message}");
+            }
+
+            return Ok(resultado);
+        }
     }
 }

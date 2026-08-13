@@ -27,7 +27,8 @@ public class TokenSesion : ITokenSesion
         string nombreUsuario,
         string nombreCompleto,
         string email,
-        string rol)
+        string rol,
+        int? clienteId = null)
     {
         var clave = ObtenerClave();
         var emisor = ObtenerTextoConfiguracion("Jwt:Emisor", EmisorPredeterminado);
@@ -46,6 +47,11 @@ public class TokenSesion : ITokenSesion
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N"))
         };
 
+        if (clienteId.HasValue)
+        {
+            claims.Add(new Claim("clienteId", clienteId.Value.ToString(CultureInfo.InvariantCulture)));
+        }
+
         var credenciales = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clave)),
             SecurityAlgorithms.HmacSha256);
@@ -61,6 +67,7 @@ public class TokenSesion : ITokenSesion
         {
             UsuarioId = usuarioId,
             PersonaId = personaId,
+            ClienteId = clienteId,
             NombreUsuario = nombreUsuario,
             NombreCompleto = nombreCompleto,
             Email = email,

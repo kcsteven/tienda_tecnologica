@@ -27,6 +27,15 @@ namespace Tienda.AccesoDatos.Implementaciones
 
         }
 
+        // Arma el mensaje de error incluyendo la excepción interna (donde SQL Server
+        // reporta el motivo real: violación de FK, columna requerida, tipo de dato, etc.)
+        protected static string ObtenerMensajeCompleto(Exception ex)
+        {
+            return ex.InnerException != null
+                ? $"{ex.Message} | Detalle: {ex.InnerException.Message}"
+                : ex.Message;
+        }
+
 
 
         #endregion#region Métodos Públicos
@@ -54,8 +63,8 @@ namespace Tienda.AccesoDatos.Implementaciones
 
             {
 
-                // Si ocurre un error, se guarda el mensaje y no se devuelve dato
-                objRespuesta.Error = ex.Message;
+                // Si ocurre un error, se guarda el mensaje (incluyendo el detalle interno) y no se devuelve dato
+                objRespuesta.Error = ObtenerMensajeCompleto(ex);
 
                 objRespuesta.Data = null;
 
@@ -88,7 +97,7 @@ namespace Tienda.AccesoDatos.Implementaciones
 
             {
 
-                objRespuesta.Error = ex.Message;
+                objRespuesta.Error = ObtenerMensajeCompleto(ex);
 
                 objRespuesta.Data = null;
 
@@ -121,7 +130,7 @@ namespace Tienda.AccesoDatos.Implementaciones
 
             {
 
-                objRespuesta.Error = ex.Message;
+                objRespuesta.Error = ObtenerMensajeCompleto(ex);
 
                 objRespuesta.Data = false;
 

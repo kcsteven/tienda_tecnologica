@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.development';
-import { IPedido } from '../model/IPedido';
+import { IPedido, IPedidoCrear } from '../model/IPedido';
 
 const baseUrl = environment.baseUrl;
 
@@ -35,6 +35,12 @@ export class PedidoService {
   insertar(pedido: IPedido): Observable<any> {
     return this.http.post<any>(
       `${baseUrl}/Pedido/Insertar`,
+      pedido
+    );
+  }
+  crearCompra(pedido: IPedidoCrear): Observable<any> {
+    return this.http.post<any>(
+      `${baseUrl}/Pedido/CrearCompra`,
       pedido
     );
   }

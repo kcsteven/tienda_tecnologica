@@ -2,8 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+using System.Threading.Tasks;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
@@ -12,412 +11,319 @@ using Tienda.Utilidades;
 
 namespace Tienda.LogicaNegocio.Implementaciones
 {
-    public class PedidoLN : IPedidoLN { 
-    
-        private IUnidadTrabajoEF _unidadDeTrabajo { get; set; }
-
-
+    public class PedidoLN : IPedidoLN
+    {
+        private IUnidadTrabajoEF _unidadDeTrabajo { set; get; }
         private ILogger<PedidoLN> _logger { get; }
-
-
         private readonly IMapper _mapper;
 
-
         public PedidoLN(
-
             IUnidadTrabajoEF unidadTrabajo,
-
             ILogger<PedidoLN> logger,
-
             IMapper mapper)
-
         {
-
             _unidadDeTrabajo = unidadTrabajo;
-
             _logger = logger;
-
             _mapper = mapper;
-
         }
 
-
         public async Task<Respuesta<TPedido>> InsertarAsync(TPedido datos)
-
         {
-
             var resultado = new Respuesta<TPedido>();
-
 
             try
             {
-
-                var pedidoExistente =
-
-                    await _unidadDeTrabajo.TPedido.ObtenerEntidadAsync(
-
-                        x => x.NombrePedido == datos.NombrePedido);
-
-
-                if (pedidoExistente.Data != null)
-
-                {
-
-                    resultado.Data =
-
-                        _mapper.Map<TPedido>(pedidoExistente.Data);
-
-
-                    resultado.Error =
-
-                        "Ya existe una categoría registrada con ese nombre.";
-
-
-                    return resultado;
-
-                }
-
-
-                datos.CreadoEn = DateTime.UtcNow;
-
-
                 var entidad = _mapper.Map<Pedido>(datos);
 
-
                 var respuestaRepositorio =
-
                     await _unidadDeTrabajo.TPedido.InsertarAsync(entidad);
-
 
                 _unidadDeTrabajo.Completar();
 
-
                 resultado.Data =
-
                     _mapper.Map<TPedido>(respuestaRepositorio.Data);
-
             }
-
             catch (Exception ex)
-
             {
-
-                _logger.LogError(ex,
-
-                    "Error al insertar categoría {NombreCategoria}",
-
-                    datos.NombrePedido);
-
-
+                _logger.LogError(ex, "Error al insertar pedido.");
                 resultado.Error = ex.Message;
-
             }
-
 
             return resultado;
-
         }
-
 
         public async Task<Respuesta<IEnumerable<TPedido>>> ListarAsync()
-
         {
-
-            var resultado =
-
-                new Respuesta<IEnumerable<TPedido>>();
-
+            var resultado = new Respuesta<IEnumerable<TPedido>>();
 
             try
             {
-
-                var resp =
-
-                    await _unidadDeTrabajo.TCategoria.ListarAsync();
-
+                var resp = await _unidadDeTrabajo.TPedido.ListarAsync();
 
                 resultado.Data =
-
                     _mapper.Map<IEnumerable<TPedido>>(resp.Data);
-
             }
-
             catch (Exception ex)
-
             {
-
-                _logger.LogError(ex,
-
-                    "Error al listar categorías.");
-
-
+                _logger.LogError(ex, "Error al listar pedidos.");
                 resultado.Error = ex.Message;
-
             }
-
 
             return resultado;
-
         }
 
-
         public async Task<Respuesta<TPedido>> ModificarAsync(TPedido datos)
-
         {
-
-            var resultado =
-
-                new Respuesta<TPedido>();
-
+            var resultado = new Respuesta<TPedido>();
 
             try
             {
-
                 var pedidoActual =
-
                     await _unidadDeTrabajo.TPedido.ObtenerEntidadAsync(
-
                         x => x.PedidoId == datos.PedidoId);
 
-
                 if (pedidoActual.Data == null)
-
                 {
-
-                    resultado.Error =
-
-                        "No existe la categoría a modificar.";
-
-
+                    resultado.Error = "No existe el pedido a modificar.";
                     return resultado;
-
                 }
-
-
-                datos.ActualizadoEn = DateTime.UtcNow;
-
 
                 _mapper.Map(datos, pedidoActual.Data);
 
-
                 var respuestaRepositorio =
-
                     await _unidadDeTrabajo.TPedido.ModificarAsync(
-
                         pedidoActual.Data);
 
-
                 _unidadDeTrabajo.Completar();
 
-
                 resultado.Data =
-
                     _mapper.Map<TPedido>(respuestaRepositorio.Data);
-
             }
-
             catch (Exception ex)
-
             {
-
                 _logger.LogError(ex,
-
-                    "Error al modificar CategoriaId {CategoriaId}",
-
+                    "Error al modificar PedidoId {PedidoId}",
                     datos.PedidoId);
 
-
                 resultado.Error = ex.Message;
-
             }
 
-
             return resultado;
-
         }
-
 
         public async Task<Respuesta<bool>> EliminarAsync(TPedido datos)
-
         {
-
-            var resultado =
-
-                new Respuesta<bool>();
-
+            var resultado = new Respuesta<bool>();
 
             try
             {
-
                 var pedido =
-
                     await _unidadDeTrabajo.TPedido.ObtenerEntidadAsync(
-
                         x => x.PedidoId == datos.PedidoId);
 
-
                 if (pedido.Data == null)
-
                 {
-
-                    resultado.Error =
-
-                        "No existe la categoría a eliminar.";
-
-
+                    resultado.Error = "No existe el pedido a eliminar.";
                     return resultado;
-
                 }
 
-
                 var respuestaRepositorio =
-
-                    await _unidadDeTrabajo.TPedido.EliminarAsync(
-
-                        pedido.Data);
-
+                    await _unidadDeTrabajo.TPedido.EliminarAsync(pedido.Data);
 
                 _unidadDeTrabajo.Completar();
 
-
-                resultado.Data =
-
-                    respuestaRepositorio.Data;
-
+                resultado.Data = respuestaRepositorio.Data;
             }
-
             catch (Exception ex)
-
             {
-
                 _logger.LogError(ex,
-
-                    "Error al eliminar CategoriaId {CategoriaId}",
-
+                    "Error al eliminar PedidoId {PedidoId}",
                     datos.PedidoId);
 
-
                 resultado.Error = ex.Message;
-
             }
 
-
             return resultado;
-
         }
 
-
-        public async Task<Respuesta<IEnumerable<TPedido>>> BuscarAsync(
-
-            TPedido datos)
-
+        public async Task<Respuesta<IEnumerable<TPedido>>> BuscarAsync(TPedido datos)
         {
-
-            var resultado =
-
-                new Respuesta<IEnumerable<TPedido>>();
-
+            var resultado = new Respuesta<IEnumerable<TPedido>>();
 
             try
             {
-
+                // Búsqueda por cliente
                 var respuestaRepositorio =
-
                     await _unidadDeTrabajo.TPedido.BuscarAsync(
-
-                        x => x.NombrePedido.Contains(
-
-                            datos.NombrePedido));
-
+                        x => x.ClienteId == datos.ClienteId);
 
                 resultado.Data =
-
-                    _mapper.Map<IEnumerable<TPedido>>(
-
-                        respuestaRepositorio.Data);
-
+                    _mapper.Map<IEnumerable<TPedido>>(respuestaRepositorio.Data);
             }
-
             catch (Exception ex)
-
             {
-
-                _logger.LogError(ex,
-
-                    "Error al buscar categorías.");
-
-
+                _logger.LogError(ex, "Error al buscar pedidos.");
                 resultado.Error = ex.Message;
-
             }
-
 
             return resultado;
-
         }
 
-
-        public async Task<Respuesta<TPedido>> ObtenerAsync(
-
-            TPedido datos)
-
+        public async Task<Respuesta<TPedido>> ObtenerAsync(TPedido datos)
         {
-
-            var resultado =
-
-                new Respuesta<TPedido>();
-
+            var resultado = new Respuesta<TPedido>();
 
             try
             {
-
                 var respuestaRepositorio =
-
                     await _unidadDeTrabajo.TPedido.ObtenerEntidadAsync(
-
                         x => x.PedidoId == datos.PedidoId);
 
-
                 if (respuestaRepositorio.Data == null)
-
                 {
-
-                    resultado.Error =
-
-                        "Categoría no encontrada.";
-
-
+                    resultado.Error = "Pedido no encontrado.";
                     return resultado;
-
                 }
 
-
                 resultado.Data =
-
-                    _mapper.Map<TPedido>(
-
-                        respuestaRepositorio.Data);
-
+                    _mapper.Map<TPedido>(respuestaRepositorio.Data);
             }
-
             catch (Exception ex)
-
             {
-
                 _logger.LogError(ex,
-
-                    "Error al obtener CategoriaId {CategoriaId}",
-
+                    "Error al obtener PedidoId {PedidoId}",
                     datos.PedidoId);
 
-
                 resultado.Error = ex.Message;
-
             }
 
+            return resultado;
+        }
+
+        public async Task<Respuesta<TPedido>> CrearCompraAsync(TPedidoCrear datos)
+        {
+            var resultado = new Respuesta<TPedido>();
+
+            try
+            {
+                // 1. Buscar el estado "Pendiente" por nombre (no asumimos que su Id sea 1,
+                // porque el orden de inserción de los estados puede variar según el entorno)
+                var resEstadoPendiente = await _unidadDeTrabajo.TEstadoPedido.ObtenerEntidadAsync(
+                    e => e.Nombre == "Pendiente");
+
+                if (!string.IsNullOrEmpty(resEstadoPendiente.Error) || resEstadoPendiente.Data == null)
+                {
+                    _logger.LogError(
+                        "No se encontró el EstadoPedido 'Pendiente' en CrearCompraAsync: {Error}",
+                        resEstadoPendiente.Error);
+
+                    resultado.Error = "No se pudo crear el pedido: no existe el estado 'Pendiente' configurado en la base de datos.";
+                    return resultado;
+                }
+
+                // 2. Crear el Pedido
+                var nuevoPedido = new Pedido
+                {
+                    ClienteId = datos.ClienteId,
+                    DireccionId = datos.DireccionId,
+                    EstadoPedidoId = resEstadoPendiente.Data.EstadoPedidoId,
+                    FechaPedido = DateTime.Now,
+                    Total = 0
+                };
+
+                var resPedido = await _unidadDeTrabajo.TPedido.InsertarAsync(nuevoPedido);
+
+                // Si el INSERT del pedido falló (ej. restricción de la base de datos),
+                // detenemos aquí y devolvemos el error real en vez de seguir con datos nulos.
+                if (!string.IsNullOrEmpty(resPedido.Error) || resPedido.Data == null)
+                {
+                    _logger.LogError(
+                        "Error al insertar el Pedido en CrearCompraAsync: {Error}",
+                        resPedido.Error);
+
+                    resultado.Error = resPedido.Error ?? "No fue posible crear el pedido.";
+                    return resultado;
+                }
+
+                decimal totalAcumulado = 0;
+
+                // 3. Crear los detalles del pedido
+                foreach (var item in datos.Detalles)
+                {
+                    var prodRes = await _unidadDeTrabajo.TProducto.ObtenerEntidadAsync(
+                        p => p.ProductoId == item.ProductoId);
+
+                    if (prodRes.Data == null) continue;
+
+                    var precio = prodRes.Data.Precio;
+                    totalAcumulado += precio * item.Cantidad;
+
+                    var detalle = new DetallesPedido
+                    {
+                        PedidoId = resPedido.Data.PedidoId,
+                        ProductoId = item.ProductoId,
+                        Cantidad = item.Cantidad,
+                        PrecioUnitario = precio
+                    };
+
+                    var resDetalle = await _unidadDeTrabajo.TDetallePedido.InsertarAsync(detalle);
+
+                    if (!string.IsNullOrEmpty(resDetalle.Error))
+                    {
+                        _logger.LogError(
+                            "Error al insertar DetallePedido en CrearCompraAsync: {Error}",
+                            resDetalle.Error);
+
+                        resultado.Error = resDetalle.Error;
+                        return resultado;
+                    }
+                }
+
+                // 4. Actualizar total con IVA (13%)
+                resPedido.Data.Total = totalAcumulado * 1.13m;
+                var resModificar = await _unidadDeTrabajo.TPedido.ModificarAsync(resPedido.Data);
+
+                if (!string.IsNullOrEmpty(resModificar.Error))
+                {
+                    _logger.LogError(
+                        "Error al actualizar el total del Pedido en CrearCompraAsync: {Error}",
+                        resModificar.Error);
+
+                    resultado.Error = resModificar.Error;
+                    return resultado;
+                }
+
+                // 5. Registrar Pago
+                var pago = new Pago
+                {
+                    PedidoId = resPedido.Data.PedidoId,
+                    MetodoPagoId = datos.MetodoPagoId,
+                    Monto = resPedido.Data.Total,
+                    FechaPago = DateTime.Now,
+                    Referencia = "PAGO-WEB-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper()
+                };
+
+                var resPago = await _unidadDeTrabajo.TPago.InsertarAsync(pago);
+
+                if (!string.IsNullOrEmpty(resPago.Error))
+                {
+                    _logger.LogError(
+                        "Error al insertar el Pago en CrearCompraAsync: {Error}",
+                        resPago.Error);
+
+                    resultado.Error = resPago.Error;
+                    return resultado;
+                }
+
+                resultado.Data = _mapper.Map<TPedido>(resPedido.Data);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al procesar la compra completa.");
+                resultado.Error = ex.Message;
+            }
 
             return resultado;
-
         }
     }
 }

@@ -16,6 +16,8 @@ using Tienda.Dominio.InterfacesAD;
 using Tienda.Dominio.InterfazLN;
 using Tienda.Dominio.InterfazLN.Usuarios;
 using Tienda.LogicaNegocio.Implementaciones;
+using Tienda.API.Configuracion;
+using Tienda.API.Servicios.Correo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -146,6 +148,7 @@ builder.Services.AddScoped<IResenaLN, ResenaLN>();
 builder.Services.AddScoped<IListaDeseosLN, ListaDeseosLN>();
 builder.Services.AddScoped<IDevolucionLN, DevolucionLN>();
 builder.Services.AddScoped<IEspecificacionProductoLN, EspecificacionProductoLN>();
+builder.Services.AddScoped<IEstadoPedidoLN, EstadoPedidoLN>();
 
 builder.Services.AddAuthorization();
 
@@ -159,6 +162,11 @@ builder.Logging.ClearProviders();
 
 builder.Host.UseNLog();
 
+builder.Services.Configure<CorreoSettings>(
+    builder.Configuration.GetSection("Correo")
+);
+
+builder.Services.AddScoped<ICorreoService, CorreoService>();
 
 var app = builder.Build();
 

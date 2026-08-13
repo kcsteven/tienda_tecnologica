@@ -6,6 +6,9 @@ public class TSesionUsuario
 
     public int PersonaId { get; set; }
 
+    // Solo tiene valor cuando el Rol es "Cliente"; se usa para armar pedidos/compras
+    public int? ClienteId { get; set; }
+
     public string NombreUsuario { get; set; } = string.Empty;
 
     public string NombreCompleto { get; set; } = string.Empty;

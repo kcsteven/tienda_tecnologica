@@ -9,6 +9,8 @@ export interface ISesionUsuario {
 
   personaId: number;
 
+  clienteId?: number;
+
   nombreUsuario: string;
 
   nombreCompleto: string;

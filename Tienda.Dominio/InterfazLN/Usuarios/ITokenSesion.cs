@@ -10,5 +10,6 @@ public interface ITokenSesion
         string nombreUsuario,
         string nombreCompleto,
         string email,
-        string rol);
+        string rol,
+        int? clienteId = null);
 }

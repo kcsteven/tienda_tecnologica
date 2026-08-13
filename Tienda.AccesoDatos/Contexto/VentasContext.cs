@@ -59,6 +59,7 @@ public partial class VentasContext : DbContext
     public virtual DbSet<DireccionCliente> DireccionClientes { get; set; }
 
     public virtual DbSet<MetodoPago> MetodoPagos { get; set; }
+    public virtual DbSet<EstadoPedido> EstadoPedidos { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -75,7 +76,7 @@ public partial class VentasContext : DbContext
         // tiene una colección mal tipada que rompe el modelo completo de EF).
         // Cuando esté listo y corregido, borrar estas líneas de Ignore<>().
         // =====================================================================
-        modelBuilder.Ignore<DetallesPedido>();
+       
         
         modelBuilder.Ignore<SegPantalla>();
         modelBuilder.Ignore<SegPerfil>();
@@ -421,6 +422,18 @@ public partial class VentasContext : DbContext
                 .IsUnicode(false);
         });
 
+        modelBuilder.Entity<EstadoPedido>(entity =>
+        {
+            entity.HasKey(e => e.EstadoPedidoId);
+
+            entity.ToTable("EstadoPedido");
+
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .IsRequired();
+        });
+
         modelBuilder.Entity<Pago>(entity =>
         {
             entity.HasKey(e => e.PagoId);
@@ -441,7 +454,44 @@ public partial class VentasContext : DbContext
                 .HasForeignKey(d => d.PedidoId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
         });
+        modelBuilder.Entity<Pedido>(entity =>
+        {
+            entity.HasKey(e => e.PedidoId);
+            entity.ToTable("Pedido");
+            entity.Property(e => e.FechaPedido).HasColumnType("datetime");
+            entity.Property(e => e.Total).HasColumnType("decimal(10, 2)");
 
+            entity.HasOne(d => d.Cliente).WithMany(p => p.Pedidos)
+                .HasForeignKey(d => d.ClienteId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.EstadoPedido).WithMany(p => p.Pedidos)
+                .HasForeignKey(d => d.EstadoPedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Direccion).WithMany()
+                .HasForeignKey(d => d.DireccionId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<DetallesPedido>(entity =>
+        {
+            entity.HasKey(e => e.DetalleId);
+            entity.ToTable("DetallePedido");
+            // La columna real en la base de datos se llama DetallePedidoId, no DetalleId
+            entity.Property(e => e.DetalleId).HasColumnName("DetallePedidoId");
+            entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(10, 2)");
+            // La base de datos todavía no tiene columna Descuento en DetallePedido
+            entity.Ignore(e => e.Descuento);
+
+            entity.HasOne(d => d.Pedido).WithMany(p => p.DetallesPedido)
+                .HasForeignKey(d => d.PedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Producto).WithMany()
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+        });
         OnModelCreatingPartial(modelBuilder);
     }
 

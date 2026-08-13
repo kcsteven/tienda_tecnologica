@@ -35,6 +35,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         private RepositorioAD<Subcategoria> _TSubcategoria;
         private RepositorioAD<DetallesPedido> _TDetallePedido;
         private RepositorioAD<Pedido> _TPedido;
+        private RepositorioAD<EstadoPedido> _TEstadoPedido;
         private RepositorioAD<Producto> _TProducto;
 
         private RepositorioAD<SegPantalla> _TSegPantalla;
@@ -69,6 +70,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         private RepositorioAD<EspecificacionProducto> _TEspecificacionProducto;
 
         #endregion
+
         #region "Constructores"
 
         // Cada propiedad expone su repositorio, creándolo la primera vez que se pide (lazy loading)
@@ -176,6 +178,18 @@ namespace Tienda.AccesoDatos.Implementaciones
                     this._TPedido = new RepositorioAD<Pedido>(_Contexto);
                 }
                 return _TPedido;
+            }
+        }
+
+        public IRepositorioAD<EstadoPedido> TEstadoPedido
+        {
+            get
+            {
+                if (this._TEstadoPedido == null)
+                {
+                    this._TEstadoPedido = new RepositorioAD<EstadoPedido>(_Contexto);
+                }
+                return _TEstadoPedido;
             }
         }
 
@@ -345,6 +359,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         {
             get { if (this._TPago == null) this._TPago = new RepositorioAD<Pago>(_Contexto); return _TPago; }
         }
+
         public IRepositorioAD<MetodoPago> TMetodoPago
         {
             get
@@ -355,18 +370,22 @@ namespace Tienda.AccesoDatos.Implementaciones
                 return _TMetodoPago;
             }
         }
+
         public IRepositorioAD<Envio> TEnvio
         {
             get { if (this._TEnvio == null) this._TEnvio = new RepositorioAD<Envio>(_Contexto); return _TEnvio; }
         }
+
         public IRepositorioAD<Resena> TResena
         {
             get { if (this._TResena == null) this._TResena = new RepositorioAD<Resena>(_Contexto); return _TResena; }
         }
+
         public IRepositorioAD<ListaDeseos> TListaDeseos
         {
             get { if (this._TListaDeseos == null) this._TListaDeseos = new RepositorioAD<ListaDeseos>(_Contexto); return _TListaDeseos; }
         }
+
         public IRepositorioAD<Devolucion> TDevolucion
         {
             get { if (this._TDevolucion == null) this._TDevolucion = new RepositorioAD<Devolucion>(_Contexto); return _TDevolucion; }

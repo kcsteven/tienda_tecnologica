@@ -15,6 +15,7 @@ namespace Tienda.Dominio.InterfazLN
         Task<Respuesta<IEnumerable<TPedido>>> BuscarAsync(TPedido datos);
         Task<Respuesta<TPedido>> ObtenerAsync(TPedido datos);
         Task<Respuesta<IEnumerable<TPedido>>> ListarAsync();
+        Task<Respuesta<TPedido>> CrearCompraAsync(TPedidoCrear datos);
 
     }
 }
