@@ -61,6 +61,7 @@ namespace Tienda.AccesoDatos.Implementaciones
         private RepositorioAD<ProductoEtiqueta> _TProductoEtiqueta;
 
         private RepositorioAD<Pago> _TPago;
+        private RepositorioAD<MetodoPago> _TMetodoPago;
         private RepositorioAD<Envio> _TEnvio;
         private RepositorioAD<Resena> _TResena;
         private RepositorioAD<ListaDeseos> _TListaDeseos;
@@ -343,6 +344,16 @@ namespace Tienda.AccesoDatos.Implementaciones
         public IRepositorioAD<Pago> TPago
         {
             get { if (this._TPago == null) this._TPago = new RepositorioAD<Pago>(_Contexto); return _TPago; }
+        }
+        public IRepositorioAD<MetodoPago> TMetodoPago
+        {
+            get
+            {
+                if (this._TMetodoPago == null)
+                    this._TMetodoPago = new RepositorioAD<MetodoPago>(_Contexto);
+
+                return _TMetodoPago;
+            }
         }
         public IRepositorioAD<Envio> TEnvio
         {

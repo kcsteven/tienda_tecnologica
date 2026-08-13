@@ -33,6 +33,8 @@ public partial class VentasContext : DbContext
     public virtual DbSet<ProductoEtiqueta> ProductoEtiquetas { get; set; }
     public virtual DbSet<EspecificacionProducto> EspecificacionProductos { get; set; }
 
+   
+   
     // ===== Módulo de Personas/Usuarios/Clientes/Pedidos =====
     // Temporalmente IGNORADO en OnModelCreating hasta que su módulo esté completo y correcto.
     // NO borrar estas líneas de DbSet: cuando su parte esté lista, solo hay que quitar
@@ -56,6 +58,8 @@ public partial class VentasContext : DbContext
     public virtual DbSet<Usuario> Usuarios { get; set; }
     public virtual DbSet<DireccionCliente> DireccionClientes { get; set; }
 
+    public virtual DbSet<MetodoPago> MetodoPagos { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
@@ -72,13 +76,13 @@ public partial class VentasContext : DbContext
         // Cuando esté listo y corregido, borrar estas líneas de Ignore<>().
         // =====================================================================
         modelBuilder.Ignore<DetallesPedido>();
-        modelBuilder.Ignore<Pedido>();
+        
         modelBuilder.Ignore<SegPantalla>();
         modelBuilder.Ignore<SegPerfil>();
         modelBuilder.Ignore<SegPerfilXpantalla>();
         modelBuilder.Ignore<SegUsuario>();
         modelBuilder.Ignore<TipoCedula>();
-        modelBuilder.Ignore<Pago>();
+        
         modelBuilder.Ignore<Envio>();
         modelBuilder.Ignore<Resena>();
         modelBuilder.Ignore<ListaDeseos>();
@@ -406,6 +410,36 @@ public partial class VentasContext : DbContext
                 .HasForeignKey(d => d.EtiquetaId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ProductoEtiqueta_Etiqueta");
+        });
+
+        modelBuilder.Entity<MetodoPago>(entity =>
+        {
+            entity.HasKey(e => e.MetodoPagoId);
+            entity.ToTable("MetodoPago");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Pago>(entity =>
+        {
+            entity.HasKey(e => e.PagoId);
+            entity.ToTable("Pago");
+            entity.Property(e => e.Monto).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.FechaPago).HasColumnType("datetime");
+            entity.Property(e => e.Referencia)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.MetodoPago)
+                .WithMany(p => p.Pagos)
+                .HasForeignKey(d => d.MetodoPagoId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.Pedido)
+                .WithMany(p => p.Pagos) 
+                .HasForeignKey(d => d.PedidoId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -140,6 +140,7 @@ builder.Services.AddScoped<IImagenProductoLN, ImagenProductoLN>();
 builder.Services.AddScoped<IProductoGarantiaLN, ProductoGarantiaLN>();
 builder.Services.AddScoped<IProductoEtiquetaLN, ProductoEtiquetaLN>();
 builder.Services.AddScoped<IPagoLN, PagoLN>();
+builder.Services.AddScoped<IMetodoPagoLN, MetodoPagoLN>();
 builder.Services.AddScoped<IEnvioLN, EnvioLN>();
 builder.Services.AddScoped<IResenaLN, ResenaLN>();
 builder.Services.AddScoped<IListaDeseosLN, ListaDeseosLN>();

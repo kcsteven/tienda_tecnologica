@@ -37,6 +37,7 @@ namespace Tienda.Dominio.InterfacesAD
         IRepositorioAD<ProductoGarantia> TProductoGarantia { get; }
         IRepositorioAD<ProductoEtiqueta> TProductoEtiqueta { get; }
         IRepositorioAD<Pago> TPago { get; }
+        IRepositorioAD<MetodoPago> TMetodoPago { get; }
         IRepositorioAD<Envio> TEnvio { get; }
         IRepositorioAD<Resena> TResena { get; }
         IRepositorioAD<ListaDeseos> TListaDeseos { get; }

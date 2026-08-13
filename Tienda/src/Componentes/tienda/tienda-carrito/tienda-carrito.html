@@ -1,66 +1,260 @@
 <div class="container py-4 pagina-carrito">
-  <h1 class="titulo-carrito mb-4">Mi carrito</h1>
 
-  <!-- Si hay items en el carrito, muestra el contenido -->
+  <h1 class="titulo-carrito mb-4">
+    Mi carrito
+  </h1>
+
   @if (carritoService.items().length > 0) {
-  <div class="contenido-carrito">
-    <div class="lista-items">
-      <!-- Recorre cada item del carrito -->
-      @for (item of carritoService.items(); track item.productoId) {
-      <div class="fila-item">
-        <!-- Imagen del producto o placeholder si no tiene -->
-        @if (item.imagenUrl) {
-        <img [src]="item.imagenUrl" [alt]="item.nombre" class="imagen-item" />
-        } @else {
-        <div class="imagen-placeholder">Sin imagen</div>
+
+    <div class="contenido-carrito">
+
+      <div class="lista-items">
+
+        @for (
+          item of carritoService.items();
+          track item.productoId
+        ) {
+
+          <div class="fila-item">
+
+            @if (item.imagenUrl) {
+
+              <img
+                [src]="item.imagenUrl"
+                [alt]="item.nombre"
+                class="imagen-item"
+              />
+
+            } @else {
+
+              <div class="imagen-placeholder">
+                Sin imagen
+              </div>
+
+            }
+
+            <div class="info-item">
+
+              <span class="nombre-item">
+                {{ item.nombre }}
+              </span>
+
+              <span class="precio-unitario">
+                ₡{{ item.precioUnitario | number:'1.0-0' }}
+                c/u
+              </span>
+
+            </div>
+
+            <div class="selector-cantidad">
+
+              <button
+                (click)="restarCantidad(
+                  item.productoId,
+                  item.cantidad
+                )">
+
+                -
+
+              </button>
+
+              <span>
+                {{ item.cantidad }}
+              </span>
+
+              <button
+                (click)="sumarCantidad(
+                  item.productoId,
+                  item.cantidad
+                )">
+
+                +
+
+              </button>
+
+            </div>
+
+            <div class="subtotal-item">
+
+              ₡{{
+                item.precioUnitario * item.cantidad
+                | number:'1.0-0'
+              }}
+
+            </div>
+
+            <button
+              class="btn-quitar"
+              (click)="quitarItem(item.productoId)"
+              title="Quitar del carrito">
+
+              ✕
+
+            </button>
+
+          </div>
+
         }
 
-        <div class="info-item">
-          <span class="nombre-item">{{ item.nombre }}</span>
-          <span class="precio-unitario">₡{{ item.precioUnitario | number:'1.0-0' }} c/u</span>
-        </div>
-
-        <!-- Controles para aumentar o disminuir la cantidad -->
-        <div class="selector-cantidad">
-          <button (click)="restarCantidad(item.productoId, item.cantidad)">-</button>
-          <span>{{ item.cantidad }}</span>
-          <button (click)="sumarCantidad(item.productoId, item.cantidad)">+</button>
-        </div>
-
-        <!-- Subtotal del item (precio unitario x cantidad) -->
-        <div class="subtotal-item">
-          ₡{{ item.precioUnitario * item.cantidad | number:'1.0-0' }}
-        </div>
-
-        <!-- Botón para quitar el item del carrito -->
-        <button class="btn-quitar" (click)="quitarItem(item.productoId)" title="Quitar del carrito">
-          ✕
-        </button>
       </div>
-      }
+
+
+      <!-- =========================
+           RESUMEN
+           ========================= -->
+
+      <aside class="resumen-carrito">
+
+        <h5>
+          Resumen de compra
+        </h5>
+
+        <div class="fila-resumen">
+
+          <span>
+            Productos
+          </span>
+
+          <span>
+            ₡{{
+              subtotal
+              | number:'1.0-2'
+            }}
+          </span>
+
+        </div>
+
+        <div class="fila-resumen">
+
+          <span>
+            IVA (13%)
+          </span>
+
+          <span>
+            ₡{{
+              iva
+              | number:'1.0-2'
+            }}
+          </span>
+
+        </div>
+
+        <div class="fila-resumen total">
+
+          <span>
+            Total
+          </span>
+
+          <span>
+            ₡{{
+              totalConIva
+              | number:'1.0-2'
+            }}
+          </span>
+
+        </div>
+
+
+        <!-- =========================
+             MÉTODO DE PAGO
+             ========================= -->
+
+        <div class="mt-4">
+
+          <h5>
+            Método de pago
+          </h5>
+
+          @for (
+            metodo of metodosPago;
+            track metodo.metodoPagoId
+          ) {
+
+            <div class="form-check mb-2">
+
+              <input
+                class="form-check-input"
+                type="radio"
+                name="metodoPago"
+                [id]="'metodo-' + metodo.metodoPagoId"
+                [value]="metodo.metodoPagoId"
+                [checked]="
+                  metodoPagoSeleccionado ===
+                  metodo.metodoPagoId
+                "
+                (change)="
+                  seleccionarMetodoPago(
+                    metodo.metodoPagoId
+                  )
+                "
+              />
+
+              <label
+                class="form-check-label"
+                [for]="'metodo-' + metodo.metodoPagoId">
+
+                {{ metodo.nombre }}
+
+              </label>
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <!-- =========================
+             BOTONES
+             ========================= -->
+
+        <button
+          class="btn-finalizar"
+          [disabled]="procesandoPago"
+          (click)="finalizarCompra()">
+
+          @if (procesandoPago) {
+
+            PROCESANDO...
+
+          } @else {
+
+            FINALIZAR COMPRA
+
+          }
+
+        </button>
+
+        <button
+          class="btn-vaciar"
+          (click)="vaciarCarrito()">
+
+          Vaciar carrito
+
+        </button>
+
+      </aside>
+
     </div>
 
-    <!-- Resumen del carrito con el total -->
-    <aside class="resumen-carrito">
-      <h5>Resumen</h5>
-      <div class="fila-resumen">
-        <span>Productos ({{ carritoService.cantidadTotal() }})</span>
-        <span>₡{{ carritoService.total() | number:'1.0-0' }}</span>
-      </div>
-      <div class="fila-resumen total">
-        <span>Total</span>
-        <span>₡{{ carritoService.total() | number:'1.0-0' }}</span>
-      </div>
-
-      <button class="btn-finalizar">FINALIZAR COMPRA</button>
-      <button class="btn-vaciar" (click)="vaciarCarrito()">Vaciar carrito</button>
-    </aside>
-  </div>
   } @else {
-  <!-- Si el carrito está vacío -->
-  <div class="carrito-vacio">
-    <p>Tu carrito está vacío.</p>
-    <a routerLink="/" class="btn-seguir-comprando">Seguir comprando</a>
-  </div>
+
+    <div class="carrito-vacio">
+
+      <p>
+        Tu carrito está vacío.
+      </p>
+
+      <a
+        routerLink="/"
+        class="btn-seguir-comprando">
+
+        Seguir comprando
+
+      </a>
+
+    </div>
+
   }
+
 </div>
