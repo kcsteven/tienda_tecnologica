@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
@@ -21,13 +22,19 @@ namespace Tienda.LogicaNegocio.Implementaciones
             _mapper = mapper;
         }
 
-        public async Task<Respuesta<TProducto>> InsertarAsync(TCrearProductoConInventario datos)
+        public async Task<Respuesta<TProducto>> InsertarAsync(TCrearProductoConInventario datos, int usuarioId)
         {
             var resultado = new Respuesta<TProducto>();
             var transaccionActiva = false;
 
             try
             {
+                if (usuarioId <= 0)
+                {
+                    resultado.Error = "El usuario autenticado no es válido.";
+                    return resultado;
+                }
+
                 var nombre = datos.Nombre?.Trim() ?? string.Empty;
                 var descripcion = NormalizarDescripcion(datos.Descripcion);
                 var errorValidacion = ValidarDatosComerciales(nombre, descripcion, datos.Precio, datos.CostoCompra);
@@ -70,6 +77,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 _unidadDeTrabajo.EmpezarTransaccion();
                 transaccionActiva = true;
 
+                var ahoraUtc = DateTime.UtcNow;
                 var producto = new Producto
                 {
                     Nombre = nombre,
@@ -79,7 +87,11 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     SubcategoriaId = datos.SubcategoriaId,
                     MarcaId = datos.MarcaId,
                     ProveedorId = datos.ProveedorId,
-                    Activo = true
+                    Activo = true,
+                    CreadoEn = ahoraUtc,
+                    CreadoPor = usuarioId.ToString(CultureInfo.InvariantCulture),
+                    ActualizadoEn = null,
+                    ActualizadoPor = null
                 };
 
                 var respuestaProducto = await _unidadDeTrabajo.TProducto.InsertarAsync(producto);
@@ -169,12 +181,18 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
-        public async Task<Respuesta<TProducto>> ModificarAsync(TActualizarProducto datos)
+        public async Task<Respuesta<TProducto>> ModificarAsync(TActualizarProducto datos, int usuarioId)
         {
             var resultado = new Respuesta<TProducto>();
 
             try
             {
+                if (usuarioId <= 0)
+                {
+                    resultado.Error = "El usuario autenticado no es válido.";
+                    return resultado;
+                }
+
                 if (datos.ProductoId <= 0)
                 {
                     resultado.Error = "El producto indicado no es válido.";
@@ -228,6 +246,8 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 productoActual.Data.SubcategoriaId = datos.SubcategoriaId;
                 productoActual.Data.MarcaId = datos.MarcaId;
                 productoActual.Data.ProveedorId = datos.ProveedorId;
+                productoActual.Data.ActualizadoEn = DateTime.UtcNow;
+                productoActual.Data.ActualizadoPor = usuarioId.ToString(CultureInfo.InvariantCulture);
 
                 var respuesta = await _unidadDeTrabajo.TProducto.ModificarAsync(productoActual.Data);
                 if (!string.IsNullOrEmpty(respuesta.Error) || respuesta.Data == null)
@@ -248,12 +268,18 @@ namespace Tienda.LogicaNegocio.Implementaciones
             return resultado;
         }
 
-        public async Task<Respuesta<TProducto>> CambiarEstadoAsync(TCambiarEstadoProducto datos)
+        public async Task<Respuesta<TProducto>> CambiarEstadoAsync(TCambiarEstadoProducto datos, int usuarioId)
         {
             var resultado = new Respuesta<TProducto>();
 
             try
             {
+                if (usuarioId <= 0)
+                {
+                    resultado.Error = "El usuario autenticado no es válido.";
+                    return resultado;
+                }
+
                 if (datos.ProductoId <= 0)
                 {
                     resultado.Error = "El producto indicado no es válido.";
@@ -268,6 +294,8 @@ namespace Tienda.LogicaNegocio.Implementaciones
                 }
 
                 producto.Data.Activo = datos.Activo;
+                producto.Data.ActualizadoEn = DateTime.UtcNow;
+                producto.Data.ActualizadoPor = usuarioId.ToString(CultureInfo.InvariantCulture);
                 var respuesta = await _unidadDeTrabajo.TProducto.ModificarAsync(producto.Data);
                 if (!string.IsNullOrEmpty(respuesta.Error) || respuesta.Data == null)
                 {

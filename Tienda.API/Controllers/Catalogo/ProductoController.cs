@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using System.Security.Claims;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfazLN;
 using Tienda.Utilidades;
@@ -77,10 +79,13 @@ namespace Tienda.API.Controllers
         [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Insertar([FromBody] TCrearProductoConInventario producto)
         {
+            if (!TryObtenerUsuarioId(out var usuarioId))
+                return Unauthorized();
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resultado = await _productoLN.InsertarAsync(producto);
+            var resultado = await _productoLN.InsertarAsync(producto, usuarioId);
 
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
@@ -92,10 +97,13 @@ namespace Tienda.API.Controllers
         [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> Modificar([FromBody] TActualizarProducto producto)
         {
+            if (!TryObtenerUsuarioId(out var usuarioId))
+                return Unauthorized();
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resultado = await _productoLN.ModificarAsync(producto);
+            var resultado = await _productoLN.ModificarAsync(producto, usuarioId);
 
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
@@ -107,10 +115,13 @@ namespace Tienda.API.Controllers
         [Authorize(Roles = "Empleado")]
         public async Task<IActionResult> CambiarEstado([FromBody] TCambiarEstadoProducto producto)
         {
+            if (!TryObtenerUsuarioId(out var usuarioId))
+                return Unauthorized();
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resultado = await _productoLN.CambiarEstadoAsync(producto);
+            var resultado = await _productoLN.CambiarEstadoAsync(producto, usuarioId);
             if (!string.IsNullOrEmpty(resultado.Error))
                 return BadRequest(resultado);
 
@@ -125,6 +136,19 @@ namespace Tienda.API.Controllers
             {
                 Error = "No se permite eliminar productos físicamente. Utilice la desactivación."
             });
+        }
+
+        private bool TryObtenerUsuarioId(out int usuarioId)
+        {
+            usuarioId = 0;
+            var valor = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            return int.TryParse(
+                valor,
+                NumberStyles.None,
+                CultureInfo.InvariantCulture,
+                out usuarioId)
+                && usuarioId > 0;
         }
     }
 }
