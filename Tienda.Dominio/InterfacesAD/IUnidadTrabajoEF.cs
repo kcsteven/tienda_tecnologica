@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Tienda.Dominio.Entidades;
+using System.Data;
 
 namespace Tienda.Dominio.InterfacesAD
 {
@@ -45,7 +46,8 @@ namespace Tienda.Dominio.InterfacesAD
         IRepositorioAD<EstadoPedido> TEstadoPedido { get; }
         int Completar();
         void CompletarTran();
-        void EmpezarTransaccion();
+        void EmpezarTransaccion(
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
         void Rollback();
         void CerrarConexion();
     }

@@ -9,6 +9,7 @@ using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
 using Tienda.Dominio.InterfazLN;
 using Tienda.Utilidades;
+using System.Data;
 
 namespace Tienda.LogicaNegocio.Implementaciones
 {
@@ -204,6 +205,31 @@ namespace Tienda.LogicaNegocio.Implementaciones
         public async Task<Respuesta<TPedido>> CrearCompraAsync(TPedidoCrear datos)
         {
             var resultado = new Respuesta<TPedido>();
+            var transaccionActiva = false;
+
+            void RevertirTransaccion()
+            {
+                if (!transaccionActiva)
+                {
+                    return;
+                }
+
+                try
+                {
+                    _unidadDeTrabajo.Rollback();
+                }
+                catch (Exception rollbackEx)
+                {
+                    _logger.LogError(
+                        rollbackEx,
+                        "Error al revertir la compra");
+                }
+
+                finally
+                {
+                    transaccionActiva = false;
+                }
+            }
 
             try
             {
@@ -221,6 +247,11 @@ namespace Tienda.LogicaNegocio.Implementaciones
                     resultado.Error = "No se pudo crear el pedido: no existe el estado 'Pendiente' configurado en la base de datos.";
                     return resultado;
                 }
+
+                _unidadDeTrabajo.EmpezarTransaccion(
+                    IsolationLevel.Serializable);
+
+                transaccionActiva = true;
 
                 // 2. Crear el Pedido
                 var nuevoPedido = new Pedido
@@ -243,6 +274,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                         resPedido.Error);
 
                     resultado.Error = resPedido.Error ?? "No fue posible crear el pedido.";
+                    RevertirTransaccion();
                     return resultado;
                 }
 
@@ -261,7 +293,72 @@ namespace Tienda.LogicaNegocio.Implementaciones
                         p => p.ProductoId == item.ProductoId,
                         new List<string> { "ImagenProductos" });
 
-                    if (prodRes.Data == null) continue;
+                    if (!string.IsNullOrEmpty(prodRes.Error) || prodRes.Data == null || !prodRes.Data.Activo)
+                    {
+                        resultado.Error = "Uno de los productos no existe o no esta disponible";
+
+                        RevertirTransaccion();
+                        return resultado;
+                    }
+
+                    var resInventario = await _unidadDeTrabajo.TInventario.BuscarAsync(
+                        inventario => inventario.ProductoId == item.ProductoId &&
+                        inventario.Cantidad > 0, new List<string> { "Bodega" });
+
+                    if (!string.IsNullOrEmpty(resInventario.Error))
+                    {
+                        resultado.Error = "No fue posible consultar con el inventario";
+
+                        RevertirTransaccion();
+                        return resultado;
+                    }
+
+                    var inventarioDisponibles = (resInventario.Data ?? Enumerable.Empty<Inventario>())
+                        .Where(inventario => inventario.Bodega != null &&
+                        inventario.Bodega != null && inventario.Bodega.Activo && inventario.Cantidad > 0)
+                        .OrderBy(inventario => inventario.BodegaId)
+                        .ThenBy(inventario => inventario.InventarioId)
+                        .ToList();
+
+                    var cantidadDisponible = inventarioDisponibles.Sum(
+                        inventario => (long)inventario.Cantidad);
+
+                    if (item.Cantidad > cantidadDisponible)
+                    {
+                        resultado.Error = $"No hay suficiente stock para {prodRes.Data.Nombre} " +
+                            $"Disponible: {cantidadDisponible}";
+
+                        RevertirTransaccion();
+                        return resultado;
+                    }
+
+                    var cantidadRestante = item.Cantidad;
+
+                    foreach (var inventario in inventarioDisponibles)
+                    {
+                        if (cantidadRestante == 0)
+                        {
+                            break;
+                        }
+
+                        var cantidadADescontar = Math.Min(
+                            inventario.Cantidad, cantidadRestante);
+
+                        inventario.Cantidad -= cantidadADescontar;
+                        cantidadRestante -= cantidadADescontar;
+
+                        var resActualizarInventario = await _unidadDeTrabajo.TInventario.ModificarAsync(inventario);
+
+                        if (!string.IsNullOrEmpty(
+                            resActualizarInventario.Error))
+                        {
+                            resultado.Error = "No fue posible actualizar el inventario";
+
+                            RevertirTransaccion();
+                            return resultado;
+                        }
+                    }
+
 
                     var precio = prodRes.Data.Precio;
                     totalAcumulado += precio * item.Cantidad;
@@ -283,6 +380,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                             resDetalle.Error);
 
                         resultado.Error = resDetalle.Error;
+                        RevertirTransaccion();
                         return resultado;
                     }
 
@@ -307,6 +405,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
                         resModificar.Error);
 
                     resultado.Error = resModificar.Error;
+                    RevertirTransaccion() ;
                     return resultado;
                 }
 
@@ -329,9 +428,12 @@ namespace Tienda.LogicaNegocio.Implementaciones
                         resPago.Error);
 
                     resultado.Error = resPago.Error;
+                    RevertirTransaccion();
                     return resultado;
                 }
 
+                _unidadDeTrabajo.CompletarTran();
+                transaccionActiva = false;
                 resultado.Data = _mapper.Map<TPedido>(resPedido.Data);
 
                 // Traer el correo/nombre del cliente para la factura
@@ -352,6 +454,7 @@ namespace Tienda.LogicaNegocio.Implementaciones
             }
             catch (Exception ex)
             {
+                RevertirTransaccion();
                 _logger.LogError(ex, "Error al procesar la compra completa.");
                 resultado.Error = ex.Message;
             }

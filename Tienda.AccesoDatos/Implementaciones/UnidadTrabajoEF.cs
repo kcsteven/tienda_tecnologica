@@ -8,6 +8,7 @@ using Tienda.AccesoDatos.Contexto;
 using Tienda.Dominio.Entidades;
 using Tienda.Dominio.EntidadesTipadas;
 using Tienda.Dominio.InterfacesAD;
+using System.Data;
 
 namespace Tienda.AccesoDatos.Implementaciones
 {
@@ -420,9 +421,10 @@ namespace Tienda.AccesoDatos.Implementaciones
         }
 
         // Inicia una nueva transacción en la base de datos
-        public void EmpezarTransaccion()
+        public void EmpezarTransaccion(
+            IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            _transaction = _Contexto.Database.BeginTransaction();
+            _transaction = _Contexto.Database.BeginTransaction(isolationLevel);
         }
 
         // Revierte la transacción actual
